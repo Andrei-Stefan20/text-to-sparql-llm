@@ -1,42 +1,65 @@
 import requests
 import time
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
-def search_wikidata_entities(keyword, limit=2):
-    """Queries Wikidata API for entity candidates."""
-    url = "https://www.wikidata.org/w/api.php"
-    params = {
-        "action": "wbsearchentities",
-        "language": "en",
-        "format": "json",
-        "search": keyword,
-        "limit": limit
-    }
-    try:
-        time.sleep(0.1) 
-        response = requests.get(url, params=params, timeout=5)
-        data = response.json()
-        results = []
-        for item in data.get('search', []):
-            label = item.get('label', 'No Label')
-            desc = item.get('description', '')
-            qid = item.get('id')
-            results.append(f"- {label} (ID: {qid}): {desc}")
-        return results
-    except Exception:
-        return []
+ID_PATTERN = re.compile(r'\b([QP]\d+)\b')
 
-def extract_context(question):
-    """Extracts potential entities from the question text."""
-    keywords = [w for w in question.split() if len(w) > 3]
-    keywords = keywords[:3] 
+def get_labels_for_ids(ids_list):
+    """Recupera le etichette leggibili per una lista di QID/PID da Wikidata."""
+    if not ids_list:
+        return []
     
-    context_lines = []
-    for kw in keywords:
-        candidates = search_wikidata_entities(kw)
-        if candidates:
-            context_lines.extend(candidates)
+    ids = list(set(ids_list))
+    chunk_size = 50
+    results = []
     
-    return "\n".join(list(set(context_lines)))
+    headers = {"User-Agent": "TextToSparqlBot/1.0"}
+    
+    for i in range(0, len(ids), chunk_size):
+        chunk = ids[i:i+chunk_size]
+        ids_str = "|".join(chunk)
+        
+        params = {
+            "action": "wbgetentities",
+            "ids": ids_str,
+            "format": "json",
+            "props": "labels|descriptions",
+            "languages": "en"
+        }
+        
+        try:
+            response = requests.get(
+                "https://www.wikidata.org/w/api.php", 
+                params=params, 
+                headers=headers, 
+                timeout=5
+            )
+            data = response.json()
+            
+            if "entities" in data:
+                for qid, info in data["entities"].items():
+                    label = info.get("labels", {}).get("en", {}).get("value", "No Label")
+                    desc = info.get("descriptions", {}).get("en", {}).get("value", "")
+                    results.append(f"- {label} ({qid}): {desc}")
+            
+            time.sleep(0.1)
+            
+        except Exception as e:
+            logger.warning(f"Wikidata API error for {chunk}: {e}")
+            
+    return results
+
+def extract_gold_context(sparql_query):
+    """Estrae entità e proprietà direttamente dalla query SPARQL corretta (Oracle)."""
+    if not sparql_query:
+        return "No gold query available."
+        
+    found_ids = ID_PATTERN.findall(sparql_query)
+    if not found_ids:
+        return "No entities found in gold query."
+        
+    context_lines = get_labels_for_ids(found_ids)
+    return "\n".join(context_lines)
