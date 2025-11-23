@@ -1,14 +1,20 @@
-import sys
-import json
 import logging
-import datetime
-import traceback
+import json
+import sys
 import re
+import traceback
+import pickle
+import datetime
 from pathlib import Path
 from typing import Tuple, List, Dict, Optional
 from tqdm import tqdm
+
+FILE = Path(__file__).resolve()
+PROJECT_ROOT = FILE.parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
 from SPARQLWrapper import SPARQLWrapper, JSON
-from huggingface_hub import hf_hub_download
 
 try:
     from rdflib.plugins.sparql.parser import parseQuery
@@ -17,31 +23,34 @@ try:
 except ImportError:
     HAS_RDFLIB = False
 
-FILE = Path(__file__).resolve()
-PROJECT_ROOT = FILE.parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
-
-from src.models.retriever import FewShotRetriever
-from src.models.entities import extract_gold_context
-
 try:
-    from llama_cpp import Llama
+    from llama_cpp import Llama, LlamaGrammar
 except ImportError:
     Llama = None
+    LlamaGrammar = None
 
+# Import interni
+from src.models.generator import build_prompt
+from src.models.entities import extract_gold_context
+from src.models.retriever import FewShotRetriever
+
+logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
     datefmt='%H:%M:%S'
 )
-logger = logging.getLogger("EVALUATOR")
 
 class ReportManager:
+    """
+    - Cartelle: reports/YYYY-MM-DD/run_XXX/
+    - File: results.json  e report.md 
+    """
     def __init__(self, project_root: Path, model_name: str):
         self.model_name = model_name
         self.start_time = datetime.datetime.now()
         
+        # Struttura cartelle: reports/DATA/run_ID
         date_str = self.start_time.strftime("%Y-%m-%d")
         base_report_dir = project_root / "reports" / date_str
         base_report_dir.mkdir(parents=True, exist_ok=True)
@@ -53,6 +62,7 @@ class ReportManager:
         self.run_dir = base_report_dir / f"run_{run_id:03d}_{time_str}"
         self.run_dir.mkdir(exist_ok=True)
         
+        # Struttura Dati Originale
         self.stats = {
             "meta": {"date": date_str, "model": model_name, "run_id": run_id},
             "metrics": {
@@ -95,6 +105,7 @@ class ReportManager:
         }
         self.stats["results"].append(entry)
         
+        # Aggiornamento Metriche
         m = self.stats["metrics"]
         m["total"] += 1
         if is_valid: m["valid_syntax"] += 1
@@ -107,8 +118,10 @@ class ReportManager:
         self._flush_to_disk()
 
     def _flush_to_disk(self):
+        # Salva JSON
         with open(self.run_dir / "results.json", "w", encoding="utf-8") as f:
             json.dump(self.stats, f, indent=2, ensure_ascii=False)
+        # Salva Markdown
         with open(self.run_dir / "report.md", "w", encoding="utf-8") as f:
             self._write_markdown(f)
 
@@ -149,8 +162,13 @@ class ReportManager:
             
             f.write("<details><summary>Debug Info</summary>\n\n")
             f.write(f"**Context:**\n```text\n{item['debug']['context']}\n```\n\n")
-            f.write(f"**History:**\n````text\n{item['debug']['history']}\n````\n")
+            f.write(f"**History (Prompt):**\n````text\n{item['debug']['history']}\n````\n")
             f.write("</details>\n\n---\n")
+
+    def save_final_report(self):
+        # Alias per compatibilità, flusha un'ultima volta
+        self._flush_to_disk()
+        logger.info(f"Final report saved to {self.run_dir}")
 
 class SPARQLEvaluator:
     def __init__(self, model_path: Path, retriever: FewShotRetriever):
@@ -158,78 +176,64 @@ class SPARQLEvaluator:
         self.endpoint = SPARQLWrapper("https://query.wikidata.org/sparql")
         self.endpoint.setReturnFormat(JSON)
         self.endpoint.addCustomHttpHeader("User-Agent", "TextToSparqlBot/1.0")
-        self.endpoint.setTimeout(30)
+        self.endpoint.setTimeout(60)
         
         import torch
         n_gpu = -1 if torch.cuda.is_available() else 0
         
+        self.grammar = None
+        self.model_name = "MOCK_MODEL"
+        
         if Llama and model_path.exists():
             logger.info(f"Loading Model: {model_path.name}")
+            self.model_name = model_path.name
+            try:
+                grammar_path = PROJECT_ROOT / "sparql_grammar.gbnf"
+                if grammar_path.exists():
+                    logger.info(f"Loading Grammar from: {grammar_path}")
+                    self.grammar = LlamaGrammar.from_file(str(grammar_path))
+                else:
+                    logger.warning(f"Grammar file not found at {grammar_path}. Unconstrained generation.")
+            except Exception as e:
+                logger.error(f"Error loading grammar: {e}")
+
             self.llm = Llama(
                 model_path=str(model_path),
                 n_ctx=4096,
                 n_gpu_layers=n_gpu, 
                 verbose=False
             )
-            self.model_name = model_path.name
         else:
-            logger.warning("Model not loaded. Using MOCK.")
+            logger.warning("Model file not found or Llama package missing. Using MOCK mode.")
             self.llm = None
-            self.model_name = "MOCK_MODEL"
-
-    def prepare_base_prompt(self, question: str, gold_sparql: str) -> Tuple[str, str]:
-        examples = self.retriever.retrieve(question, k=3)
-        context = extract_gold_context(gold_sparql)
-        
-        prompt = f"""You are a SPARQL expert for Wikidata.
-            Output ONLY the SPARQL code inside a ```sparql block.
-
-            ### Schema Context (Use these IDs):
-            {context}
-
-            ### Examples:
-            """
-        for ex in examples:
-            prompt += f"User: {ex['question']}\nQuery: ```sparql\n{ex['sparql']}\n```\n\n"
-            
-        prompt += f"User: {question}\nQuery: ```sparql"
-        return prompt, context
 
     def _clean_query(self, query_text: str) -> str:
-        """
-        Corregge automaticamente i typo comuni di Mistral 7B
-        che il parser non riesce a digerire.
-        """
-        q = query_text
-        
+        q = query_text.strip()
+        q = q.replace("```sparql", "").replace("```", "").strip()
         q = re.sub(r'PREF[A-Z]*\s', 'PREFIX ', q, flags=re.IGNORECASE)
-        
-        q = re.sub(r'SELECTDISTINCT', 'SELECT DISTINCT', q, flags=re.IGNORECASE)
-        
         q = re.sub(r'wd:\?(\w+)', r'?\1', q)
-        
-        open_braces = q.count("{")
-        close_braces = q.count("}")
-        if open_braces > close_braces:
-            q += " }" * (open_braces - close_braces)
-            
         return q
 
     def generate(self, prompt: str) -> str:
         if not self.llm: return ""
-        output = self.llm(
-            prompt, 
-            max_tokens=256, 
-            stop=["User:", "```"], 
-            echo=False,
-            temperature=0.1 
-        )
-        raw_text = output['choices'][0]['text'].strip().replace("```", "").strip()
-        return self._clean_query(raw_text)
+        try:
+            output = self.llm(
+                prompt, 
+                grammar=self.grammar,
+                max_tokens=256, 
+                stop=["User:", "```", "###"],
+                echo=False,
+                temperature=0.1 
+            )
+            raw_text = output['choices'][0]['text']
+            return self._clean_query(raw_text)
+        except Exception as e:
+            logger.error(f"Generation error: {e}")
+            return ""
 
     def validate_syntax_local(self, query: str) -> dict:
         error_info = {"valid": True, "type": None, "detail": None}
-        if not HAS_RDFLIB: return error_info 
+        if not HAS_RDFLIB: return error_info
         try:
             parseQuery(query)
         except ParseException as e:
@@ -262,14 +266,19 @@ class SPARQLEvaluator:
         
         tp = len(g_set & p_set)
         if tp == 0: return 0.0
-        
         precision = tp / len(p_set)
         recall = tp / len(g_set)
         return 2 * (precision * recall) / (precision + recall)
 
     def generate_smart(self, question: str, gold_sparql: str, max_retries=5):
-        prompt, context = self.prepare_base_prompt(question, gold_sparql)
+        # 1. Retrieval
+        examples = self.retriever.retrieve(question, k=3)
+        context = extract_gold_context(gold_sparql)
         
+        # 2. Prompting (Usa la funzione esterna)
+        prompt = build_prompt(question, examples, context)
+        
+        # 3. Generation Loop
         for attempt in range(1, max_retries + 2):
             gen_sparql = self.generate(prompt)
             
@@ -290,7 +299,7 @@ class SPARQLEvaluator:
                 error_info = {"type": syntax_check["type"], "detail": syntax_check["detail"]}
 
             if attempt <= max_retries:
-                logger.info(f"   -> Retry {attempt}: {error_info.get('type', 'Error')}")
+                logger.info(f"   -> Retry {attempt}: {error_info.get('type')}")
                 prompt += f"\n{gen_sparql}\n```\n\n"
                 prompt += f"SYSTEM: Invalid Query. {error_info.get('detail')}\nFix it.\n"
                 prompt += f"Corrected Query: ```sparql"
@@ -298,28 +307,25 @@ class SPARQLEvaluator:
                 return gen_sparql, None, False, error_info, attempt, prompt, context
 
 def get_model_path():
-    REPO = "TheBloke/deepseek-coder-6.7b-instruct-GGUF"
-    FILE = "deepseek-coder-6.7b-instruct.Q4_K_M.gguf"
-    dest = Path.home() / "Desktop" / "models" / FILE
-    
-    if not dest.exists():
-        logger.info("Downloading model...")
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        hf_hub_download(repo_id=REPO, filename=FILE, local_dir=dest.parent, local_dir_use_symlinks=False)
+    REPO_FILE = "deepseek-coder-6.7b-instruct.Q4_K_M.gguf"
+    dest = Path.home() / "Desktop" / "models" / REPO_FILE
     return dest
 
 def main():
     if not HAS_RDFLIB:
-        logger.warning("rdflib missing. Install via 'pip install rdflib' for speed.")
+        logger.warning("rdflib missing. Install 'rdflib' for local syntax check.")
 
     model_path = get_model_path()
-    if not model_path: return
+    if not model_path.exists():
+        logger.error(f"MODEL NOT FOUND: {model_path}")
+        logger.error("Please download the model or update get_model_path() in src/evaluate.py")
+        return
 
     index_path = PROJECT_ROOT / "data/processed/train_index.faiss"
     meta_path = PROJECT_ROOT / "data/processed/train_metadata.pkl"
     
     if not index_path.exists():
-        logger.error("Index missing. Run make_dataset.py")
+        logger.error(f"Index missing at {index_path}. Run 'python src/data/make_dataset.py ...'")
         return
 
     retriever = FewShotRetriever(index_path, meta_path)
@@ -334,13 +340,14 @@ def main():
         logger.error(f"Failed to load test data: {e}")
         return
 
-    SAMPLES = test_data[:50] 
+    SAMPLES = test_data[:20] 
     logger.info(f"Starting evaluation on {len(SAMPLES)} questions...")
 
     for q_obj in tqdm(SAMPLES):
         try:
             question = next((x['string'] for x in q_obj['question'] if x['language'] == 'en'), None)
             gold_sparql = q_obj['query'].get('sparql', '')
+            
             if not question: continue
             
             gold_results, _ = evaluator.execute_remote(gold_sparql)
@@ -349,8 +356,8 @@ def main():
             f1 = 0.0
             if is_valid and gen_results:
                 f1 = evaluator.calculate_f1(gold_results, gen_results)
-                if f1 < 1.0 and is_valid:
-                    error_info = {"type": "Wrong Answer", "detail": f"Result mismatch (F1={f1:.2f})"}
+                if f1 < 1.0:
+                    error_info = {"type": "Wrong Answer", "detail": f"F1 Score: {f1:.2f}"}
             
             reporter.log_entry(question, gold_sparql, gen_sparql, is_valid, error_info, f1, attempts, prompt, ctx, gold_results, gen_results)
             

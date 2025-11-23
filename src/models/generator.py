@@ -1,20 +1,36 @@
+STANDARD_PREFIXES = """PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bd: <http://www.bigdata.com/rdf#>"""
+
 def build_prompt(user_question, similar_examples, candidate_entities):
+    """
+    Costruisce il prompt per il LLM includendo esempi few-shot e il contesto dello schema.
+    """
+    prompt = f"""You are an expert SPARQL developer for Wikidata.
+    Your task is to translate a natural language question into a valid SPARQL query.
 
-    prompt = """You are a SPARQL expert for Wikidata.
-        Your task is to translate a natural language question into a valid SPARQL query.
-        Use the provided schema elements and examples.
+    ### Guidelines:
+    1. Use the provided Schema/Entities.
+    2. Use ONLY these standard prefixes (do not define your own):
+    {STANDARD_PREFIXES}
+    3. Do NOT explain the query, output ONLY the code.
+    4. Output the SPARQL query inside a ```sparql``` code block.
+    """
 
-        """
-    
-    # 1. Aggiungi esempi simili 
-    prompt += "### Examples:\n"
+    prompt += "\n### Few-Shot Examples:\n"
     for ex in similar_examples:
-        prompt += f"Question: {ex['question']}\nSPARQL: {ex['query']}\n\n"
+        sparql_code = ex.get('sparql', ex.get('query', ''))
+        sparql_code = sparql_code.strip()
+        prompt += f"User: {ex['question']}\nQuery:\n```sparql\n{sparql_code}\n```\n\n"
 
-    # 2. Aggiunta Entità 
-    prompt += f"### Context (Candidate Entities/Relations):\n{candidate_entities}\n\n"
-
-    # 3. Domanda Target
-    prompt += f"### Task:\nQuestion: {user_question}\nSPARQL:"
+    prompt += f"### Context (Schema):\n{candidate_entities}\n\n"
+    prompt += f"### User Question:\n{user_question}\n\n"
+    
+    prompt += "```sparql" 
     
     return prompt

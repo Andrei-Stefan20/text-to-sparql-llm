@@ -53,7 +53,7 @@ def get_labels_for_ids(ids_list):
     return results
 
 def extract_gold_context(sparql_query):
-    """Estrae entità e proprietà direttamente dalla query SPARQL corretta (Oracle)."""
+    """Estrae entità e proprietà direttamente dalla query SPARQL corretta."""
     if not sparql_query:
         return "No gold query available."
         

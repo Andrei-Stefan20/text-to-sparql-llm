@@ -11,7 +11,6 @@ from dotenv import find_dotenv, load_dotenv
 logger = logging.getLogger(__name__)
 
 def load_qald_json(filepath):
-    """Parses QALD JSON format to extract (question, sparql) pairs."""
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
@@ -27,7 +26,6 @@ def load_qald_json(filepath):
 @click.argument('input_filepath', type=click.Path(exists=True))
 @click.argument('output_dir', type=click.Path())
 def main(input_filepath, output_dir):
-    """Runs data processing scripts to turn raw data into a vector index."""
     logger.info('Starting dataset processing...')
     
     # 1. Load Data
@@ -36,7 +34,7 @@ def main(input_filepath, output_dir):
 
     # 2. Generate Embeddings
     logger.info("Generating embeddings (this may take time)...")
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
     questions = [p['question'] for p in train_pairs]
     embeddings = model.encode(questions, show_progress_bar=True)
 

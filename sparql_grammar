@@ -1,0 +1,63 @@
+# Root rule: Defines the overall structure of a SPARQL query
+root ::= (prologue)? query
+
+# Prologue: Optional list of PREFIX declarations
+prologue ::= (prefix_decl ws)+
+prefix_decl ::= "PREFIX" ws prefix_label ":" ws iri_ref
+
+# The main Query structure (Focused on SELECT)
+query ::= "SELECT" ws (distinct_opt)? select_vars ws "WHERE" ws "{" ws group_graph_pattern ws "}" ws (solution_modifier)?
+
+# Select variables: Either * or a list of variables
+select_vars ::= "*" | (var ws)+
+
+# Optional DISTINCT
+distinct_opt ::= "DISTINCT" ws
+
+# Graph Patterns: The core logic inside WHERE {}
+# Allows sequences of triples, optional blocks, filters, and unions
+group_graph_pattern ::= (triples_block | block_pattern)+
+block_pattern ::= (optional_block | union_block | filter_block | bind_block) ws
+
+triples_block ::= triple (ws "." ws triple)* (ws ".")? ws
+
+# Basic Triple: Subject Predicate Object
+triple ::= var_or_term ws var_or_term ws var_or_term
+
+# Blocks
+optional_block ::= "OPTIONAL" ws "{" ws group_graph_pattern "}"
+union_block    ::= "{" ws group_graph_pattern "}" ws "UNION" ws "{" ws group_graph_pattern "}"
+filter_block   ::= "FILTER" ws "(" ws filter_expr ws ")"
+bind_block     ::= "BIND" ws "(" ws expression ws "AS" ws var ws ")"
+
+# Solution Modifiers (ORDER BY, LIMIT, OFFSET)
+solution_modifier ::= (order_clause)? (limit_clause)? (offset_clause)?
+order_clause ::= "ORDER BY" ws ("ASC" | "DESC")? ws "("? ws var ws ")"? ws
+limit_clause ::= "LIMIT" ws integer ws
+offset_clause ::= "OFFSET" ws integer ws
+
+# Terminals and Basic Types
+prefix_label ::= [a-zA-Z0-9_-]+
+iri_ref ::= "<" [^<>\"{}|^`\\]+ ">" | prefixed_name
+prefixed_name ::= [a-zA-Z0-9_-]+ ":" [a-zA-Z0-9_.-]*
+
+var ::= "?" [a-zA-Z0-9_]+
+var_or_term ::= var | iri_ref | literal
+
+# Literals (Strings, Numbers, Booleans)
+literal ::= string_literal (lang_tag | type_tag)? | number | boolean
+string_literal ::= "\"" [^"\\]* "\"" | "'" [^'\\]* "'"
+lang_tag ::= "@" [a-zA-Z]+
+type_tag ::= "^^" iri_ref
+number ::= [0-9]+ ("." [0-9]+)?
+boolean ::= "true" | "false"
+integer ::= [0-9]+
+
+# Expressions (Simplified for filter logic)
+filter_expr ::= expression (ws operator ws expression)*
+expression ::= var | literal | iri_ref | "(" ws filter_expr ws ")" | func_call
+operator ::= "=" | "!=" | "<" | ">" | "<=" | ">=" | "&&" | "||" | "+" | "-" | "*" | "/"
+func_call ::= "BOUND" "(" ws var ws ")" | "REGEX" "(" ws var ws "," ws string_literal ws ")" | "LANG" "(" ws var ws ")"
+
+# Whitespace handling
+ws ::= [ \t\n]*
