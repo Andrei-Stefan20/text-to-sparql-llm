@@ -307,7 +307,7 @@ class SPARQLEvaluator:
                 return gen_sparql, None, False, error_info, attempt, prompt, context
 
 def get_model_path():
-    REPO_FILE = "deepseek-coder-6.7b-instruct.Q4_K_M.gguf"
+    REPO_FILE = "qwen2.5-coder-7b-instruct-q5_k_m.gguf"
     dest = Path.home() / "Desktop" / "models" / REPO_FILE
     return dest
 
