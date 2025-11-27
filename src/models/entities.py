@@ -8,13 +8,18 @@ logger = logging.getLogger(__name__)
 ID_PATTERN = re.compile(r'\b([QP]\d+)\b')
 
 def get_labels_for_ids(ids_list):
-    """Recupera le etichette leggibili per una lista di QID/PID da Wikidata."""
+    """
+    Recupera le etichette per QID/PID e le formatta separando 
+    Proprietà (predicati) ed Entità (oggetti/soggetti).
+    """
     if not ids_list:
         return []
     
     ids = list(set(ids_list))
     chunk_size = 50
-    results = []
+    
+    items = []      # Q-ids
+    properties = [] # P-ids
     
     headers = {"User-Agent": "TextToSparqlBot/1.0"}
     
@@ -42,15 +47,31 @@ def get_labels_for_ids(ids_list):
             if "entities" in data:
                 for qid, info in data["entities"].items():
                     label = info.get("labels", {}).get("en", {}).get("value", "No Label")
-                    desc = info.get("descriptions", {}).get("en", {}).get("value", "")
-                    results.append(f"- {label} ({qid}): {desc}")
+                    desc = info.get("descriptions", {}).get("en", {}).get("value", "No description")
+                    
+                    if qid.startswith("P"):
+                        line = f"wdt:{qid} ({label}) - {desc}"
+                        properties.append(line)
+                    else:
+                        line = f"wd:{qid} ({label}) - {desc}"
+                        items.append(line)
             
             time.sleep(0.1)
             
         except Exception as e:
             logger.warning(f"Wikidata API error for {chunk}: {e}")
             
-    return results
+    output_lines = []
+    
+    if properties:
+        output_lines.append("--- PROPERTIES (Relations) ---")
+        output_lines.extend(properties)
+        
+    if items:
+        output_lines.append("\n--- ENTITIES (Items/Objects) ---")
+        output_lines.extend(items)
+            
+    return output_lines
 
 def extract_gold_context(sparql_query):
     """Estrae entità e proprietà direttamente dalla query SPARQL corretta."""
