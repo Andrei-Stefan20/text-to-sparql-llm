@@ -19,8 +19,12 @@ Response: STRATEGY: For movie directors, use wdt:P57, not wdt:P50.
 """
 
 class ACEEngine:
-    def __init__(self, llm_engine, playbook_path: Path):
-        self.llm = llm_engine
+    def __init__(self, generator_interface, playbook_path: Path):
+        """
+        :param generator_interface: Un oggetto con metodo .generate_raw(prompt, stop=...)
+        :param playbook_path: Path al file JSON delle regole
+        """
+        self.generator = generator_interface
         self.playbook_path = playbook_path
         self.playbook: List[str] = []
         self.load_playbook()
@@ -50,16 +54,14 @@ class ACEEngine:
         prompt += "Write the corrective rule (start with 'STRATEGY:'):"
 
         try:
-            output = self.llm(
+            # Chiamata al nuovo metodo dell'evaluator
+            text = self.generator.generate_raw(
                 prompt,
-                max_tokens=128,
-                stop=["\n\n", "User Question:"], 
-                echo=False,
-                temperature=0.1 # Lower temp for more deterministic output
+                max_new_tokens=128,
+                stop=["\n\n", "User Question:"]
             )
-            text = output['choices'][0]['text'].strip()
             
-            strategy = text
+            strategy = text.strip()
             
             # Case 1: Model followed instructions
             if "STRATEGY:" in text:
