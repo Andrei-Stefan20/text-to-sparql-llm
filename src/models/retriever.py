@@ -1,8 +1,3 @@
-"""
-src/models/retriever.py
-Handles semantic search to retrieve few-shot examples using FAISS and Sentence Transformers.
-"""
-
 import faiss
 import pickle
 from sentence_transformers import SentenceTransformer
@@ -23,7 +18,7 @@ class FewShotRetriever:
         # Load FAISS index
         self.index = faiss.read_index(str(index_path))
         
-        # Load metadata (actual examples)
+        # Load metadata 
         with open(metadata_path, "rb") as f:
             self.examples = pickle.load(f)
 
@@ -52,7 +47,6 @@ class FewShotRetriever:
                 example = self.examples[idx]
                 ex_question = example['question'].strip().lower()
                 
-                # Simple filter: don't include the exact same question in the few-shot
                 if ex_question != query_norm:
                     results.append(example)
                 

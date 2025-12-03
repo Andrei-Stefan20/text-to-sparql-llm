@@ -1,97 +1,170 @@
-import json
 import logging
+import json
+import sys
+import os
+import time
+import traceback
 from pathlib import Path
-from typing import List, Any
+from typing import List
 
+# --- 1. Setup Percorsi ---
+FILE = Path(__file__).resolve()
+PROJECT_ROOT = FILE.parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
+# --- 2. Carica Variabili d'Ambiente ---
+try:
+    from dotenv import load_dotenv
+    env_path = PROJECT_ROOT / ".env"
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path)
+except ImportError:
+    pass
+
+# --- 3. Import ---
+import google.generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
+
+from src.models.generator import build_prompt
+from src.models.entities import extract_gold_context
+from src.models.retriever import FewShotRetriever
+from src.utils.report_manager import ReportManager
+from src.utils.sparql_client import SPARQLClient
+
+# --- 4. Configurazione Logging ---
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
-CURATOR_SYSTEM_PROMPT = """You are a helpful Strategy Curator for Wikidata SPARQL.
-Your goal is to help the user write better queries by creating a general rule based on their mistake.
+class GeminiGenerator:
+    """Wrapper per l'API di Google Gemini."""
+    def __init__(self, model_id: str):
+        self.model_id = model_id
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            logger.error("CRITICAL: GEMINI_API_KEY non trovata nel file .env")
+            sys.exit(1)
+            
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel(model_id)
 
-TASK:
-1. Analyze the User Question, the Failed Query, and the Error.
-2. Write ONE simple, general rule to prevent this error.
-3. The rule must start with "STRATEGY: ".
-
-EXAMPLE:
-Error: Property P50 used for a movie director.
-Response: STRATEGY: For movie directors, use wdt:P57, not wdt:P50.
-"""
-
-class ACEEngine:
-    def __init__(self, generator_interface: Any, playbook_path: Path):
-        """
-        :param generator_interface: Object with a .generate_raw(prompt, stop=...) method.
-        :param playbook_path: Path to the JSON file containing the strategies.
-        """
-        self.generator = generator_interface
-        self.playbook_path = playbook_path
-        self.playbook: List[str] = []
-        self.load_playbook()
-
-    def load_playbook(self):
-        """Loads the playbook from the JSON file if it exists."""
-        if self.playbook_path.exists():
-            try:
-                with open(self.playbook_path, 'r', encoding='utf-8') as f:
-                    self.playbook = json.load(f)
-            except Exception:
-                self.playbook = []
-
-    def save_playbook(self):
-        """Saves the current playbook to the JSON file."""
-        with open(self.playbook_path, 'w', encoding='utf-8') as f:
-            json.dump(self.playbook, f, indent=2)
-
-    def get_context_block(self) -> str:
-        """Returns the formatted strategies to be injected into the prompt."""
-        if not self.playbook:
-            return "No specific strategies yet."
-        return "\n".join([f"- {rule}" for rule in self.playbook])
-
-    def curate(self, question: str, wrong_sparql: str, error_msg: str):
-        """
-        Uses the LLM to analyze the error and generate a new strategy.
-        Adds the strategy to the playbook if it's valid and new.
-        """
-        prompt = f"{CURATOR_SYSTEM_PROMPT}\n\n"
-        prompt += f"User Question: {question}\n"
-        prompt += f"Failed Query: {wrong_sparql}\n"
-        prompt += f"Error Message: {error_msg}\n\n"
-        prompt += "Write the corrective rule (start with 'STRATEGY:'):"
-
+    def generate_raw(self, prompt: str, stop: List[str] = None, max_new_tokens=1024) -> str:
+        generation_config = genai.types.GenerationConfig(
+            max_output_tokens=max_new_tokens,
+            temperature=0.1,
+            stop_sequences=stop
+        )
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+        }
+        
         try:
-            # Call the generator (LLM)
-            text = self.generator.generate_raw(
-                prompt,
-                max_new_tokens=128,
-                stop=["\n\n", "User Question:"]
+            response = self.model.generate_content(
+                prompt, 
+                generation_config=generation_config, 
+                safety_settings=safety_settings
             )
-            
-            strategy = text.strip()
-            
-            # Extract strategy text
-            if "STRATEGY:" in text:
-                strategy = text.split("STRATEGY:")[1].strip()
-            elif len(text) > 5 and "STRATEGY" not in text:
-                # Fallback: model output only the rule
-                strategy = text
-                
-            # Cleanup quotes
-            strategy = strategy.strip('"').strip("'")
-
-            # Simple validation heuristics
-            is_valid_rule = len(strategy) > 10 and any(x in strategy for x in ["P", "Q", "FILTER", "SELECT", "use", "Use"])
-            
-            if is_valid_rule:
-                if strategy not in self.playbook:
-                    self.playbook.append(strategy)
-                    logger.info(f"ACE LEARNED: {strategy}")
-                    self.save_playbook()
-                else:
-                    logger.info("ACE: Strategy already known.")
-            else:
-                logger.warning(f"ACE Ignored invalid/empty strategy: '{text}'")
-
+            if response.candidates and response.candidates[0].content.parts:
+                return response.candidates[0].content.parts[0].text.strip()
+            return ""
         except Exception as e:
-            logger.error(f"ACE Curation failed: {e}")
+            logger.error(f"Errore API Gemini: {e}")
+            time.sleep(1)
+            return ""
+
+def main():
+    logger.info(">>> AVVIO VALUTAZIONE GEMINI STANDARD...")
+    
+    # Configurazione
+    MODEL_ID = "models/gemini-2.0-flash" 
+    DATA_INDEX = PROJECT_ROOT / "data/processed/train_index.faiss"
+    DATA_META = PROJECT_ROOT / "data/processed/train_metadata.pkl"
+    TEST_FILE = PROJECT_ROOT / "data/raw/QALD-10/data/qald_10/qald_10.json"
+    
+    if not DATA_INDEX.exists():
+        logger.error(f"Indice FAISS non trovato in {DATA_INDEX}. Esegui make_dataset.py.")
+        return
+
+    # Inizializzazione
+    retriever = FewShotRetriever(DATA_INDEX, DATA_META)
+    sparql_client = SPARQLClient()
+    generator = GeminiGenerator(MODEL_ID)
+    reporter = ReportManager(PROJECT_ROOT, MODEL_ID.replace("/", "_"), run_prefix="gemini_std")
+
+    # Caricamento Dati
+    with open(TEST_FILE, 'r', encoding='utf-8') as f:
+        test_data = json.load(f)['questions']
+    
+    SAMPLES = test_data[:20] # Test su 20 domande
+    logger.info(f"Test su {len(SAMPLES)} domande.")
+
+    for i, q_obj in enumerate(SAMPLES):
+        logger.info(f"--- Elaborazione Domanda {i+1}/{len(SAMPLES)} ---")
+        try:
+            question = next((x['string'] for x in q_obj['question'] if x['language'] == 'en'), None)
+            gold_sparql = q_obj['query'].get('sparql', '')
+            if not question: continue
+
+            # Gold Execution
+            gold_results, _ = sparql_client.execute_remote(gold_sparql)
+
+            # Prompt
+            examples = retriever.retrieve(question, k=3)
+            context = extract_gold_context(gold_sparql)
+            prompt = build_prompt(question, examples, context)
+
+            # Generation loop (Self-Correction semplice)
+            MAX_RETRIES = 3
+            best_result = None
+
+            for attempt in range(1, MAX_RETRIES + 2):
+                raw_response = generator.generate_raw(prompt, stop=["User:", "###", "Question:"])
+                gen_sparql = sparql_client.clean_query(raw_response)
+                
+                syntax_check = sparql_client.validate_syntax_local(gen_sparql)
+                results, exec_error = None, None
+                error_info = {}
+
+                if syntax_check["valid"]:
+                    results, exec_error = sparql_client.execute_remote(gen_sparql)
+                    if exec_error:
+                        syntax_check["valid"] = False
+                        error_info = {"type": "Execution Error", "detail": exec_error}
+                    else:
+                        best_result = (gen_sparql, raw_response, True, {}, results, attempt)
+                        break 
+                else:
+                    error_info = {"type": syntax_check["type"], "detail": syntax_check["detail"]}
+                
+                # Setup retry prompt
+                if attempt <= MAX_RETRIES:
+                    prompt += f"\n{gen_sparql}\n```\n\nSYSTEM: Invalid Query. {error_info.get('detail')}\nFix it.\nCorrected Query: ```sparql"
+                else:
+                    best_result = (gen_sparql, raw_response, False, error_info, None, attempt)
+
+            # Logging
+            gen_sparql, raw_resp, is_valid, error_info, gen_results, attempts = best_result
+            
+            f1 = 0.0
+            if is_valid and gen_results:
+                f1 = sparql_client.calculate_f1(gold_results, gen_results)
+                if f1 < 1.0 and not error_info:
+                    error_info = {"type": "Wrong Answer", "detail": f"F1 Score: {f1:.2f}"}
+
+            reporter.log_entry(question, gold_sparql, gen_sparql, raw_resp, is_valid, error_info, f1, attempts, prompt, context, gold_results, gen_results)
+            
+        except Exception as e:
+            logger.error(f"Errore domanda {i+1}: {e}")
+            traceback.print_exc()
+
+    reporter.save_final_report()
+
+if __name__ == "__main__":
+    main()

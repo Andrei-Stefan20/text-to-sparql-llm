@@ -1,7 +1,3 @@
-"""
-src/models/generator.py
-Handles the construction of prompts for the LLM.
-"""
 
 STANDARD_PREFIXES = """PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -23,7 +19,7 @@ PREFIX bd: [http://www.bigdata.com/rdf#](http://www.bigdata.com/rdf#)"""
 
 def build_prompt(user_question: str, similar_examples: list, candidate_entities: str) -> str:
     """
-    Builds the standard few-shot prompt.
+    Builds the few-shot prompt.
     
     Args:
         user_question: The user's input question.
@@ -43,7 +39,6 @@ def build_prompt(user_question: str, similar_examples: list, candidate_entities:
 
     prompt += "\n### Few-Shot Examples:\n"
     for ex in similar_examples:
-        # Handle cases where the key might be 'sparql' or 'query'
         sparql_code = ex.get('sparql', ex.get('query', ''))
         sparql_code = sparql_code.strip()
         prompt += f"User: {ex['question']}\nQuery:\n```sparql\n{sparql_code}\n```\n\n"
@@ -51,7 +46,6 @@ def build_prompt(user_question: str, similar_examples: list, candidate_entities:
     prompt += f"### Context (Schema):\n{candidate_entities}\n\n"
     prompt += f"### User Question:\n{user_question}\n\n"
     
-    # Pre-fill the start of the block to guide the model
     prompt += "```sparql" 
     
     return prompt

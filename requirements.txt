@@ -1,16 +1,24 @@
---extra-index-url https://download.pytorch.org/whl/cu121
+# Logic and AI
+google-generativeai>=0.3.0
+sentence-transformers>=2.2.0
+faiss-cpu>=1.7.4
+torch>=2.0.0
+transformers>=4.30.0
+accelerate>=0.20.0
 
-click
-python-dotenv
-sentence-transformers
-faiss-cpu
-numpy
-pandas
-SPARQLWrapper
-requests
-tqdm
-torch
-transformers
-accelerate
-bitsandbytes
-hf_xet
+# SPARQL & Knowledge Graph
+SPARQLWrapper>=2.0.0
+rdflib>=6.3.2
+pyparsing>=3.0.0
+
+# Utilities & Data
+python-dotenv>=1.0.0
+requests>=2.31.0
+tqdm>=4.65.0
+click>=8.1.0
+numpy>=1.24.0
+
+# Reporting & Visualization (Nuovi)
+matplotlib>=3.7.0
+pandas>=2.0.0
+seaborn>=0.12.0

@@ -87,5 +87,8 @@
   "Use SELECT instead of ASK to return results when querying for specific entities and properties.",
   "When checking for temporal overlap or precedence, ensure your query includes specific date properties (e.g., wdt:P2031 for end time, wdt:P580 for start time) and uses comparison operators (e.g., <=, >=) to accurately reflect the intended temporal relationship. An empty result often indicates a missing or incorrect temporal constraint.",
   "Use a SERVICE wikibase:label to check the labels of entities when debugging boolean ASK queries that return no results.",
-  "When querying for instances of a class (e.g., animals) participating in an event, ensure the instance is directly related to the event, and the class constraint applies to the instance, not a property of the instance. Check the property used to link the instance to the event."
+  "When querying for instances of a class (e.g., animals) participating in an event, ensure the instance is directly related to the event, and the class constraint applies to the instance, not a property of the instance. Check the property used to link the instance to the event.",
+  "When looking for the namesake of a topic, use the property wdt:P138 (named after), and ensure the subject is the item you are investigating.",
+  "Verify that the property used to link an entity to a military operation (e.g., wdt:P710 participant) is appropriate for animals, and that the instance of (wdt:P31) is also appropriate for animals.",
+  "Check that the values used in FILTER (?animalType = wd:XXX) are of the correct type. In this case, wd:Q16521 (taxon) is not the correct type for animals. Use the instance of (P31) property to find the correct animal type."
 ]

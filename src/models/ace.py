@@ -61,7 +61,7 @@ class ACEEngine:
         prompt += "Write the corrective rule (start with 'STRATEGY:'):"
 
         try:
-            # Call the generator (LLM)
+            # Call the generator 
             text = self.generator.generate_raw(
                 prompt,
                 max_new_tokens=128,
@@ -80,7 +80,7 @@ class ACEEngine:
             # Cleanup quotes
             strategy = strategy.strip('"').strip("'")
 
-            # Simple validation heuristics
+            # Validation heuristics
             is_valid_rule = len(strategy) > 10 and any(x in strategy for x in ["P", "Q", "FILTER", "SELECT", "use", "Use"])
             
             if is_valid_rule:
