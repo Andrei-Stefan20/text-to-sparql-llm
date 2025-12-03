@@ -1,3 +1,8 @@
+"""
+src/models/generator.py
+Handles the construction of prompts for the LLM.
+"""
+
 STANDARD_PREFIXES = """PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -7,7 +12,24 @@ PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX bd: <http://www.bigdata.com/rdf#>"""
 
-def build_prompt(user_question, similar_examples, candidate_entities):
+STANDARD_PREFIXES_ACE = """PREFIX wd: [http://www.wikidata.org/entity/](http://www.wikidata.org/entity/)
+PREFIX wdt: [http://www.wikidata.org/prop/direct/](http://www.wikidata.org/prop/direct/)
+PREFIX wikibase: [http://wikiba.se/ontology#](http://wikiba.se/ontology#)
+PREFIX p: [http://www.wikidata.org/prop/](http://www.wikidata.org/prop/)
+PREFIX ps: [http://www.wikidata.org/prop/statement/](http://www.wikidata.org/prop/statement/)
+PREFIX pq: [http://www.wikidata.org/prop/qualifier/](http://www.wikidata.org/prop/qualifier/)
+PREFIX rdfs: [http://www.w3.org/2000/01/rdf-schema#](http://www.w3.org/2000/01/rdf-schema#)
+PREFIX bd: [http://www.bigdata.com/rdf#](http://www.bigdata.com/rdf#)"""
+
+def build_prompt(user_question: str, similar_examples: list, candidate_entities: str) -> str:
+    """
+    Builds the standard few-shot prompt.
+    
+    Args:
+        user_question: The user's input question.
+        similar_examples: List of dictionaries containing few-shot examples (question, sparql).
+        candidate_entities: A string containing the schema context (entities/properties).
+    """
     prompt = f"""You are an expert SPARQL developer for Wikidata.
     Your task is to translate a natural language question into a valid SPARQL query.
 
@@ -21,6 +43,7 @@ def build_prompt(user_question, similar_examples, candidate_entities):
 
     prompt += "\n### Few-Shot Examples:\n"
     for ex in similar_examples:
+        # Handle cases where the key might be 'sparql' or 'query'
         sparql_code = ex.get('sparql', ex.get('query', ''))
         sparql_code = sparql_code.strip()
         prompt += f"User: {ex['question']}\nQuery:\n```sparql\n{sparql_code}\n```\n\n"
@@ -28,20 +51,16 @@ def build_prompt(user_question, similar_examples, candidate_entities):
     prompt += f"### Context (Schema):\n{candidate_entities}\n\n"
     prompt += f"### User Question:\n{user_question}\n\n"
     
+    # Pre-fill the start of the block to guide the model
     prompt += "```sparql" 
     
     return prompt
 
-STANDARD_PREFIXES_ACE = """PREFIX wd: [http://www.wikidata.org/entity/](http://www.wikidata.org/entity/)
-PREFIX wdt: [http://www.wikidata.org/prop/direct/](http://www.wikidata.org/prop/direct/)
-PREFIX wikibase: [http://wikiba.se/ontology#](http://wikiba.se/ontology#)
-PREFIX p: [http://www.wikidata.org/prop/](http://www.wikidata.org/prop/)
-PREFIX ps: [http://www.wikidata.org/prop/statement/](http://www.wikidata.org/prop/statement/)
-PREFIX pq: [http://www.wikidata.org/prop/qualifier/](http://www.wikidata.org/prop/qualifier/)
-PREFIX rdfs: [http://www.w3.org/2000/01/rdf-schema#](http://www.w3.org/2000/01/rdf-schema#)
-PREFIX bd: [http://www.bigdata.com/rdf#](http://www.bigdata.com/rdf#)"""
-
-def build_ace_prompt(user_question, similar_examples, candidate_entities, playbook_context):
+def build_ace_prompt(user_question: str, similar_examples: list, candidate_entities: str, playbook_context: str) -> str:
+    """
+    Builds the prompt specifically for the ACE (Automated Correction Engine) workflow.
+    It includes the 'Playbook' of learned strategies.
+    """
     prompt = f"""You are an expert SPARQL developer for Wikidata.
     Translate the user question into a valid SPARQL query.
 

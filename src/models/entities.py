@@ -2,15 +2,16 @@ import requests
 import time
 import logging
 import re
+from typing import List
 
 logger = logging.getLogger(__name__)
 
 ID_PATTERN = re.compile(r'\b([QP]\d+)\b')
 
-def get_labels_for_ids(ids_list):
+def get_labels_for_ids(ids_list: List[str]) -> List[str]:
     """
-    Recupera le etichette per QID/PID e le formatta separando 
-    Proprietà (predicati) ed Entità (oggetti/soggetti).
+    Retrieves labels for Q-IDs and P-IDs and formats them,
+    separating Properties (predicates) and Entities (objects/subjects).
     """
     if not ids_list:
         return []
@@ -56,10 +57,10 @@ def get_labels_for_ids(ids_list):
                         line = f"wd:{qid} ({label}) - {desc}"
                         items.append(line)
             
-            time.sleep(0.1)
+            time.sleep(0.1) # Respect API rate limits
             
         except Exception as e:
-            logger.warning(f"Wikidata API error for {chunk}: {e}")
+            logger.warning(f"Wikidata API error for chunk {chunk}: {e}")
             
     output_lines = []
     
@@ -73,8 +74,11 @@ def get_labels_for_ids(ids_list):
             
     return output_lines
 
-def extract_gold_context(sparql_query):
-    """Estrae entità e proprietà direttamente dalla query SPARQL corretta."""
+def extract_gold_context(sparql_query: str) -> str:
+    """
+    Extracts entities and properties directly from the correct (gold) SPARQL query.
+    Useful for creating the schema context in prompts.
+    """
     if not sparql_query:
         return "No gold query available."
         

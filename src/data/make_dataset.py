@@ -1,3 +1,8 @@
+"""
+src/data/make_dataset.py
+Script to process QALD-10 JSON data, generate embeddings, and build the FAISS index.
+"""
+
 import click
 import logging
 import json
@@ -11,6 +16,7 @@ from dotenv import find_dotenv, load_dotenv
 logger = logging.getLogger(__name__)
 
 def load_qald_json(filepath):
+    """Parses the QALD-10 JSON structure to extract English questions and SPARQL queries."""
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
@@ -26,6 +32,10 @@ def load_qald_json(filepath):
 @click.argument('input_filepath', type=click.Path(exists=True))
 @click.argument('output_dir', type=click.Path())
 def main(input_filepath, output_dir):
+    """
+    Runs data processing scripts to turn raw data from (../raw) into
+    cleaned data ready to be analyzed (saved in ../processed).
+    """
     logger.info('Starting dataset processing...')
     
     # 1. Load Data
