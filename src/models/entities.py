@@ -57,7 +57,7 @@ def get_labels_for_ids(ids_list: List[str]) -> List[str]:
                         line = f"wd:{qid} ({label}) - {desc}"
                         items.append(line)
             
-            time.sleep(0.1) # Respect API rate limits
+            time.sleep(0.1) 
             
         except Exception as e:
             logger.warning(f"Wikidata API error for chunk {chunk}: {e}")

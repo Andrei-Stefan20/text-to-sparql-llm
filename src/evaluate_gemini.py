@@ -7,13 +7,13 @@ import traceback
 from pathlib import Path
 from typing import List
 
-# --- 1. Setup Percorsi ---
+# --- 1. Path Setup ---
 FILE = Path(__file__).resolve()
 PROJECT_ROOT = FILE.parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-# --- 2. Carica Variabili d'Ambiente ---
+# --- 2. Load Environment Variables ---
 try:
     from dotenv import load_dotenv
     env_path = PROJECT_ROOT / ".env"
@@ -22,7 +22,7 @@ try:
 except ImportError:
     pass
 
-# --- 3. Import ---
+# --- 3. Imports ---
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
@@ -32,7 +32,7 @@ from src.models.retriever import FewShotRetriever
 from src.utils.report_manager import ReportManager
 from src.utils.sparql_client import SPARQLClient
 
-# --- 4. Configurazione Logging ---
+# --- 4. Logging Configuration ---
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -41,12 +41,12 @@ logging.basicConfig(
 )
 
 class GeminiGenerator:
-    """Wrapper per l'API di Google Gemini."""
+    """Wrapper for Google Gemini API."""
     def __init__(self, model_id: str):
         self.model_id = model_id
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
-            logger.error("CRITICAL: GEMINI_API_KEY non trovata nel file .env")
+            logger.error("ERROR: GEMINI_API_KEY not found in .env file")
             sys.exit(1)
             
         genai.configure(api_key=api_key)
@@ -75,38 +75,38 @@ class GeminiGenerator:
                 return response.candidates[0].content.parts[0].text.strip()
             return ""
         except Exception as e:
-            logger.error(f"Errore API Gemini: {e}")
+            logger.error(f"Gemini API Error: {e}")
             time.sleep(1)
             return ""
 
 def main():
-    logger.info(">>> AVVIO VALUTAZIONE GEMINI STANDARD...")
+    logger.info(">>> STARTING STANDARD GEMINI EVALUATION FEW-SHOT...")
     
-    # Configurazione
+    # Configuration
     MODEL_ID = "models/gemini-2.0-flash" 
     DATA_INDEX = PROJECT_ROOT / "data/processed/train_index.faiss"
     DATA_META = PROJECT_ROOT / "data/processed/train_metadata.pkl"
     TEST_FILE = PROJECT_ROOT / "data/raw/QALD-10/data/qald_10/qald_10.json"
     
     if not DATA_INDEX.exists():
-        logger.error(f"Indice FAISS non trovato in {DATA_INDEX}. Esegui make_dataset.py.")
+        logger.error(f"FAISS index not found at {DATA_INDEX}. Run make_dataset.py.")
         return
 
-    # Inizializzazione
+    # Initialization
     retriever = FewShotRetriever(DATA_INDEX, DATA_META)
     sparql_client = SPARQLClient()
     generator = GeminiGenerator(MODEL_ID)
     reporter = ReportManager(PROJECT_ROOT, MODEL_ID.replace("/", "_"), run_prefix="gemini_std")
 
-    # Caricamento Dati
+    # Load Data
     with open(TEST_FILE, 'r', encoding='utf-8') as f:
         test_data = json.load(f)['questions']
     
-    SAMPLES = test_data[:20] # Test su 20 domande
-    logger.info(f"Test su {len(SAMPLES)} domande.")
+    SAMPLES = test_data[:100] 
+    logger.info(f"Testing on {len(SAMPLES)} questions.")
 
     for i, q_obj in enumerate(SAMPLES):
-        logger.info(f"--- Elaborazione Domanda {i+1}/{len(SAMPLES)} ---")
+        logger.info(f"--- Processing Question {i+1}/{len(SAMPLES)} ---")
         try:
             question = next((x['string'] for x in q_obj['question'] if x['language'] == 'en'), None)
             gold_sparql = q_obj['query'].get('sparql', '')
@@ -120,8 +120,8 @@ def main():
             context = extract_gold_context(gold_sparql)
             prompt = build_prompt(question, examples, context)
 
-            # Generation loop (Self-Correction semplice)
-            MAX_RETRIES = 3
+            # Generation loop 
+            MAX_RETRIES = 5
             best_result = None
 
             for attempt in range(1, MAX_RETRIES + 2):
@@ -161,7 +161,7 @@ def main():
             reporter.log_entry(question, gold_sparql, gen_sparql, raw_resp, is_valid, error_info, f1, attempts, prompt, context, gold_results, gen_results)
             
         except Exception as e:
-            logger.error(f"Errore domanda {i+1}: {e}")
+            logger.error(f"Error processing question {i+1}: {e}")
             traceback.print_exc()
 
     reporter.save_final_report()
