@@ -3,7 +3,6 @@ ACE (Automated Correction Engine) evaluation pipeline for Gemini.
 Implements iterative error learning and strategy accumulation.
 """
 
-import logging
 import json
 import sys
 import os
@@ -27,6 +26,10 @@ except ImportError:
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
+from src.config import config
+from src.exceptions import APIError, DataError
+from src.validators import validate_file_exists, validate_json_file, validate_api_key
+from src.logging_config import get_logger
 from src.models.generator import build_ace_prompt
 from src.models.entities import extract_gold_context
 from src.models.retriever import FewShotRetriever
@@ -34,12 +37,7 @@ from src.models.ace import ACEEngine
 from src.utils.report_manager import ReportManager
 from src.utils.sparql_client import SPARQLClient
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO, 
-    format='%(asctime)s [%(levelname)s] ACE: %(message)s', 
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+logger = get_logger(__name__)
 
 class GeminiGenerator:
     """API wrapper for Google Gemini with ACE integration."""
@@ -47,17 +45,23 @@ class GeminiGenerator:
     def __init__(self, model_id: str):
         self.model_id = model_id
         api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            logger.error("ERROR: GEMINI_API_KEY not found.")
-            sys.exit(1)
+        
+        try:
+            validate_api_key(api_key, "GEMINI_API_KEY")
+        except ValueError as e:
+            raise APIError(str(e)) from e
+            
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(model_id)
 
     def generate_raw(self, prompt: str, stop=None, max_new_tokens=1024) -> str:
         """Generates text completion with disabled safety filters."""
-        config = genai.types.GenerationConfig(
+        if stop is None:
+            stop = config.get_stop_sequences(self.model_id)
+            
+        config_gen = genai.types.GenerationConfig(
             max_output_tokens=max_new_tokens, 
-            temperature=0.0, 
+            temperature=config.model.temperature, 
             stop_sequences=stop
         )
         safety = {
@@ -67,17 +71,22 @@ class GeminiGenerator:
             HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
         }
         try:
-            response = self.model.generate_content(prompt, generation_config=config, safety_settings=safety)
+            response = self.model.generate_content(prompt, generation_config=config_gen, safety_settings=safety)
             if response.candidates and response.candidates[0].content.parts:
                 return response.candidates[0].content.parts[0].text.strip()
             return ""
         except Exception as e:
-            logger.error(f"Gemini API Error: {e}")
-            time.sleep(1)
-            return ""
+            raise APIError(f"Gemini API request failed: {e}") from e
 
 def main():
     logger.info(">>> STARTING ACE ENGINE EVALUATION...")
+    
+    # Validate configuration
+    try:
+        config.validate()
+    except Exception as e:
+        logger.error(f"Configuration validation failed: {e}")
+        return
     
     MODEL_ID = "models/gemini-2.0-flash"
     DATA_INDEX = PROJECT_ROOT / "data/processed/train_index.faiss"
@@ -85,8 +94,15 @@ def main():
     PLAYBOOK_PATH = PROJECT_ROOT / "playbook.json"
     TEST_FILE = PROJECT_ROOT / "data/raw/QALD-10/data/qald_10/qald_10.json"
 
-    if not DATA_INDEX.exists():
-        logger.error("Data index not found. Please run make_dataset.py")
+    try:
+        validate_file_exists(DATA_INDEX, "FAISS index")
+        validate_file_exists(DATA_META, "Metadata file")
+        validate_file_exists(PLAYBOOK_PATH, "Playbook")
+        test_data = validate_json_file(TEST_FILE)
+        if 'questions' not in test_data:
+            raise DataError(f"Missing 'questions' key in {TEST_FILE}")
+    except (FileNotFoundError, DataError) as e:
+        logger.error(f"Data validation error: {e}")
         return
 
     retriever = FewShotRetriever(DATA_INDEX, DATA_META)
@@ -94,11 +110,8 @@ def main():
     generator = GeminiGenerator(MODEL_ID)
     ace_engine = ACEEngine(generator, PLAYBOOK_PATH)
     reporter = ReportManager(PROJECT_ROOT, f"ACE_{MODEL_ID.replace('/', '_')}", run_prefix="ace")
-
-    with open(TEST_FILE, 'r') as f:
-        test_data = json.load(f)['questions']
     
-    SAMPLES = test_data[:20]
+    SAMPLES = test_data['questions'][:20]
     logger.info(f"Current Playbook Size: {len(ace_engine.playbook)} strategies.")
 
     for i, q_obj in enumerate(SAMPLES):
@@ -112,10 +125,10 @@ def main():
             gold_results, _ = sparql_client.execute_remote(gold_sparql)
             
             # 2. Build Context
-            examples = retriever.retrieve(question, k=3)
+            examples = retriever.retrieve(question, k=config.retrieval.k_examples)
             context_schema = extract_gold_context(gold_sparql)
 
-            MAX_RETRIES = 3
+            MAX_RETRIES = config.model.max_retries
             best_attempt_data = None 
 
             # 3. Retry Loop with ACE

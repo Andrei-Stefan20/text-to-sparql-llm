@@ -1,180 +1,48 @@
+"""
+Decomposition-based evaluation pipeline using Google Gemini.
+"""
+
 import logging
 import json
 import sys
 import re
 import traceback
-import datetime
 import os
 import time
 from pathlib import Path
 from typing import Tuple, List, Dict, Optional
 
-# --- Setup Percorsi e Variabili d'Ambiente ---
 FILE = Path(__file__).resolve()
-PROJECT_ROOT = FILE.parents[2]  
+PROJECT_ROOT = FILE.parents[2]
 
-# Aggiunge la root al path per gli import
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-# Import per la gestione variabili d'ambiente
 try:
     from dotenv import load_dotenv
-    # Carica esplicitamente il file .env dalla root del progetto
     env_path = PROJECT_ROOT / ".env"
     if env_path.exists():
         load_dotenv(dotenv_path=env_path)
-        print(f"Caricate variabili d'ambiente da: {env_path}")
-    else:
-        print(f"ATTENZIONE: File .env non trovato in: {env_path}")
 except ImportError:
-    print("ERRORE CRITICO: La libreria 'python-dotenv' non è installata.")
-    print("Esegui: /opt/homebrew/bin/python3.14 -m pip install python-dotenv")
+    print("ERROR: python-dotenv not installed")
     sys.exit(1)
 
 from SPARQLWrapper import SPARQLWrapper, JSON
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
-# Import interni
 from src.models.generator import build_prompt
 from src.models.entities import extract_gold_context
 from src.models.retriever import FewShotRetriever
+from src.utils.report_manager import ReportManager
+from src.utils.sparql_client import SPARQLClient
 
-# Configurazione Logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
-
-class ReportManager:
-    """Gestisce la generazione di report JSON e Markdown."""
-    def __init__(self, project_root: Path, model_name: str):
-        self.model_name = model_name
-        self.start_time = datetime.datetime.now()
-        
-        date_str = self.start_time.strftime("%Y-%m-%d")
-        base_report_dir = project_root / "reports" / date_str
-        base_report_dir.mkdir(parents=True, exist_ok=True)
-        
-        existing_runs = [d for d in base_report_dir.iterdir() if d.is_dir() and d.name.startswith("run_")]
-        run_id = len(existing_runs) + 1
-        
-        time_str = self.start_time.strftime("%H%M%S")
-        self.run_dir = base_report_dir / f"run_{run_id:03d}_{time_str}"
-        self.run_dir.mkdir(exist_ok=True)
-        
-        self.stats = {
-            "meta": {"date": date_str, "model": model_name, "run_id": run_id},
-            "metrics": {
-                "total": 0, 
-                "valid_syntax": 0, 
-                "correct_answer": 0, 
-                "avg_f1": 0.0, 
-                "retries_successful": 0
-            },
-            "results": []
-        }
-        logger.info(f"Report directory initialized at: {self.run_dir}")
-
-    def _format_results(self, bindings: Optional[List[Dict]]) -> List[str]:
-        if not bindings:
-            return []
-        formatted = []
-        for row in bindings:
-            values = [v['value'].split('/')[-1] for v in row.values()] 
-            formatted.append("(" + ", ".join(values) + ")")
-        return formatted
-
-    def log_entry(self, question: str, gold_sparql: str, generated_sparql: str, 
-                  raw_response: str, is_valid: bool, error_info: dict, 
-                  f1_score: float, attempts: int, prompt: str, context: str, 
-                  gold_results: Optional[List], gen_results: Optional[List]):
-        
-        fmt_gold = self._format_results(gold_results)
-        fmt_gen = self._format_results(gen_results)
-
-        entry = {
-            "id": self.stats["metrics"]["total"] + 1,
-            "question": question,
-            "status": "VALID" if is_valid else "INVALID",
-            "error_type": error_info.get("type") if error_info else None,
-            "error_detail": error_info.get("detail") if error_info else None,
-            "metrics": {"f1_score": f1_score, "attempts_needed": attempts},
-            "queries": {
-                "gold": gold_sparql, 
-                "generated": generated_sparql,
-                "raw_response": raw_response 
-            },
-            "execution": {
-                "gold_count": len(fmt_gold),
-                "gen_count": len(fmt_gen),
-                "gold_data": fmt_gold,
-                "gen_data": fmt_gen
-            },
-            "debug": {"prompt": prompt, "context": context}
-        }
-        self.stats["results"].append(entry)
-        
-        # Update metrics
-        m = self.stats["metrics"]
-        m["total"] += 1
-        if is_valid: m["valid_syntax"] += 1
-        if f1_score == 1.0: m["correct_answer"] += 1
-        if attempts > 1 and is_valid: m["retries_successful"] += 1
-        
-        if m["total"] > 0:
-            total_f1 = sum(r['metrics']['f1_score'] for r in self.stats['results'])
-            m["avg_f1"] = round(total_f1 / m["total"], 4)
-            
-        self._flush_to_disk()
-
-    def _flush_to_disk(self):
-        try:
-            with open(self.run_dir / "results.json", "w", encoding="utf-8") as f:
-                json.dump(self.stats, f, indent=2, ensure_ascii=False)
-            
-            with open(self.run_dir / "report.md", "w", encoding="utf-8") as f:
-                self._write_markdown(f)
-        except Exception as e:
-            logger.error(f"Failed to save report: {e}")
-
-    def _write_markdown(self, f):
-        m = self.stats['metrics']
-        total = m['total']
-        syn_acc = (m['valid_syntax'] / total * 100) if total > 0 else 0
-        ans_acc = (m['correct_answer'] / total * 100) if total > 0 else 0
-        
-        f.write(f"# Text-to-SPARQL Evaluation Report (Gemini)\n\n")
-        f.write(f"**Model:** `{self.model_name}`\n")
-        f.write(f"**Timestamp:** {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-        
-        f.write("## Summary Metrics\n")
-        f.write(f"| Metric | Value |\n|---|---|\n")
-        f.write(f"| Total Questions | {total} |\n")
-        f.write(f"| Syntax Accuracy | {syn_acc:.2f}% |\n")
-        f.write(f"| Answer Accuracy | {ans_acc:.2f}% |\n")
-        f.write(f"| Average F1 Score | {m['avg_f1']:.4f} |\n")
-        f.write(f"| Successful Retries | {m['retries_successful']} |\n\n")
-        f.write("---\n\n")
-        
-        f.write("## Detailed Results\n\n")
-        for item in reversed(self.stats["results"]):
-            status_icon = "[PASS]" if item["metrics"]["f1_score"] == 1.0 else ("[FAIL]" if not item["status"] == "VALID" else "[PARTIAL]")
-            f.write(f"### Q{item['id']}: {status_icon} {item['question']}\n\n")
-            if item["error_type"]:
-                f.write(f"**Error:** `{item['error_type']}: {item['error_detail']}`\n\n")
-            f.write("#### 1. SPARQL Query Comparison\n")
-            f.write(f"**Generated:**\n```sparql\n{item['queries']['generated']}\n```\n")
-            f.write(f"**Gold:**\n```sparql\n{item['queries']['gold']}\n```\n\n")
-            f.write(f"**F1 Score:** {item['metrics']['f1_score']:.2f} | **Attempts:** {item['metrics']['attempts_needed']}\n")
-            f.write("---\n")
-
-    def save_final_report(self):
-        self._flush_to_disk()
-        logger.info(f"Final report saved to {self.run_dir}")
 
 class SPARQLEvaluator:
     def __init__(self, model_id: str, retriever: FewShotRetriever):

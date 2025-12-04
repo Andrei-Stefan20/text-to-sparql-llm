@@ -3,7 +3,6 @@ Evaluation pipeline for Google Gemini API with few-shot learning.
 Executes Text-to-SPARQL translation with iterative self-correction.
 """
 
-import logging
 import json
 import sys
 import os
@@ -28,18 +27,17 @@ except ImportError:
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
+from src.config import config
+from src.exceptions import APIError, DataError
+from src.validators import validate_file_exists, validate_json_file, validate_api_key
+from src.logging_config import get_logger
 from src.models.generator import build_prompt
 from src.models.entities import extract_gold_context
 from src.models.retriever import FewShotRetriever
 from src.utils.report_manager import ReportManager
 from src.utils.sparql_client import SPARQLClient
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+logger = get_logger(__name__)
 
 class GeminiGenerator:
     """API wrapper for Google Gemini models."""
@@ -47,18 +45,23 @@ class GeminiGenerator:
     def __init__(self, model_id: str):
         self.model_id = model_id
         api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            logger.error("ERROR: GEMINI_API_KEY not found in .env file")
-            sys.exit(1)
+        
+        try:
+            validate_api_key(api_key, "GEMINI_API_KEY")
+        except ValueError as e:
+            raise APIError(str(e)) from e
             
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(model_id)
 
     def generate_raw(self, prompt: str, stop: List[str] = None, max_new_tokens=1024) -> str:
         """Generates text completion from Gemini API."""
+        if stop is None:
+            stop = config.get_stop_sequences(self.model_id)
+            
         generation_config = genai.types.GenerationConfig(
             max_output_tokens=max_new_tokens,
-            temperature=0.1,
+            temperature=config.model.temperature,
             stop_sequences=stop
         )
         safety_settings = {
@@ -78,21 +81,32 @@ class GeminiGenerator:
                 return response.candidates[0].content.parts[0].text.strip()
             return ""
         except Exception as e:
-            logger.error(f"Gemini API Error: {e}")
-            time.sleep(1)
-            return ""
+            raise APIError(f"Gemini API request failed: {e}") from e
 
 def main():
     """Main evaluation pipeline for Gemini model."""
     logger.info(">>> STARTING STANDARD GEMINI EVALUATION FEW-SHOT...")
+    
+    # Validate configuration
+    try:
+        config.validate()
+    except Exception as e:
+        logger.error(f"Configuration validation failed: {e}")
+        return
     
     MODEL_ID = "models/gemini-2.0-flash"
     DATA_INDEX = PROJECT_ROOT / "data/processed/train_index.faiss"
     DATA_META = PROJECT_ROOT / "data/processed/train_metadata.pkl"
     TEST_FILE = PROJECT_ROOT / "data/raw/QALD-10/data/qald_10/qald_10.json"
     
-    if not DATA_INDEX.exists():
-        logger.error(f"FAISS index not found at {DATA_INDEX}. Run make_dataset.py.")
+    try:
+        validate_file_exists(DATA_INDEX, "FAISS index")
+        validate_file_exists(DATA_META, "Metadata file")
+        test_data = validate_json_file(TEST_FILE)
+        if 'questions' not in test_data:
+            raise DataError(f"Missing 'questions' key in {TEST_FILE}")
+    except (FileNotFoundError, DataError) as e:
+        logger.error(f"Data validation error: {e}")
         return
 
     retriever = FewShotRetriever(DATA_INDEX, DATA_META)
@@ -100,10 +114,7 @@ def main():
     generator = GeminiGenerator(MODEL_ID)
     reporter = ReportManager(PROJECT_ROOT, MODEL_ID.replace("/", "_"), run_prefix="gemini_std")
 
-    with open(TEST_FILE, 'r', encoding='utf-8') as f:
-        test_data = json.load(f)['questions']
-    
-    SAMPLES = test_data[:100]
+    SAMPLES = test_data['questions'][:100]
     logger.info(f"Testing on {len(SAMPLES)} questions.")
 
     for i, q_obj in enumerate(SAMPLES):
@@ -115,11 +126,11 @@ def main():
 
             gold_results, _ = sparql_client.execute_remote(gold_sparql)
 
-            examples = retriever.retrieve(question, k=3)
+            examples = retriever.retrieve(question, k=config.retrieval.k_examples)
             context = extract_gold_context(gold_sparql)
             prompt = build_prompt(question, examples, context)
 
-            MAX_RETRIES = 5
+            MAX_RETRIES = config.model.max_retries
             best_result = None
 
             for attempt in range(1, MAX_RETRIES + 2):

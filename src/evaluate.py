@@ -3,7 +3,6 @@ Evaluation pipeline for local LLM models using HuggingFace Transformers.
 Executes Text-to-SPARQL translation with few-shot learning and self-correction.
 """
 
-import logging
 import json
 import sys
 import traceback
@@ -21,18 +20,17 @@ env_path = PROJECT_ROOT / ".env"
 if env_path.exists():
     load_dotenv(dotenv_path=env_path)
 
+from src.config import config
+from src.exceptions import ModelError, DataError
+from src.validators import validate_file_exists, validate_json_file
+from src.logging_config import get_logger
 from src.models.generator import build_prompt
 from src.models.entities import extract_gold_context
 from src.models.retriever import FewShotRetriever
 from src.utils.report_manager import ReportManager
 from src.utils.sparql_client import SPARQLClient
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+logger = get_logger(__name__)
 
 class LocalLLMGenerator:
     """Wrapper for HuggingFace Transformers models with hardware optimization."""
@@ -68,8 +66,7 @@ class LocalLLMGenerator:
                     logger.warning(f"Compilation failed (continuing without it): {e}")
             
         except Exception as e:
-            logger.error(f"Critical Error loading model: {e}")
-            sys.exit(1)
+            raise ModelError(f"Failed to load model {model_id}") from e
 
     def generate_raw(self, prompt: str, stop: list = None, max_new_tokens=512) -> str:
         """
@@ -89,7 +86,7 @@ class LocalLLMGenerator:
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
-                temperature=0.1,
+                temperature=config.model.temperature,
                 do_sample=True,
                 pad_token_id=self.tokenizer.eos_token_id
             )
@@ -114,12 +111,22 @@ def get_model_id():
 def main():
     model_id = get_model_id()
 
+    # Validate configuration
+    try:
+        config.validate()
+    except Exception as e:
+        logger.error(f"Configuration validation failed: {e}")
+        return
+
     # 1. Initialize Components
     index_path = PROJECT_ROOT / "data/processed/train_index.faiss"
     meta_path = PROJECT_ROOT / "data/processed/train_metadata.pkl"
     
-    if not index_path.exists():
-        logger.error(f"Index not found at {index_path}. Run 'src/data/make_dataset.py' first.")
+    try:
+        validate_file_exists(index_path, "FAISS index")
+        validate_file_exists(meta_path, "Metadata file")
+    except FileNotFoundError as e:
+        logger.error(f"{e}. Run 'src/data/make_dataset.py' first.")
         return
 
     retriever = FewShotRetriever(index_path, meta_path)
@@ -129,10 +136,13 @@ def main():
 
     test_file = PROJECT_ROOT / "data/raw/QALD-10/data/qald_10/qald_10.json"
     try:
-        with open(test_file, 'r', encoding='utf-8') as f:
-            test_data = json.load(f)['questions']
-    except Exception as e:
-        logger.error(f"Failed to load test data: {e}")
+        validate_file_exists(test_file, "Test data")
+        test_data = validate_json_file(test_file)
+        if 'questions' not in test_data:
+            raise DataError(f"Missing 'questions' key in {test_file}")
+        test_data = test_data['questions']
+    except (FileNotFoundError, DataError) as e:
+        logger.error(f"Test data error: {e}")
         return
 
     SAMPLES = test_data[:20]
@@ -153,12 +163,12 @@ def main():
             gold_results, _ = sparql_client.execute_remote(gold_sparql)
             
             # --- Prompt Construction ---
-            examples = retriever.retrieve(question, k=3)
+            examples = retriever.retrieve(question, k=config.retrieval.k_examples)
             context = extract_gold_context(gold_sparql)
             prompt = build_prompt(question, examples, context)
 
             # --- Generation Loop (with simple retry) ---
-            MAX_RETRIES = 3
+            MAX_RETRIES = config.model.max_retries
             best_result = None
 
             for attempt in range(1, MAX_RETRIES + 2):
