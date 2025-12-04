@@ -1,14 +1,21 @@
 class StepExecutor:
+    """Executes individual decomposition steps with contextual awareness."""
+    
     def __init__(self, generator_model, retriever_tool):
         self.generator = generator_model
-        self.retriever = retriever_tool 
+        self.retriever = retriever_tool
 
     def execute_step(self, current_step, context_history):
         """
-        Executes a single step taking into account what was discovered previously.
-        """
+        Executes a decomposition step using accumulated context from previous steps.
         
-        # Build a prompt that includes the accumulated context 
+        Args:
+            current_step: Current task description to execute
+            context_history: Dictionary of results from previous steps
+            
+        Returns:
+            Query execution results from the knowledge graph
+        """
         prompt_context = "\n".join([f"Result of previous steps: {k}: {v}" for k, v in context_history.items()])
         
         full_prompt = f"""
@@ -21,11 +28,7 @@ class StepExecutor:
         Use entity IDs found in the context if necessary.
         """
         
-    
-        # 1. SPARQL Generation
         sparql_query = self.generator.generate(full_prompt)
-        
-        # 2. Execution (Simulating KG call)
         results = self.retriever.run_sparql(sparql_query)
         
         return results

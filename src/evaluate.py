@@ -1,7 +1,6 @@
 """
-src/evaluate.py
-Evaluation script for local LLMs (HuggingFace Transformers).
-Uses shared utilities for reporting and SPARQL execution.
+Evaluation pipeline for local LLM models using HuggingFace Transformers.
+Executes Text-to-SPARQL translation with few-shot learning and self-correction.
 """
 
 import logging
@@ -13,25 +12,21 @@ from pathlib import Path
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from dotenv import load_dotenv
 
-# Setup Paths
 FILE = Path(__file__).resolve()
 PROJECT_ROOT = FILE.parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-# Load Environment Variables
 env_path = PROJECT_ROOT / ".env"
 if env_path.exists():
     load_dotenv(dotenv_path=env_path)
 
-# Shared Modules
 from src.models.generator import build_prompt
 from src.models.entities import extract_gold_context
 from src.models.retriever import FewShotRetriever
 from src.utils.report_manager import ReportManager
 from src.utils.sparql_client import SPARQLClient
 
-# Logging Configuration
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -40,21 +35,19 @@ logging.basicConfig(
 )
 
 class LocalLLMGenerator:
-    """
-    Wrapper for HuggingFace Transformers models.
-    """
+    """Wrapper for HuggingFace Transformers models with hardware optimization."""
+    
     def __init__(self, model_id: str):
         self.model_id = model_id
         logger.info(f"Initializing Local Model: {model_id}")
         
-        # Hardware Optimization
         attn_impl = "eager"
         try:
             import flash_attn
             attn_impl = "flash_attention_2"
             logger.info("Optimization: Flash Attention 2 enabled.")
         except ImportError:
-            attn_impl = "sdpa" 
+            attn_impl = "sdpa"
             logger.info("Optimization: Flash Attention 2 not found. Using SDPA.")
 
         try:
@@ -67,7 +60,6 @@ class LocalLLMGenerator:
             )
             self.model.eval()
             
-            # Optional: Torch Compile for speed
             if torch.cuda.is_available():
                 logger.info("Attempting to compile model with torch.compile...")
                 try:
@@ -81,7 +73,15 @@ class LocalLLMGenerator:
 
     def generate_raw(self, prompt: str, stop: list = None, max_new_tokens=512) -> str:
         """
-        Generates raw text response from the model.
+        Generates text completion from the model.
+        
+        Args:
+            prompt: Input text to complete
+            stop: List of stop sequences
+            max_new_tokens: Maximum tokens to generate
+            
+        Returns:
+            Generated text response
         """
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
         
@@ -96,13 +96,11 @@ class LocalLLMGenerator:
             
         full_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         
-        # Extract new tokens only
         if prompt in full_text:
             generated_text = full_text.split(prompt)[-1]
         else:
             generated_text = full_text[len(prompt):]
             
-        # Handle stop sequences
         if stop:
             for s in stop:
                 if s in generated_text:
@@ -111,7 +109,6 @@ class LocalLLMGenerator:
         return generated_text.strip()
 
 def get_model_id():
-    # You can change this to any HF model ID
     return "Qwen/Qwen2.5-Coder-3B-Instruct"
 
 def main():
@@ -126,13 +123,10 @@ def main():
         return
 
     retriever = FewShotRetriever(index_path, meta_path)
-    sparql_client = SPARQLClient() # Handles execution & validation
-    generator = LocalLLMGenerator(model_id) # Handles generation
-    
-    # Report Manager handles file output
+    sparql_client = SPARQLClient()
+    generator = LocalLLMGenerator(model_id)
     reporter = ReportManager(PROJECT_ROOT, model_id.replace("/", "_"), run_prefix="run_local")
 
-    # 2. Load Data
     test_file = PROJECT_ROOT / "data/raw/QALD-10/data/qald_10/qald_10.json"
     try:
         with open(test_file, 'r', encoding='utf-8') as f:
@@ -141,12 +135,11 @@ def main():
         logger.error(f"Failed to load test data: {e}")
         return
 
-    SAMPLES = test_data[:20] 
+    SAMPLES = test_data[:20]
     total_q = len(SAMPLES)
     
     logger.info(f"Starting evaluation on {total_q} questions...")
 
-    # 3. Main Evaluation Loop
     for i, q_obj in enumerate(SAMPLES):
         logger.info(f"Processing Question {i+1}/{total_q}")
         

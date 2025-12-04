@@ -16,28 +16,25 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 class ReportManager:
+    """Manages evaluation metrics, logging, and report generation."""
     
     def __init__(self, project_root: Path, model_name: str, run_prefix: str = "run"):
         self.model_name = model_name
         self.start_time = datetime.datetime.now()
         self.project_root = project_root
         
-        # 1. Directory Setup: reports/YYYY-MM-DD/temp_run_ID
         date_str = self.start_time.strftime("%Y-%m-%d")
         self.base_report_dir = project_root / "reports" / date_str
         self.base_report_dir.mkdir(parents=True, exist_ok=True)
         
-        # Incremental Run ID
         existing_runs = [d for d in self.base_report_dir.iterdir() if d.is_dir()]
         run_id = len(existing_runs) + 1
         time_str = self.start_time.strftime("%H%M%S")
         
-        # Temporary folder name (renamed at the end)
         self.folder_name = f"{run_prefix}_{model_name}_{run_id:03d}_{time_str}"
         self.run_dir = self.base_report_dir / self.folder_name
         self.run_dir.mkdir(exist_ok=True)
         
-        # Statistics Container
         self.stats = {
             "meta": {
                 "date": date_str, 
@@ -57,12 +54,11 @@ class ReportManager:
         logger.info(f"Report initialized at: {self.run_dir}")
 
     def _format_bindings(self, bindings: Optional[List[Dict]]) -> List[str]:
-        """Formats SPARQL results."""
+        """Converts SPARQL result bindings to human-readable format."""
         if not bindings:
             return []
         formatted = []
         for row in bindings:
-            # Clean URI values (e.g., http://.../Q42 -> Q42)
             values = [v['value'].split('/')[-1] for v in row.values()] 
             formatted.append(f"({', '.join(values)})")
         return formatted
@@ -72,7 +68,21 @@ class ReportManager:
                   f1_score: float, attempts: int, prompt: str, context: Any, 
                   gold_results: Optional[List], gen_results: Optional[List]):
         """
-        Logs a single evaluation entry.
+        Records a single evaluation entry and updates aggregate metrics.
+        
+        Args:
+            question: Natural language input question
+            gold_sparql: Reference SPARQL query
+            generated_sparql: Model-generated SPARQL query
+            raw_response: Unprocessed model output
+            is_valid: Whether the query passed syntax validation
+            error_info: Dictionary containing error type and details
+            f1_score: Result similarity score
+            attempts: Number of generation attempts needed
+            prompt: Full prompt sent to the model
+            context: Schema context used in generation
+            gold_results: Reference query execution results
+            gen_results: Generated query execution results
         """
         fmt_gold = self._format_bindings(gold_results)
         fmt_gen = self._format_bindings(gen_results)
@@ -133,22 +143,19 @@ class ReportManager:
         self._flush_to_disk()
 
     def _generate_plots(self):
-        """Generates statistical charts using Matplotlib/Seaborn."""
+        """Generates performance visualization charts for the report."""
         if not MATPLOTLIB_AVAILABLE or not self.stats["results"]:
             return
 
-        # Setup style
         try:
             sns.set_theme(style="whitegrid")
         except:
             plt.style.use('ggplot')
 
-        # Data Preparation
         results = self.stats['results']
         f1_scores = [r['metrics']['f1_score'] for r in results]
         statuses = [r['status_label'] for r in results]
         
-        # 1. F1 Score Distribution (Histogram)
         plt.figure(figsize=(10, 6))
         plt.hist(f1_scores, bins=[0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.01], color='#2c3e50', edgecolor='white', alpha=0.8)
         plt.title('Distribution of F1 Scores', fontsize=14, pad=20)
@@ -160,7 +167,6 @@ class ReportManager:
         plt.savefig(self.run_dir / "f1_distribution.png", dpi=150)
         plt.close()
 
-        # 2. Outcome Analysis (Bar Chart)
         status_counts = pd.Series(statuses).value_counts()
         
         plt.figure(figsize=(10, 6))
@@ -176,26 +182,24 @@ class ReportManager:
         plt.close()
 
     def _write_markdown(self, f):
-        """Writes the comprehensive Markdown report."""
+        """Generates comprehensive Markdown report with metrics and analysis."""
         m = self.stats['metrics']
         total = m['total']
         syn_acc = (m['valid_syntax'] / total * 100) if total > 0 else 0
         ans_acc = (m['correct_answer'] / total * 100) if total > 0 else 0
         
-        # Header
         f.write(f"# Text-to-SPARQL Evaluation Report\n\n")
         f.write(f"**Model Architecture:** `{self.model_name}`  \n")
         f.write(f"**Evaluation Date:** {self.stats['meta']['date']}  \n")
         f.write(f"**Run ID:** `{self.folder_name}`\n\n")
         
-        # Executive Summary Table
         f.write("## 1. Executive Summary\n\n")
         f.write("| Key Metric | Value | Definition |\n")
         f.write("| :--- | :--- | :--- |\n")
         f.write(f"| **Average F1 Score** | **{m['avg_f1']:.4f}** | Harmonic mean of precision and recall (0-1). |\n")
         f.write(f"| **Exact Match Rate** | {ans_acc:.2f}% | Percentage of perfectly correct answers. |\n")
         f.write(f"| **Syntax Validity** | {syn_acc:.2f}% | Percentage of queries that executed without errors. |\n")
-        f.write(f"| **Self-Correction** | {m['retries_successful']} | Number of times the model fixed its own errors. |\n\n")
+        f.write(f"| **Self-Correction** | {m['retries_successful']} | Number of times the model fixed its own errors. |\n\n"))
 
         # Visualizations
         if MATPLOTLIB_AVAILABLE:
@@ -263,7 +267,7 @@ class ReportManager:
             f.write("---\n")
 
     def _flush_to_disk(self):
-        """Saves current state to JSON and MD."""
+        """Persists current evaluation state to JSON and Markdown files."""
         try:
             self._generate_plots()
             
@@ -278,12 +282,9 @@ class ReportManager:
             logger.error(f"Failed to save report artifacts: {e}")
 
     def save_final_report(self):
-        """
-        Finalizes the report and renames the directory to include the final F1 score.
-        """
+        """Finalizes and archives the evaluation report with F1 score in filename."""
         self._flush_to_disk()
         
-        # Calculate Final Folder Name
         avg_f1 = self.stats['metrics']['avg_f1']
         new_folder_name = f"F1-{avg_f1:.2f}_{self.folder_name}"
         new_path = self.base_report_dir / new_folder_name

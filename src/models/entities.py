@@ -10,8 +10,13 @@ ID_PATTERN = re.compile(r'\b([QP]\d+)\b')
 
 def get_labels_for_ids(ids_list: List[str]) -> List[str]:
     """
-    Retrieves labels for Q-IDs and P-IDs and formats them,
-    separating Properties (predicates) and Entities (objects/subjects).
+    Fetches human-readable labels for Wikidata entity and property IDs.
+    
+    Args:
+        ids_list: List of Wikidata IDs (Q### or P###)
+        
+    Returns:
+        Formatted list of labels separated into properties and entities
     """
     if not ids_list:
         return []
@@ -19,8 +24,8 @@ def get_labels_for_ids(ids_list: List[str]) -> List[str]:
     ids = list(set(ids_list))
     chunk_size = 50
     
-    items = []      # Q-ids
-    properties = [] # P-ids
+    items = []
+    properties = []
     
     headers = {"User-Agent": "TextToSparqlBot/1.0"}
     
@@ -57,7 +62,7 @@ def get_labels_for_ids(ids_list: List[str]) -> List[str]:
                         line = f"wd:{qid} ({label}) - {desc}"
                         items.append(line)
             
-            time.sleep(0.1) 
+            time.sleep(0.1)
             
         except Exception as e:
             logger.warning(f"Wikidata API error for chunk {chunk}: {e}")
@@ -76,8 +81,13 @@ def get_labels_for_ids(ids_list: List[str]) -> List[str]:
 
 def extract_gold_context(sparql_query: str) -> str:
     """
-    Extracts entities and properties directly from the correct (gold) SPARQL query.
-    Useful for creating the schema context in prompts.
+    Extracts and enriches entity/property IDs from reference SPARQL query.
+    
+    Args:
+        sparql_query: Gold standard SPARQL query
+        
+    Returns:
+        Formatted schema context with labels for prompt injection
     """
     if not sparql_query:
         return "No gold query available."

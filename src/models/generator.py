@@ -19,12 +19,15 @@ PREFIX bd: [http://www.bigdata.com/rdf#](http://www.bigdata.com/rdf#)"""
 
 def build_prompt(user_question: str, similar_examples: list, candidate_entities: str) -> str:
     """
-    Builds the few-shot prompt.
+    Constructs a few-shot learning prompt for SPARQL generation.
     
     Args:
-        user_question: The user's input question.
-        similar_examples: List of dictionaries containing few-shot examples (question, sparql).
-        candidate_entities: A string containing the schema context (entities/properties).
+        user_question: Natural language query to translate
+        similar_examples: Retrieved examples containing question-SPARQL pairs
+        candidate_entities: Formatted schema context with entity/property IDs
+        
+    Returns:
+        Formatted prompt string ready for LLM inference
     """
     prompt = f"""You are an expert SPARQL developer for Wikidata.
     Your task is to translate a natural language question into a valid SPARQL query.
@@ -52,8 +55,16 @@ def build_prompt(user_question: str, similar_examples: list, candidate_entities:
 
 def build_ace_prompt(user_question: str, similar_examples: list, candidate_entities: str, playbook_context: str) -> str:
     """
-    Builds the prompt specifically for the ACE (Automated Correction Engine) workflow.
-    It includes the 'Playbook' of learned strategies.
+    Constructs an ACE-enhanced prompt with learned strategies.
+    
+    Args:
+        user_question: Natural language query to translate
+        similar_examples: Retrieved examples containing question-SPARQL pairs
+        candidate_entities: Formatted schema context with entity/property IDs
+        playbook_context: Formatted string of learned corrective strategies
+        
+    Returns:
+        ACE-enhanced prompt with strategic guidelines
     """
     prompt = f"""You are an expert SPARQL developer for Wikidata.
     Translate the user question into a valid SPARQL query.

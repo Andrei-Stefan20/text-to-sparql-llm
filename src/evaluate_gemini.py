@@ -1,3 +1,8 @@
+"""
+Evaluation pipeline for Google Gemini API with few-shot learning.
+Executes Text-to-SPARQL translation with iterative self-correction.
+"""
+
 import logging
 import json
 import sys
@@ -7,13 +12,11 @@ import traceback
 from pathlib import Path
 from typing import List
 
-# --- 1. Path Setup ---
 FILE = Path(__file__).resolve()
 PROJECT_ROOT = FILE.parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-# --- 2. Load Environment Variables ---
 try:
     from dotenv import load_dotenv
     env_path = PROJECT_ROOT / ".env"
@@ -22,7 +25,6 @@ try:
 except ImportError:
     pass
 
-# --- 3. Imports ---
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
@@ -32,7 +34,6 @@ from src.models.retriever import FewShotRetriever
 from src.utils.report_manager import ReportManager
 from src.utils.sparql_client import SPARQLClient
 
-# --- 4. Logging Configuration ---
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -41,7 +42,8 @@ logging.basicConfig(
 )
 
 class GeminiGenerator:
-    """Wrapper for Google Gemini API."""
+    """API wrapper for Google Gemini models."""
+    
     def __init__(self, model_id: str):
         self.model_id = model_id
         api_key = os.getenv("GEMINI_API_KEY")
@@ -53,6 +55,7 @@ class GeminiGenerator:
         self.model = genai.GenerativeModel(model_id)
 
     def generate_raw(self, prompt: str, stop: List[str] = None, max_new_tokens=1024) -> str:
+        """Generates text completion from Gemini API."""
         generation_config = genai.types.GenerationConfig(
             max_output_tokens=max_new_tokens,
             temperature=0.1,
@@ -80,10 +83,10 @@ class GeminiGenerator:
             return ""
 
 def main():
+    """Main evaluation pipeline for Gemini model."""
     logger.info(">>> STARTING STANDARD GEMINI EVALUATION FEW-SHOT...")
     
-    # Configuration
-    MODEL_ID = "models/gemini-2.0-flash" 
+    MODEL_ID = "models/gemini-2.0-flash"
     DATA_INDEX = PROJECT_ROOT / "data/processed/train_index.faiss"
     DATA_META = PROJECT_ROOT / "data/processed/train_metadata.pkl"
     TEST_FILE = PROJECT_ROOT / "data/raw/QALD-10/data/qald_10/qald_10.json"
@@ -92,17 +95,15 @@ def main():
         logger.error(f"FAISS index not found at {DATA_INDEX}. Run make_dataset.py.")
         return
 
-    # Initialization
     retriever = FewShotRetriever(DATA_INDEX, DATA_META)
     sparql_client = SPARQLClient()
     generator = GeminiGenerator(MODEL_ID)
     reporter = ReportManager(PROJECT_ROOT, MODEL_ID.replace("/", "_"), run_prefix="gemini_std")
 
-    # Load Data
     with open(TEST_FILE, 'r', encoding='utf-8') as f:
         test_data = json.load(f)['questions']
     
-    SAMPLES = test_data[:100] 
+    SAMPLES = test_data[:100]
     logger.info(f"Testing on {len(SAMPLES)} questions.")
 
     for i, q_obj in enumerate(SAMPLES):
@@ -112,15 +113,12 @@ def main():
             gold_sparql = q_obj['query'].get('sparql', '')
             if not question: continue
 
-            # Gold Execution
             gold_results, _ = sparql_client.execute_remote(gold_sparql)
 
-            # Prompt
             examples = retriever.retrieve(question, k=3)
             context = extract_gold_context(gold_sparql)
             prompt = build_prompt(question, examples, context)
 
-            # Generation loop 
             MAX_RETRIES = 5
             best_result = None
 
@@ -139,17 +137,15 @@ def main():
                         error_info = {"type": "Execution Error", "detail": exec_error}
                     else:
                         best_result = (gen_sparql, raw_response, True, {}, results, attempt)
-                        break 
+                        break
                 else:
                     error_info = {"type": syntax_check["type"], "detail": syntax_check["detail"]}
                 
-                # Setup retry prompt
                 if attempt <= MAX_RETRIES:
                     prompt += f"\n{gen_sparql}\n```\n\nSYSTEM: Invalid Query. {error_info.get('detail')}\nFix it.\nCorrected Query: ```sparql"
                 else:
                     best_result = (gen_sparql, raw_response, False, error_info, None, attempt)
 
-            # Logging
             gen_sparql, raw_resp, is_valid, error_info, gen_results, attempts = best_result
             
             f1 = 0.0

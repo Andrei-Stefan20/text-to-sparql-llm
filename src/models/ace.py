@@ -19,10 +19,15 @@ Response: STRATEGY: For movie directors, use wdt:P57, not wdt:P50.
 """
 
 class ACEEngine:
+    """Automated Correction Engine that learns from SPARQL query errors."""
+    
     def __init__(self, generator_interface: Any, playbook_path: Path):
         """
-        :param generator_interface: Object with a .generate_raw(prompt, stop=...) method.
-        :param playbook_path: Path to the JSON file containing the strategies.
+        Initializes the ACE engine with a generator and playbook storage.
+        
+        Args:
+            generator_interface: Object with .generate_raw(prompt, stop=...) method
+            playbook_path: Path to JSON file containing learned strategies
         """
         self.generator = generator_interface
         self.playbook_path = playbook_path
@@ -30,7 +35,7 @@ class ACEEngine:
         self.load_playbook()
 
     def load_playbook(self):
-        """Loads the playbook from the JSON file if it exists."""
+        """Loads existing strategies from persistent storage."""
         if self.playbook_path.exists():
             try:
                 with open(self.playbook_path, 'r', encoding='utf-8') as f:
@@ -39,20 +44,24 @@ class ACEEngine:
                 self.playbook = []
 
     def save_playbook(self):
-        """Saves the current playbook to the JSON file."""
+        """Persists current strategies to disk."""
         with open(self.playbook_path, 'w', encoding='utf-8') as f:
             json.dump(self.playbook, f, indent=2)
 
     def get_context_block(self) -> str:
-        """Returns the formatted strategies to be injected into the prompt."""
+        """Formats playbook strategies for prompt injection."""
         if not self.playbook:
             return "No specific strategies yet."
         return "\n".join([f"- {rule}" for rule in self.playbook])
 
     def curate(self, question: str, wrong_sparql: str, error_msg: str):
         """
-        Uses the LLM to analyze the error and generate a new strategy.
-        Adds the strategy to the playbook if it's valid and new.
+        Analyzes query failures and generates corrective strategies.
+        
+        Args:
+            question: Original natural language question
+            wrong_sparql: Failed SPARQL query
+            error_msg: Error description from execution or validation
         """
         prompt = f"{CURATOR_SYSTEM_PROMPT}\n\n"
         prompt += f"User Question: {question}\n"
@@ -61,7 +70,6 @@ class ACEEngine:
         prompt += "Write the corrective rule (start with 'STRATEGY:'):"
 
         try:
-            # Call the generator 
             text = self.generator.generate_raw(
                 prompt,
                 max_new_tokens=128,
@@ -70,17 +78,13 @@ class ACEEngine:
             
             strategy = text.strip()
             
-            # Extract strategy text
             if "STRATEGY:" in text:
                 strategy = text.split("STRATEGY:")[1].strip()
             elif len(text) > 5 and "STRATEGY" not in text:
-                # Fallback: model output only the rule
                 strategy = text
                 
-            # Cleanup quotes
             strategy = strategy.strip('"').strip("'")
 
-            # Validation heuristics
             is_valid_rule = len(strategy) > 10 and any(x in strategy for x in ["P", "Q", "FILTER", "SELECT", "use", "Use"])
             
             if is_valid_rule:

@@ -1,3 +1,8 @@
+"""
+ACE (Automated Correction Engine) evaluation pipeline for Gemini.
+Implements iterative error learning and strategy accumulation.
+"""
+
 import logging
 import json
 import sys
@@ -6,13 +11,11 @@ import time
 import traceback
 from pathlib import Path
 
-# --- 1. Path Setup ---
 FILE = Path(__file__).resolve()
 PROJECT_ROOT = FILE.parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-# --- 2. Load Environment Variables ---
 try:
     from dotenv import load_dotenv
     env_path = PROJECT_ROOT / ".env"
@@ -21,7 +24,6 @@ try:
 except ImportError:
     pass
 
-# --- 3. Imports ---
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
@@ -40,7 +42,8 @@ logging.basicConfig(
 )
 
 class GeminiGenerator:
-    """Wrapper for Google Gemini API used by ACE."""
+    """API wrapper for Google Gemini with ACE integration."""
+    
     def __init__(self, model_id: str):
         self.model_id = model_id
         api_key = os.getenv("GEMINI_API_KEY")
@@ -51,12 +54,12 @@ class GeminiGenerator:
         self.model = genai.GenerativeModel(model_id)
 
     def generate_raw(self, prompt: str, stop=None, max_new_tokens=1024) -> str:
+        """Generates text completion with disabled safety filters."""
         config = genai.types.GenerationConfig(
             max_output_tokens=max_new_tokens, 
             temperature=0.0, 
             stop_sequences=stop
         )
-        # Disable all safety filters to prevent blocking valid SPARQL queries
         safety = {
             HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
             HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
@@ -86,23 +89,18 @@ def main():
         logger.error("Data index not found. Please run make_dataset.py")
         return
 
-    # Initialize Components
     retriever = FewShotRetriever(DATA_INDEX, DATA_META)
     sparql_client = SPARQLClient()
     generator = GeminiGenerator(MODEL_ID)
-    
-    # Initialize ACE Engine (Automated Correction)
     ace_engine = ACEEngine(generator, PLAYBOOK_PATH)
     reporter = ReportManager(PROJECT_ROOT, f"ACE_{MODEL_ID.replace('/', '_')}", run_prefix="ace")
 
-    # Load Test Data
     with open(TEST_FILE, 'r') as f:
         test_data = json.load(f)['questions']
     
     SAMPLES = test_data[:20]
     logger.info(f"Current Playbook Size: {len(ace_engine.playbook)} strategies.")
 
-    # Main Evaluation Loop
     for i, q_obj in enumerate(SAMPLES):
         logger.info(f"--- Processing Question {i+1}/{len(SAMPLES)} ---")
         try:

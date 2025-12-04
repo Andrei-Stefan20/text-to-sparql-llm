@@ -6,9 +6,8 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 logger = logging.getLogger(__name__)
 
 class SPARQLClient:
-    """
-    Handles interactions with the Wikidata SPARQL Endpoint.
-    """
+    """Handles SPARQL query validation and execution against Wikidata endpoint."""
+    
     def __init__(self, endpoint_url: str = "[https://query.wikidata.org/sparql](https://query.wikidata.org/sparql)", user_agent: str = "TextToSparqlBot/1.0"):
         self.endpoint = SPARQLWrapper(endpoint_url)
         self.endpoint.setReturnFormat(JSON)
@@ -16,25 +15,23 @@ class SPARQLClient:
         self.endpoint.setTimeout(60)
 
     def clean_query(self, query_text: str) -> str:
-        """Cleans the LLM output to extract just the SPARQL query."""
+        """Extracts and normalizes SPARQL query from LLM output."""
         if not query_text: return ""
-        # Remove markdown code blocks
+        
         q = query_text.strip()
         if "```" in q:
-            # Extract content between ```sparql and ``` or just ```
             pattern = r"```(?:sparql)?(.*?)```"
             match = re.search(pattern, q, re.DOTALL)
             if match:
                 q = match.group(1)
         
         q = q.strip()
-        # Fix potential double prefixes or common hallucinations
         q = re.sub(r'PREF[A-Z]*\s', 'PREFIX ', q, flags=re.IGNORECASE)
         q = re.sub(r'wd:\?(\w+)', r'?\1', q)
         return q
 
     def validate_syntax_local(self, query: str) -> Dict[str, Any]:
-        """Validates SPARQL syntax locally using rdflib."""
+        """Validates SPARQL syntax using local parser."""
         error_info = {"valid": True, "type": None, "detail": None}
         if not query:
             return {"valid": False, "type": "Empty Output", "detail": "The model generated no output."}
@@ -44,7 +41,7 @@ class SPARQLClient:
             from pyparsing import ParseException
             parseQuery(query)
         except ImportError:
-            pass 
+            pass
         except ParseException as e:
             error_info["valid"] = False
             error_info["type"] = "Syntax Error"
@@ -57,8 +54,13 @@ class SPARQLClient:
 
     def execute_remote(self, query: str) -> Tuple[Optional[List], Optional[str]]:
         """
-        Executes the query. 
-        Returns: (Results_List, Error_Message)
+        Executes SPARQL query against remote endpoint.
+        
+        Args:
+            query: SPARQL query string to execute
+            
+        Returns:
+            Tuple of (results list, error message)
         """
         try:
             self.endpoint.setQuery(query)
@@ -77,8 +79,8 @@ class SPARQLClient:
             return None, str(e).split('\n')[0]
 
     def calculate_f1(self, gold_results: List, gen_results: List) -> float:
-        """Calculates F1 Score based on result sets."""
-        if not gold_results and not gen_results: return 1.0 
+        """Computes F1 score between reference and generated results."""
+        if not gold_results and not gen_results: return 1.0
         if gold_results is None or gen_results is None: return 0.0
         if not gold_results or not gen_results: return 0.0
         
@@ -87,7 +89,7 @@ class SPARQLClient:
             for row in bindings:
                 row_vals = []
                 for k, v in row.items():
-                    val = v['value'].split('/')[-1] 
+                    val = v['value'].split('/')[-1]
                     row_vals.append(val)
                 out.add(tuple(sorted(row_vals)))
             return out

@@ -5,37 +5,34 @@ from pathlib import Path
 from typing import List, Dict
 
 class FewShotRetriever:
+    """Retrieves semantically similar examples using FAISS vector search."""
+    
     def __init__(self, index_path: Path, metadata_path: Path):
         """
-        Initializes the retriever by loading the FAISS index and metadata.
+        Initializes the retriever with precomputed index and examples.
         
         Args:
-            index_path: Path to the .faiss index file.
-            metadata_path: Path to the .pkl metadata file (list of dicts).
+            index_path: Path to FAISS index file
+            metadata_path: Path to pickled metadata containing example pairs
         """
         self.model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
-        
-        # Load FAISS index
         self.index = faiss.read_index(str(index_path))
         
-        # Load metadata 
         with open(metadata_path, "rb") as f:
             self.examples = pickle.load(f)
 
     def retrieve(self, query: str, k: int = 3) -> List[Dict]:
         """
-        Retrieves top-k similar examples for a given query.
+        Retrieves k most similar examples for a given query.
         
         Args:
-            query: The user's natural language question.
-            k: Number of examples to retrieve.
+            query: Natural language question to match
+            k: Number of examples to retrieve
             
         Returns:
-            A list of dictionaries containing the examples (question + sparql).
+            List of example dictionaries containing question-SPARQL pairs
         """
         query_vec = self.model.encode([query])
-        
-        # Fetch more candidates initially to filter out exact duplicates if needed
         fetch_k = k * 2
         distances, indices = self.index.search(query_vec, fetch_k)
         
