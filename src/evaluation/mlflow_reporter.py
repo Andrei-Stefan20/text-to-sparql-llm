@@ -63,10 +63,17 @@ class MLflowReporter:
         self.run = mlflow.start_run()
         self.run_id = self.run.info.run_id
         
+        # Create timestamped output directory
+        from pathlib import Path
+        self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.output_dir = Path("reports") / f"run_{self.timestamp}"
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        
         # Results storage
         self.results: List[Dict[str, Any]] = []
         
         logger.info(f"MLflow tracking started: {experiment_name} (run_id: {self.run_id})")
+        logger.info(f"Output directory: {self.output_dir}")
     
     def log_params(self, params: Dict[str, Any]):
         """Log hyperparameters and configuration."""
@@ -82,7 +89,8 @@ class MLflowReporter:
         f1_score: float,
         attempts: int,
         error_info: Optional[Dict] = None,
-        metrics: Optional[Dict[str, float]] = None
+        metrics: Optional[Dict[str, float]] = None,
+        prompt: Optional[str] = None
     ):
         """
         Log individual question evaluation result.
@@ -97,6 +105,7 @@ class MLflowReporter:
             attempts: Number of retry attempts needed
             error_info: Error details if failed
             metrics: Additional custom metrics (syntax, execution, etc.)
+            prompt: Full prompt sent to the model
         """
         result = {
             "id": question_id,
@@ -108,6 +117,7 @@ class MLflowReporter:
             "attempts": attempts,
             "error_type": error_info.get("type") if error_info else None,
             "error_detail": error_info.get("detail") if error_info else None,
+            "prompt": prompt
         }
         
         # Add custom metrics
@@ -168,7 +178,9 @@ class MLflowReporter:
         ax.set_xlabel("F1 Score")
         ax.set_ylabel("Count")
         plt.tight_layout()
-        mlflow.log_figure(fig, "f1_distribution.png")
+        chart_path = self.output_dir / "f1_distribution.png"
+        fig.savefig(chart_path, dpi=150, bbox_inches='tight')
+        mlflow.log_artifact(str(chart_path))
         plt.close()
         
         # 2. Success Rate by Attempts
@@ -187,7 +199,9 @@ class MLflowReporter:
         ax.set_ylabel("Success Rate")
         ax.legend()
         plt.tight_layout()
-        mlflow.log_figure(fig, "attempts_success.png")
+        chart_path = self.output_dir / "attempts_success.png"
+        fig.savefig(chart_path, dpi=150, bbox_inches='tight')
+        mlflow.log_artifact(str(chart_path))
         plt.close()
         
         # 3. Error Type Distribution (if errors exist)
@@ -200,7 +214,9 @@ class MLflowReporter:
             ax.set_xlabel("Count")
             ax.set_ylabel("Error Type")
             plt.tight_layout()
-            mlflow.log_figure(fig, "error_distribution.png")
+            chart_path = self.output_dir / "error_distribution.png"
+            fig.savefig(chart_path, dpi=150, bbox_inches='tight')
+            mlflow.log_artifact(str(chart_path))
             plt.close()
         
         # 4. F1 Score Over Time (question progression)
@@ -214,10 +230,12 @@ class MLflowReporter:
         ax.legend()
         ax.grid(True, alpha=0.3)
         plt.tight_layout()
-        mlflow.log_figure(fig, "f1_progression.png")
+        chart_path = self.output_dir / "f1_progression.png"
+        fig.savefig(chart_path, dpi=150, bbox_inches='tight')
+        mlflow.log_artifact(str(chart_path))
         plt.close()
         
-        logger.info("Generated 4 visualization charts")
+        logger.info(f"Generated 4 visualization charts in {self.output_dir}")
     
     def save_detailed_results(self):
         """Save detailed results as JSON and CSV artifacts."""
@@ -230,119 +248,390 @@ class MLflowReporter:
             "results": self.results
         }
         
-        mlflow.log_dict(results_json, "detailed_results.json")
+        json_path = self.output_dir / "results.json"
+        with open(json_path, 'w', encoding='utf-8') as f:
+            import json
+            json.dump(results_json, f, indent=2, ensure_ascii=False)
+        mlflow.log_artifact(str(json_path))
         
         # CSV format for easy analysis
         df = pd.DataFrame(self.results)
-        csv_path = "results.csv"
+        csv_path = self.output_dir / "results.csv"
         df.to_csv(csv_path, index=False)
-        mlflow.log_artifact(csv_path)
+        mlflow.log_artifact(str(csv_path))
         
-        logger.info(f"Saved detailed results (JSON + CSV)")
+        logger.info(f"Saved detailed results in {self.output_dir} (JSON + CSV)")
     
     def generate_html_report(self):
-        """Generate comprehensive HTML report."""
+        """Generate comprehensive professional HTML report."""
+        from datetime import datetime
         summary = self.generate_summary_metrics()
+        
+        # Calculate additional statistics
+        syntax_valid = sum(1 for r in self.results if r['is_valid'])
+        perfect_matches = sum(1 for r in self.results if r['f1_score'] == 1.0)
+        avg_f1 = sum(r['f1_score'] for r in self.results) / len(self.results) if self.results else 0
+        total_attempts = sum(r['attempts'] for r in self.results)
+        
+        # Error distribution
+        error_types = {}
+        for r in self.results:
+            if r['error_type']:
+                error_types[r['error_type']] = error_types.get(r['error_type'], 0) + 1
         
         html = f"""
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
-            <title>SPARQL Evaluation Report - {self.experiment_name}</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>SPARQL Generation Evaluation Report</title>
             <style>
-                body {{ font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }}
-                .container {{ max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
-                h1 {{ color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }}
-                h2 {{ color: #34495e; margin-top: 30px; }}
-                .metric {{ display: inline-block; margin: 15px; padding: 20px; background: #ecf0f1; border-radius: 5px; min-width: 200px; }}
-                .metric-label {{ font-size: 12px; color: #7f8c8d; text-transform: uppercase; }}
-                .metric-value {{ font-size: 32px; font-weight: bold; color: #2c3e50; }}
-                .success {{ color: #27ae60; }}
-                .warning {{ color: #f39c12; }}
-                .error {{ color: #e74c3c; }}
-                table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-                th {{ background: #3498db; color: white; padding: 12px; text-align: left; }}
-                td {{ padding: 10px; border-bottom: 1px solid #ecf0f1; }}
-                tr:hover {{ background: #f8f9fa; }}
-                .code {{ background: #f4f4f4; padding: 10px; border-left: 3px solid #3498db; font-family: monospace; overflow-x: auto; }}
+                * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+                body {{ 
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                    background: #f8f9fa; 
+                    color: #212529;
+                    line-height: 1.6;
+                }}
+                .header {{
+                    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                    color: white;
+                    padding: 40px 0;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                }}
+                .header-content {{
+                    max-width: 1400px;
+                    margin: 0 auto;
+                    padding: 0 40px;
+                }}
+                .header h1 {{ 
+                    font-size: 32px; 
+                    font-weight: 600; 
+                    margin-bottom: 10px;
+                }}
+                .header-meta {{
+                    opacity: 0.9;
+                    font-size: 14px;
+                    margin-top: 15px;
+                }}
+                .container {{ 
+                    max-width: 1400px; 
+                    margin: 0 auto; 
+                    padding: 40px;
+                }}
+                
+                /* Metrics Grid */
+                .metrics-grid {{
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 20px;
+                    margin: 30px 0;
+                }}
+                .metric-card {{
+                    background: white;
+                    border-radius: 8px;
+                    padding: 25px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                    border-left: 4px solid #1e3c72;
+                }}
+                .metric-label {{
+                    font-size: 12px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    color: #6c757d;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 10px;
+                }}
+                .metric-value {{
+                    font-size: 36px;
+                    font-weight: 700;
+                    color: #1e3c72;
+                }}
+                .metric-sublabel {{
+                    font-size: 13px;
+                    color: #868e96;
+                    margin-top: 8px;
+                }}
+                
+                /* Section */
+                .section {{
+                    background: white;
+                    border-radius: 8px;
+                    padding: 30px;
+                    margin: 25px 0;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                }}
+                .section-title {{
+                    font-size: 20px;
+                    font-weight: 600;
+                    color: #212529;
+                    margin-bottom: 20px;
+                    padding-bottom: 10px;
+                    border-bottom: 2px solid #e9ecef;
+                }}
+                
+                /* Table */
+                table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 14px;
+                }}
+                thead {{
+                    background: #f8f9fa;
+                }}
+                th {{
+                    padding: 14px 12px;
+                    text-align: left;
+                    font-weight: 600;
+                    color: #495057;
+                    border-bottom: 2px solid #dee2e6;
+                }}
+                td {{
+                    padding: 12px;
+                    border-bottom: 1px solid #f1f3f5;
+                    vertical-align: top;
+                }}
+                tr:hover {{
+                    background: #f8f9fa;
+                }}
+                
+                /* Code blocks */
+                .code-block {{
+                    background: #f8f9fa;
+                    border: 1px solid #dee2e6;
+                    border-radius: 4px;
+                    padding: 12px;
+                    font-family: 'Consolas', 'Monaco', monospace;
+                    font-size: 13px;
+                    overflow-x: auto;
+                    margin: 8px 0;
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                }}
+                
+                /* Status badges */
+                .badge {{
+                    display: inline-block;
+                    padding: 4px 10px;
+                    border-radius: 12px;
+                    font-size: 12px;
+                    font-weight: 600;
+                }}
+                .badge-success {{ background: #d4edda; color: #155724; }}
+                .badge-warning {{ background: #fff3cd; color: #856404; }}
+                .badge-error {{ background: #f8d7da; color: #721c24; }}
+                
+                /* Expandable */
+                .expandable {{
+                    cursor: pointer;
+                    user-select: none;
+                }}
+                .expandable:hover {{
+                    background: #f1f3f5;
+                }}
+                .details {{
+                    display: none;
+                    margin-top: 15px;
+                    padding: 15px;
+                    background: #f8f9fa;
+                    border-radius: 4px;
+                }}
+                .details.show {{
+                    display: block;
+                }}
+                
+                /* Footer */
+                .footer {{
+                    text-align: center;
+                    padding: 30px;
+                    color: #6c757d;
+                    font-size: 13px;
+                }}
+                
+                /* Print styles */
+                @media print {{
+                    .header {{ background: #1e3c72 !important; }}
+                    .section {{ page-break-inside: avoid; }}
+                }}
             </style>
+            <script>
+                function toggleDetails(id) {{
+                    const details = document.getElementById('details-' + id);
+                    details.classList.toggle('show');
+                }}
+            </script>
         </head>
         <body>
-            <div class="container">
-                <h1>🔍 Text-to-SPARQL Evaluation Report</h1>
-                <p><strong>Experiment:</strong> {self.experiment_name}</p>
-                <p><strong>Run ID:</strong> {self.run_id}</p>
-                <p><strong>Date:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-                
-                <h2>📊 Summary Metrics</h2>
-                <div>
-                    <div class="metric">
-                        <div class="metric-label">Total Questions</div>
-                        <div class="metric-value">{summary.get('total_questions', 0)}</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Syntax Accuracy</div>
-                        <div class="metric-value success">{summary.get('syntax_accuracy', 0)*100:.1f}%</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Answer Accuracy</div>
-                        <div class="metric-value success">{summary.get('answer_accuracy', 0)*100:.1f}%</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Average F1 Score</div>
-                        <div class="metric-value">{summary.get('avg_f1_score', 0):.3f}</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">Avg Attempts</div>
-                        <div class="metric-value">{summary.get('avg_attempts', 0):.2f}</div>
+            <div class="header">
+                <div class="header-content">
+                    <h1>Text-to-SPARQL Generation: Evaluation Report</h1>
+                    <div class="header-meta">
+                        <div><strong>Experiment:</strong> {self.experiment_name}</div>
+                        <div><strong>Run ID:</strong> {self.run_id}</div>
+                        <div><strong>Timestamp:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
                     </div>
                 </div>
-                
-                <h2>📝 Detailed Results</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Question</th>
-                            <th>F1</th>
-                            <th>Valid</th>
-                            <th>Attempts</th>
-                            <th>Error</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        """
+            </div>
+            
+            <div class="container">
+                <!-- Executive Summary -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Questions</div>
+                        <div class="metric-value">{summary.get('total_questions', 0)}</div>
+                        <div class="metric-sublabel">Evaluation dataset size</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Syntax Validity Rate</div>
+                        <div class="metric-value">{summary.get('syntax_accuracy', 0)*100:.1f}%</div>
+                        <div class="metric-sublabel">{syntax_valid}/{summary.get('total_questions', 0)} queries valid</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Answer Correctness</div>
+                        <div class="metric-value">{summary.get('answer_accuracy', 0)*100:.1f}%</div>
+                        <div class="metric-sublabel">{perfect_matches}/{summary.get('total_questions', 0)} perfect matches</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Mean F1 Score</div>
+                        <div class="metric-value">{avg_f1:.3f}</div>
+                        <div class="metric-sublabel">Result overlap with gold standard</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Average Attempts</div>
+                        <div class="metric-value">{summary.get('avg_attempts', 1):.2f}</div>
+                        <div class="metric-sublabel">{total_attempts} total attempts</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Retry Success Rate</div>
+                        <div class="metric-value">{summary.get('retry_success_rate', 0)*100:.1f}%</div>
+                        <div class="metric-sublabel">Self-correction effectiveness</div>
+                    </div>
+                </div>"""
         
-        for r in self.results[:50]:  # Show first 50
-            status_class = "success" if r["f1_score"] == 1.0 else ("warning" if r["is_valid"] else "error")
+        # Error distribution
+        if error_types:
+            html += """
+                <div class="section">
+                    <h2 class="section-title">Error Distribution</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Error Type</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>"""
+            
+            for error_type, count in sorted(error_types.items(), key=lambda x: x[1], reverse=True):
+                percentage = (count / len(self.results)) * 100
+                html += f"""
+                            <tr>
+                                <td>{error_type}</td>
+                                <td>{count}</td>
+                                <td>{percentage:.1f}%</td>
+                            </tr>"""
+            
+            html += """
+                        </tbody>
+                    </table>
+                </div>"""
+        
+        # Detailed results
+        html += """
+                <div class="section">
+                    <h2 class="section-title">Detailed Evaluation Results</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">ID</th>
+                                <th>Question</th>
+                                <th style="width: 80px;">F1 Score</th>
+                                <th style="width: 100px;">Status</th>
+                                <th style="width: 80px;">Attempts</th>
+                            </tr>
+                        </thead>
+                        <tbody>"""
+        
+        for idx, r in enumerate(self.results, 1):
+            status_badge = "badge-success" if r["f1_score"] == 1.0 else ("badge-warning" if r["is_valid"] else "badge-error")
+            status_text = "Perfect" if r["f1_score"] == 1.0 else ("Valid" if r["is_valid"] else "Invalid")
+            
             html += f"""
-                        <tr>
-                            <td>{r['id']}</td>
-                            <td>{r['question'][:80]}...</td>
-                            <td class="{status_class}">{r['f1_score']:.3f}</td>
-                            <td>{'✓' if r['is_valid'] else '✗'}</td>
-                            <td>{r['attempts']}</td>
-                            <td>{r['error_type'] or '-'}</td>
-                        </tr>
-            """
+                            <tr class="expandable" onclick="toggleDetails({idx})">
+                                <td><strong>{idx}</strong></td>
+                                <td>{r['question']}</td>
+                                <td><strong>{r['f1_score']:.3f}</strong></td>
+                                <td><span class="badge {status_badge}">{status_text}</span></td>
+                                <td>{r['attempts']}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="5">
+                                    <div id="details-{idx}" class="details">
+                                        <table style="width: 100%; margin: 0;">
+                                            <tr>
+                                                <td style="width: 50%; border: none; padding-right: 15px;">
+                                                    <strong>Generated SPARQL:</strong>
+                                                    <div class="code-block">{r.get('generated_sparql', 'N/A')}</div>
+                                                </td>
+                                                <td style="width: 50%; border: none;">
+                                                    <strong>Gold SPARQL:</strong>
+                                                    <div class="code-block">{r.get('gold_sparql', 'N/A')}</div>
+                                                </td>
+                                            </tr>"""
+            
+            if r.get('prompt'):
+                html += f"""
+                                            <tr>
+                                                <td colspan="2" style="border: none; padding-top: 15px;">
+                                                    <strong>Prompt Sent to Model:</strong>
+                                                    <div class="code-block">{r['prompt'][:2000]}{'...' if len(r.get('prompt', '')) > 2000 else ''}</div>
+                                                </td>
+                                            </tr>"""
+            
+            if r.get('error_type'):
+                html += f"""
+                                            <tr>
+                                                <td colspan="2" style="border: none; padding-top: 10px;">
+                                                    <strong>Error Details:</strong> {r['error_type']}
+                                                    {f" - {r.get('error_detail', '')}" if r.get('error_detail') else ''}
+                                                </td>
+                                            </tr>"""
+            
+            html += """
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>"""
         
         html += """
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
                 
-                <p style="margin-top: 40px; color: #7f8c8d; text-align: center;">
-                    Generated by MLflow Reporter | Text-to-SPARQL LLM Pipeline
-                </p>
+                <div class="footer">
+                    <p>Generated by MLflow Reporter - Text-to-SPARQL Evaluation System</p>
+                    <p>Report generated at: """ + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + """</p>
+                </div>
             </div>
         </body>
         </html>
         """
         
-        html_path = "report.html"
+        # Save to timestamped output directory
+        html_path = self.output_dir / "report.html"
+        
         with open(html_path, 'w', encoding='utf-8') as f:
             f.write(html)
         
-        mlflow.log_artifact(html_path)
+        # Also save as latest for easy access
+        from pathlib import Path
+        latest_path = Path("reports") / "report.html"
+        with open(latest_path, 'w', encoding='utf-8') as f:
+            f.write(html)
+        
+        mlflow.log_artifact(str(html_path))
         logger.info(f"Generated HTML report: {html_path}")
     
     def finalize(self):

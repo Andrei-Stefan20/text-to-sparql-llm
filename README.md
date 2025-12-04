@@ -75,7 +75,7 @@ python cli.py dataset
 
 ### 5. Run Evaluation
 
-Gemini (recommended):
+Gemini :
 ```bash
 python cli.py eval --model gemini
 ```

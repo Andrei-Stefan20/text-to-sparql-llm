@@ -5,7 +5,7 @@ All constants, hyperparameters, and paths are defined here.
 
 import os
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 
@@ -73,10 +73,10 @@ class SPARQLConfig:
 class Config:
     """Main configuration container."""
     
-    model: ModelConfig = ModelConfig()
-    retrieval: RetrievalConfig = RetrievalConfig()
-    evaluation: EvaluationConfig = EvaluationConfig()
-    sparql: SPARQLConfig = SPARQLConfig()
+    model: ModelConfig = field(default_factory=ModelConfig)
+    retrieval: RetrievalConfig = field(default_factory=RetrievalConfig)
+    evaluation: EvaluationConfig = field(default_factory=EvaluationConfig)
+    sparql: SPARQLConfig = field(default_factory=SPARQLConfig)
     
     # API Keys
     gemini_api_key: Optional[str] = None

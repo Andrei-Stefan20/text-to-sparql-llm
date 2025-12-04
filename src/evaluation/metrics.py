@@ -200,7 +200,7 @@ def create_test_case(
     question: str,
     generated_sparql: str,
     gold_sparql: str,
-    examples: Optional[List[str]] = None
+    examples: Optional[List] = None
 ) -> LLMTestCase:
     """
     Factory function to create DeepEval test case from evaluation data.
@@ -209,14 +209,26 @@ def create_test_case(
         question: Natural language question
         generated_sparql: LLM-generated SPARQL query
         gold_sparql: Ground truth SPARQL query
-        examples: Retrieved few-shot examples (optional)
+        examples: Retrieved few-shot examples (list of dicts or strings)
         
     Returns:
         LLMTestCase ready for metric evaluation
     """
+    # Convert examples to list of strings if needed
+    retrieval_context = []
+    if examples:
+        for ex in examples:
+            if isinstance(ex, dict):
+                # Extract question from dict
+                retrieval_context.append(ex.get('question', str(ex)))
+            elif isinstance(ex, str):
+                retrieval_context.append(ex)
+            else:
+                retrieval_context.append(str(ex))
+    
     return LLMTestCase(
         input=question,
         actual_output=generated_sparql,
         expected_output=gold_sparql,
-        retrieval_context=examples or []
+        retrieval_context=retrieval_context
     )
