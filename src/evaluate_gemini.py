@@ -34,7 +34,13 @@ from src.logging_config import get_logger
 from src.models.generator import build_prompt
 from src.models.entities import extract_gold_context
 from src.models.retriever import FewShotRetriever
-from src.utils.report_manager import ReportManager
+from src.evaluation.mlflow_reporter import MLflowReporter
+from src.evaluation.metrics import (
+    SPARQLSyntaxMetric,
+    SPARQLExecutionMetric,
+    SPARQLAnswerCorrectnessMetric,
+    create_test_case
+)
 from src.utils.sparql_client import SPARQLClient
 
 logger = get_logger(__name__)
@@ -112,7 +118,27 @@ def main():
     retriever = FewShotRetriever(DATA_INDEX, DATA_META)
     sparql_client = SPARQLClient()
     generator = GeminiGenerator(MODEL_ID)
-    reporter = ReportManager(PROJECT_ROOT, MODEL_ID.replace("/", "_"), run_prefix="gemini_std")
+    
+    # Initialize MLflow reporter
+    reporter = MLflowReporter(
+        experiment_name=f"gemini-evaluation-{MODEL_ID.split('/')[-1]}",
+        artifact_location=PROJECT_ROOT / "reports" / "mlflow_artifacts"
+    )
+    
+    # Log configuration parameters
+    reporter.log_params({
+        "model": MODEL_ID,
+        "temperature": config.model.temperature,
+        "max_retries": config.model.max_retries,
+        "k_examples": config.retrieval.k_examples,
+        "dataset": "QALD-10",
+        "sample_size": 100
+    })
+    
+    # Initialize DeepEval metrics
+    syntax_metric = SPARQLSyntaxMetric()
+    execution_metric = SPARQLExecutionMetric()
+    answer_metric = SPARQLAnswerCorrectnessMetric(threshold=0.8)
 
     SAMPLES = test_data['questions'][:100]
     logger.info(f"Testing on {len(SAMPLES)} questions.")
@@ -164,14 +190,46 @@ def main():
                 f1 = sparql_client.calculate_f1(gold_results, gen_results)
                 if f1 < 1.0 and not error_info:
                     error_info = {"type": "Wrong Answer", "detail": f"F1 Score: {f1:.2f}"}
-
-            reporter.log_entry(question, gold_sparql, gen_sparql, raw_resp, is_valid, error_info, f1, attempts, prompt, context, gold_results, gen_results)
+            
+            # Evaluate with DeepEval metrics
+            test_case = create_test_case(question, gen_sparql, gold_sparql, examples)
+            
+            custom_metrics = {}
+            try:
+                syntax_score = syntax_metric.measure(test_case)
+                execution_score = execution_metric.measure(test_case)
+                answer_score = answer_metric.measure(test_case)
+                
+                custom_metrics = {
+                    "syntax_validity": syntax_score,
+                    "execution_success": execution_score,
+                    "answer_correctness": answer_score
+                }
+            except Exception as e:
+                logger.warning(f"DeepEval metrics failed: {e}")
+            
+            # Log to MLflow
+            reporter.log_question_result(
+                question_id=i+1,
+                question=question,
+                gold_sparql=gold_sparql,
+                generated_sparql=gen_sparql,
+                is_valid=is_valid,
+                f1_score=f1,
+                attempts=attempts,
+                error_info=error_info if error_info else None,
+                metrics=custom_metrics
+            )
             
         except Exception as e:
             logger.error(f"Error processing question {i+1}: {e}")
             traceback.print_exc()
 
-    reporter.save_final_report()
+    # Finalize report with visualizations
+    summary = reporter.finalize()
+    logger.info(f"Evaluation complete! Summary: {summary}")
+    logger.info("To view results, run: mlflow ui --port 5000")
+    logger.info(f"Then open: http://localhost:5000")
 
 if __name__ == "__main__":
     main()

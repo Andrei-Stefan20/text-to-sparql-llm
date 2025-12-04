@@ -1,38 +1,41 @@
-# Text-to-SPARQL LLM Pipeline
+# Text-to-SPARQL LLM
 
-A modular pipeline for translating natural language questions into SPARQL queries using Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), and iterative self-correction. Benchmarked on QALD-10 dataset with Wikidata.
+Translate natural language questions into SPARQL queries using LLMs, RAG, and self-correction. Built on QALD-10 + Wikidata.
 
 ## Features
 
-- **Multi-Model Support**: HuggingFace Transformers (Qwen) + Google Gemini API
-- **RAG with FAISS**: Few-shot learning with semantic retrieval
-- **ACE Engine**: Automated Correction Engine with persistent error learning
-- **Self-Correction**: Iterative query refinement with syntax/execution validation
-- **Comprehensive Evaluation**: F1 scores, syntax accuracy, execution validation
-- **Production-Ready**: Centralized config, custom exceptions, input validation, logging
+- **Multi-Model Support**: HuggingFace (Qwen) + Google Gemini
+- **RAG with FAISS**: Few-shot semantic retrieval
+- **ACE Engine**: Learn from errors, improve over time
+- **Self-Correction**: Automatic query refinement
+- **Experiment Tracking**: MLflow + custom metrics
+- **Production Setup**: Config, error handling, validation, logging
 
-## Architecture
+## Structure
 
 ```
 src/
-├── config.py              # Centralized configuration (ModelConfig, RetrievalConfig, etc.)
-├── exceptions.py          # Custom exception hierarchy (APIError, SPARQLError, etc.)
-├── validators.py          # Input validation utilities
-├── logging_config.py      # Unified logging setup
-├── evaluate.py            # Local model evaluation (HuggingFace)
-├── evaluate_gemini.py     # Gemini API evaluation
-├── evaluate_ace_gemini.py # ACE Engine evaluation
+├── config.py              # Settings (models, retrieval, etc.)
+├── exceptions.py          # Custom errors
+├── validators.py          # Input validation
+├── logging_config.py      # Logging setup
+├── evaluate.py            # HuggingFace evaluation
+├── evaluate_gemini.py     # Gemini evaluation
+├── evaluate_ace_gemini.py # ACE evaluation
+├── evaluation/            # Experiment tracking
+│   ├── metrics.py         # Custom metrics
+│   ├── mlflow_reporter.py # MLflow integration
+│   └── README.md          # Evaluation docs
 ├── models/
-│   ├── retriever.py       # FAISS-based RAG retriever
-│   ├── generator.py       # Prompt construction
-│   ├── ace.py             # Automated Correction Engine
-│   ├── entities.py        # Schema extraction utilities
-│   └── tools.py           # Wikidata API integration
+│   ├── retriever.py       # FAISS retrieval
+│   ├── generator.py       # Prompt building
+│   ├── ace.py             # Error learning
+│   ├── entities.py        # Schema extraction
+│   └── tools.py           # Wikidata API
 ├── utils/
-│   ├── sparql_client.py   # SPARQL validation & execution
-│   └── report_manager.py  # JSON/Markdown report generation
+│   └── sparql_client.py   # SPARQL validation
 └── data/
-    └── make_dataset.py    # FAISS index creation
+    └── make_dataset.py    # Index creation
 ```
 
 ## Quick Start
@@ -55,48 +58,36 @@ Create `.env` file in project root:
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-### 3. Verify Installation
+### 3. Check Setup
 
 ```bash
-python cli.py check           # Check all dependencies
-python cli.py validate-config # Validate configuration
+python cli.py check
+python cli.py validate-config
 ```
 
-### 4. Create Dataset
+### 4. Create Index
 
-Generate FAISS index and embeddings (first-time setup):
+Generate FAISS embeddings (first time only):
 
 ```bash
 python cli.py dataset
-# Or directly:
-python src/data/make_dataset.py
 ```
-
-This creates:
-- `data/processed/train_index.faiss` (vector index)
-- `data/processed/train_metadata.pkl` (question-query pairs)
 
 ### 5. Run Evaluation
 
-**Option A: Gemini API (Recommended)**
+Gemini (recommended):
 ```bash
 python cli.py eval --model gemini
-# Or directly:
-python src/evaluate_gemini.py
 ```
 
-**Option B: Local Model (HuggingFace)**
+Local model:
 ```bash
 python cli.py eval --model local
-# Or directly:
-python src/evaluate.py
 ```
 
-**Option C: ACE Engine (Advanced)**
+With ACE learning:
 ```bash
 python cli.py ace
-# Or directly:
-python src/evaluate_ace_gemini.py
 ```
 
 ## CLI Commands
@@ -107,6 +98,9 @@ python cli.py eval --model gemini  # Run Gemini evaluation
 python cli.py eval --model local   # Run local model evaluation
 python cli.py ace                  # Run ACE Engine
 
+# View Results (MLflow UI)
+python cli.py view-results         # Launch interactive dashboard
+
 # Dataset
 python cli.py dataset              # Create FAISS index
 
@@ -116,66 +110,70 @@ python cli.py validate-config      # Validate configuration
 python cli.py clean-playbook --save # Clean ACE playbook
 ```
 
+## View Results
+
+Evaluations automatically log to MLflow:
+
+```bash
+python cli.py view-results
+```
+
+Opens at http://localhost:5000
+
 ## Configuration
 
-Edit `src/config.py` to customize:
+Edit `src/config.py`:
 
 ```python
 @dataclass
 class ModelConfig:
-    temperature: float = 0.1      # LLM sampling temperature
-    max_retries: int = 3          # Self-correction attempts
-    max_tokens: int = 512         # Max output tokens
+    temperature: float = 0.1
+    max_retries: int = 3
+    max_tokens: int = 512
 
 @dataclass
 class RetrievalConfig:
-    k_examples: int = 3           # Few-shot examples count
-    top_k: int = 10               # FAISS retrieval candidates
+    k_examples: int = 3
+    top_k: int = 10
 ```
 
 ## Project Structure
 
 ```
-├── cli.py                    # Command-line interface
-├── playbook.json             # ACE learned strategies 
-├── requirements.txt          # Production dependencies
-├── requirements-dev.txt      # Development dependencies
-├── pytest.ini                # Test configuration
-├── setup.py                  # Package metadata
+├── cli.py                    # Commands
+├── view_results.py           # MLflow UI
+├── playbook.json             # ACE strategies (26 rules)
+├── requirements.txt          # Dependencies
+├── setup.py                  # Package info
+├── EVALUATION_SYSTEM.md      # Evaluation docs
 ├── data/
-│   ├── raw/QALD-10/         # Test dataset
-│   └── processed/           # FAISS index & metadata
-├── reports/                 # Evaluation results (timestamped)
-├── src/                     # Source code (see Architecture)
+│   ├── raw/QALD-10/         # Test data
+│   └── processed/           # FAISS index
+├── mlruns/                  # MLflow results
+├── src/                     # Source code
+│   └── evaluation/          # Tracking & metrics
 └── tests/                   # Unit tests
-    ├── test_config.py
-    ├── test_exceptions.py
-    ├── test_validators.py
-    └── test_sparql_client.py
 ```
 
-## Evaluation Metrics
+## Metrics
 
-Results saved in `reports/YYYY-MM-DD/run_XXX_HHMMSS/`:
+MLflow tracks (view at http://localhost:5000):
 
-- **`results.json`**: Structured evaluation data
-  - Total questions processed
-  - Syntax accuracy (% valid SPARQL)
-  - Answer accuracy (% correct results)
-  - Average F1 score
-  - Per-question details (query, errors, F1, attempts)
+### Charts:
+- F1 score distribution
+- Success rate by retry count
+- Error frequency
+- Performance trend
 
-- **`report.md`**: Human-readable summary with:
-  - Query comparison (generated vs. gold)
-  - Error diagnostics
-  - Execution results
+### Metrics:
+- Syntax accuracy
+- Answer accuracy
+- F1 score
+- Retry success rate
+- Custom: syntax, execution, context
 
-### Metrics Explained
-
-- **Syntax Accuracy**: Percentage of syntactically valid SPARQL queries
-- **Answer Accuracy**: Percentage of queries returning correct results
-- **F1 Score**: Harmonic mean of precision/recall on result bindings
-- **Successful Retries**: Questions fixed through self-correction
+### Export:
+- JSON, CSV, HTML, PNG
 
 ## Testing
 
@@ -190,52 +188,40 @@ pytest --cov=src --cov-report=html
 pytest tests/test_sparql_client.py -v
 ```
 
-## ACE Engine (Advanced)
+## ACE Engine
 
-The **Automated Correction Engine** learns from failures:
+Learns from failures:
 
-1. **Generation**: Create query with few-shot examples + learned strategies
-2. **Validation**: Check syntax & execute against Wikidata
-3. **Learning**: On failure, analyze error and create new strategy
-4. **Persistence**: Save strategy to `playbook.json` for future queries
+1. Generate query + learned strategies
+2. Validate syntax & execution
+3. On failure, analyze and create new strategy
+4. Save to `playbook.json`
 
-Current playbook: **26 curated strategies** (cleaned from 94 malformed entries)
+26 strategies in playbook
 
 ## Troubleshooting
 
-**FAISS index not found:**
+Missing FAISS index:
 ```bash
 python cli.py dataset
 ```
 
-**Missing API key:**
-```bash
-# Add to .env:
+Missing API key - add to `.env`:
+```env
 GEMINI_API_KEY=your_key_here
 ```
 
-**Import errors:**
+Import errors:
 ```bash
 pip install -r requirements.txt
-```
-
-**Test data missing:**
-```bash
-# Ensure QALD-10 dataset exists at:
-data/raw/QALD-10/data/qald_10/qald_10.json
 ```
 
 ## Development
 
 ```bash
-# Install dev dependencies
 pip install -r requirements-dev.txt
-
-# Run linters
 black src/
 flake8 src/
-
-# Type checking
 mypy src/
 ```
 

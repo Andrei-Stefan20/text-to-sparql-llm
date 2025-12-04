@@ -146,6 +146,28 @@ def clean_playbook(args):
         sys.exit(1)
 
 
+def view_results(args):
+    """Launch MLflow UI to view evaluation results."""
+    import subprocess
+    
+    logger.info("Starting MLflow UI...")
+    logger.info("View results at: http://localhost:5000")
+    logger.info("Press Ctrl+C to stop")
+    
+    try:
+        subprocess.run([
+            sys.executable, "-m", "mlflow", "ui",
+            "--port", "5000",
+            "--host", "127.0.0.1"
+        ], cwd=str(PROJECT_ROOT))
+    except KeyboardInterrupt:
+        logger.info("MLflow UI stopped")
+    except Exception as e:
+        logger.error(f"Failed to start MLflow UI: {e}")
+        logger.error("Make sure MLflow is installed: pip install mlflow")
+        sys.exit(1)
+
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -160,6 +182,9 @@ Examples:
   python cli.py eval --model gemini
   python cli.py eval --model local
   python cli.py ace
+
+  # View results
+  python cli.py view-results
 
   # Utilities
   python cli.py check
@@ -195,6 +220,9 @@ Examples:
     clean_parser = subparsers.add_parser('clean-playbook', help='Clean and deduplicate playbook')
     clean_parser.add_argument('--save', action='store_true', help='Save cleaned version')
     
+    # View results
+    subparsers.add_parser('view-results', help='Launch MLflow UI to view evaluation results')
+    
     args = parser.parse_args()
     
     if not args.command:
@@ -209,6 +237,7 @@ Examples:
         'validate-config': validate_config,
         'check': check_dependencies,
         'clean-playbook': clean_playbook,
+        'view-results': view_results,
     }
     
     handler = handlers.get(args.command)
