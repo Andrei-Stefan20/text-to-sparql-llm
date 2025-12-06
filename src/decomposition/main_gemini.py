@@ -1,5 +1,6 @@
 """
 Decomposition-based evaluation pipeline using Google Gemini.
+Integrates iterative query decomposition with comprehensive reporting.
 """
 
 import logging
@@ -11,6 +12,7 @@ import os
 import time
 from pathlib import Path
 from typing import Tuple, List, Dict, Optional
+from datetime import datetime
 
 FILE = Path(__file__).resolve()
 PROJECT_ROOT = FILE.parents[2]
@@ -36,6 +38,10 @@ from src.models.entities import extract_gold_context
 from src.models.retriever import FewShotRetriever
 from src.utils.report_manager import ReportManager
 from src.utils.sparql_client import SPARQLClient
+from src.decomposition.orchestrator import DecompositionOrchestrator
+from src.decomposition.planner import QueryDecomposer
+from src.decomposition.orchestrator import DecompositionOrchestrator
+from src.decomposition.planner import QueryDecomposer
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -44,7 +50,86 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
+class GeminiDecompositionLLM:
+    """Wrapper for Google Gemini to work with the decomposition pipeline."""
+    
+    def __init__(self, model_id: str):
+        self.model_id = model_id
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            logger.error("GEMINI_API_KEY mancante! Controlla il file .env nella root del progetto.")
+            sys.exit(1)
+        
+        genai.configure(api_key=api_key)
+        logger.info(f"Initializing Gemini Model: {model_id}")
+        self.model = genai.GenerativeModel(model_id)
+    
+    def generate(self, prompt: str, max_new_tokens: int = 512) -> str:
+        """Generates text using Gemini."""
+        generation_config = genai.types.GenerationConfig(
+            max_output_tokens=max_new_tokens,
+            temperature=0.1,
+            stop_sequences=["User:", "###", "Question:"]
+        )
+        # Disable safety content filters to prevent false positives when processing code.
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+        }
+        
+        try:
+            response = self.model.generate_content(
+                prompt,
+                generation_config=generation_config,
+                safety_settings=safety_settings
+            )
+            if response.text:
+                return response.text.strip()
+            else:
+                logger.warning("Gemini model returned empty response.")
+                return ""
+        except Exception as e:
+            logger.error(f"Gemini generation error: {e}")
+            time.sleep(2)
+            return ""
+    
+    def invoke(self, prompt: str) -> str:
+        """Alias for compatibility."""
+        return self.generate(prompt)
+
+class WikidataClientGemini:
+    """Tool for the Executor to run SPARQL queries against Wikidata."""
+    
+    def __init__(self):
+        self.endpoint = SPARQLWrapper("https://query.wikidata.org/sparql")
+        self.endpoint.setReturnFormat(JSON)
+        self.endpoint.addCustomHttpHeader("User-Agent", "TextToSparqlBot/1.0 (GeminiDecomp)")
+        self.endpoint.setTimeout(60)
+    
+    def run_sparql(self, query: str) -> Optional[List]:
+        """Executes a SPARQL query and returns results."""
+        try:
+            # Remove markdown code fence markers that may be present in generated queries.
+            clean_query = query.replace("```sparql", "").replace("```", "").strip()
+            
+            logger.info("Executing SPARQL query against Wikidata endpoint...")
+            self.endpoint.setQuery(clean_query)
+            results = self.endpoint.query().convert()
+            
+            bindings = results['results']['bindings']
+            if not bindings:
+                return []
+            
+            # Limit results to prevent context overflow in decomposition pipeline.
+            return bindings[:100]
+            
+        except Exception as e:
+            logger.error(f"SPARQL Execution Failed: {e}")
 class SPARQLEvaluator:
+    """Legacy evaluator for non-decomposition queries."""
+    
     def __init__(self, model_id: str, retriever: FewShotRetriever):
         self.retriever = retriever
         self.endpoint = SPARQLWrapper("https://query.wikidata.org/sparql")
@@ -54,10 +139,10 @@ class SPARQLEvaluator:
         
         self.model_name = model_id
         
-        # Configurazione Gemini API
+        # Retrieve API key from environment or exit gracefully with error message.
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
-            logger.error("GEMINI_API_KEY mancante! Controlla il file .env nella root del progetto.")
+            logger.error("GEMINI_API_KEY not found. Check environment configuration.")
             sys.exit(1)
             
         genai.configure(api_key=api_key)
@@ -77,7 +162,7 @@ class SPARQLEvaluator:
             temperature=0.1,
             stop_sequences=stop
         )
-        # Disabilita filtri di sicurezza per evitare falsi positivi su codice
+        # Disable safety content filters to prevent false positives when processing code.
         safety_settings = {
             HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
             HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
@@ -184,6 +269,8 @@ def get_model_id():
 
 def main():
     model_id = get_model_id()
+    # Clean model name for folder (remove slashes and spaces)
+    clean_model_name = model_id.replace('/', '-').replace(' ', '_')
 
     index_path = PROJECT_ROOT / "data/processed/train_index.faiss"
     meta_path = PROJECT_ROOT / "data/processed/train_metadata.pkl"
@@ -192,42 +279,49 @@ def main():
         logger.error(f"Index not found at {index_path}. Run 'make_dataset.py' first.")
         return
 
-    retriever = FewShotRetriever(index_path, meta_path)
-    evaluator = SPARQLEvaluator(model_id, retriever)
-    reporter = ReportManager(PROJECT_ROOT, f"gemini_{model_id}")
-
-    test_file = PROJECT_ROOT / "data/raw/QALD-10/data/qald_10/qald_10.json"
-    try:
-        with open(test_file, 'r', encoding='utf-8') as f:
-            test_data = json.load(f)['questions']
-    except Exception as e:
-        logger.error(f"Failed to load test data: {e}")
-        return
-
-    SAMPLES = test_data[:20] 
-    total_q = len(SAMPLES)
+    # Initialize Gemini LLM and Wikidata client
+    llm = GeminiDecompositionLLM(model_id)
+    kg_client = WikidataClientGemini()
     
-    logger.info(f"Starting evaluation on {total_q} questions using Gemini...")
+    # Initialize orchestrator
+    orchestrator = DecompositionOrchestrator(
+        llm=llm,
+        generator=llm,
+        retriever=kg_client
+    )
+    
+    # Initialize report manager with decomposition mode
+    reporter = ReportManager(PROJECT_ROOT, clean_model_name, run_prefix="decomposition", mode="decomposition")
 
-    for i, q_obj in enumerate(SAMPLES):
-        logger.info(f"Processing Question {i+1}/{total_q}")
+    # Test questions
+    test_questions = [
+        "Give me all books written by authors born in Germany between 1900 and 1950 with a rating higher than 4",
+        "Find scientists born in France who won the Nobel Prize in Physics",
+        "What are the tallest buildings in New York City completed after 2000?"
+    ]
+    
+    logger.info(f"Starting decomposition-based evaluation on {len(test_questions)} questions using Gemini...")
+
+    for i, question in enumerate(test_questions, 1):
+        logger.info(f"\n{'='*80}")
+        logger.info(f"Processing Question {i}/{len(test_questions)}: {question}")
+        logger.info(f"{'='*80}\n")
+        
         try:
-            question = next((x['string'] for x in q_obj['question'] if x['language'] == 'en'), None)
-            gold_sparql = q_obj['query'].get('sparql', '')
-            if not question: continue
+            # Run decomposition orchestrator
+            final_answer = orchestrator.run(question)
             
-            gold_results, _ = evaluator.execute_remote(gold_sparql)
-            gen_sparql, raw_resp, gen_results, is_valid, error_info, attempts, prompt, ctx = evaluator.generate_smart(question, gold_sparql, max_retries=3)
+            # Log to report
+            reporter.log_decomposition(
+                question=question,
+                decomposition_steps=orchestrator.planner.context_window.get('last_steps', orchestrator.planner.create_plan_iterative(question)),
+                execution_results={},
+                final_answer=final_answer,
+                execution_log=orchestrator.execution_log
+            )
             
-            f1 = 0.0
-            if is_valid and gen_results:
-                f1 = evaluator.calculate_f1(gold_results, gen_results)
-                if f1 < 1.0:
-                    error_info = {"type": "Wrong Answer", "detail": f"F1 Score: {f1:.2f}"}
-            
-            reporter.log_entry(question, gold_sparql, gen_sparql, raw_resp, is_valid, error_info, f1, attempts, prompt, ctx, gold_results, gen_results)
         except Exception as e:
-            logger.error(f"Error processing question {i+1}: {e}")
+            logger.error(f"Error processing question {i}: {e}")
             traceback.print_exc()
             continue
 

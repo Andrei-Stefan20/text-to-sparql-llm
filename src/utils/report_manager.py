@@ -16,12 +16,16 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 class ReportManager:
-    """Manages evaluation metrics, logging, and report generation."""
+    """
+    Manages evaluation metrics, logging, and report generation.
+    Supports both standard evaluation and decomposition-based evaluation.
+    """
     
-    def __init__(self, project_root: Path, model_name: str, run_prefix: str = "run"):
+    def __init__(self, project_root: Path, model_name: str, run_prefix: str = "run", mode: str = "standard"):
         self.model_name = model_name
         self.start_time = datetime.datetime.now()
         self.project_root = project_root
+        self.mode = mode  # "standard" or "decomposition"
         
         date_str = self.start_time.strftime("%Y-%m-%d")
         self.base_report_dir = project_root / "reports" / date_str
@@ -33,25 +37,27 @@ class ReportManager:
         
         self.folder_name = f"{run_prefix}_{model_name}_{run_id:03d}_{time_str}"
         self.run_dir = self.base_report_dir / self.folder_name
-        self.run_dir.mkdir(exist_ok=True)
+        self.run_dir.mkdir(parents=True, exist_ok=True)
         
         self.stats = {
             "meta": {
                 "date": date_str, 
                 "model": model_name, 
                 "run_id": run_id,
-                "start_time": time_str
+                "start_time": time_str,
+                "mode": mode
             },
             "metrics": {
                 "total": 0, 
                 "valid_syntax": 0, 
                 "correct_answer": 0, 
                 "avg_f1": 0.0, 
-                "retries_successful": 0
+                "retries_successful": 0,
+                "successful_decompositions": 0
             },
             "results": []
         }
-        logger.info(f"Report initialized at: {self.run_dir}")
+        logger.info(f"Report initialized at: {self.run_dir} (mode: {mode})")
 
     def _format_bindings(self, bindings: Optional[List[Dict]]) -> List[str]:
         """Converts SPARQL result bindings to human-readable format."""
@@ -68,7 +74,7 @@ class ReportManager:
                   f1_score: float, attempts: int, prompt: str, context: Any, 
                   gold_results: Optional[List], gen_results: Optional[List]):
         """
-        Records a single evaluation entry and updates aggregate metrics.
+        Records a single evaluation entry for standard mode and updates aggregate metrics.
         
         Args:
             question: Natural language input question
@@ -141,10 +147,55 @@ class ReportManager:
             m["avg_f1"] = round(total_f1 / m["total"], 4)
             
         self._flush_to_disk()
+    
+    def log_decomposition(self, question: str, decomposition_steps: List[Dict], 
+                         execution_results: Dict, final_answer: str, execution_log: List):
+        """
+        Records a complete decomposition execution with all reasoning (decomposition mode).
+        
+        Args:
+            question: Original natural language question
+            decomposition_steps: List of decomposition steps with metadata
+            execution_results: Dictionary of results from each step
+            final_answer: Synthesized final answer from all steps
+            execution_log: Complete execution log with all details
+        """
+        successful_steps = sum(1 for step in decomposition_steps if step.get('metadata', {}).get('status') == 'success')
+        
+        entry = {
+            "id": self.stats["metrics"]["total"] + 1,
+            "timestamp": datetime.datetime.now().isoformat(),
+            "question": question,
+            "decomposition": {
+                "total_steps": len(decomposition_steps),
+                "successful_steps": successful_steps,
+                "steps": decomposition_steps
+            },
+            "execution": {
+                "results": execution_results,
+                "log": execution_log
+            },
+            "final_answer": final_answer,
+            "metrics": {
+                "success_rate": (successful_steps / len(decomposition_steps) * 100) if decomposition_steps else 0
+            }
+        }
+        self.stats["results"].append(entry)
+        
+        # Update Aggregate Metrics
+        m = self.stats["metrics"]
+        m["total"] += 1
+        m["successful_decompositions"] += 1 if successful_steps == len(decomposition_steps) else 0
+        
+        self._flush_to_disk()
 
     def _generate_plots(self):
         """Generates performance visualization charts for the report."""
         if not MATPLOTLIB_AVAILABLE or not self.stats["results"]:
+            return
+        
+        # Skip plots for decomposition mode (no F1 scores)
+        if self.mode == "decomposition":
             return
 
         try:
@@ -191,15 +242,23 @@ class ReportManager:
         f.write(f"# Text-to-SPARQL Evaluation Report\n\n")
         f.write(f"**Model Architecture:** `{self.model_name}`  \n")
         f.write(f"**Evaluation Date:** {self.stats['meta']['date']}  \n")
+        f.write(f"**Mode:** `{self.mode}`  \n")
         f.write(f"**Run ID:** `{self.folder_name}`\n\n")
         
+        if self.mode == "standard":
+            self._write_markdown_standard(f, m, total, syn_acc, ans_acc)
+        elif self.mode == "decomposition":
+            self._write_markdown_decomposition(f, m, total)
+    
+    def _write_markdown_standard(self, f, m, total, syn_acc, ans_acc):
+        """Generates markdown for standard evaluation mode."""
         f.write("## 1. Executive Summary\n\n")
         f.write("| Key Metric | Value | Definition |\n")
         f.write("| :--- | :--- | :--- |\n")
         f.write(f"| **Average F1 Score** | **{m['avg_f1']:.4f}** | Harmonic mean of precision and recall (0-1). |\n")
         f.write(f"| **Exact Match Rate** | {ans_acc:.2f}% | Percentage of perfectly correct answers. |\n")
         f.write(f"| **Syntax Validity** | {syn_acc:.2f}% | Percentage of queries that executed without errors. |\n")
-        f.write(f"| **Self-Correction** | {m['retries_successful']} | Number of times the model fixed its own errors. |\n\n"))
+        f.write(f"| **Self-Correction** | {m['retries_successful']} | Number of times the model fixed its own errors. |\n\n")
 
         # Visualizations
         if MATPLOTLIB_AVAILABLE:
@@ -265,6 +324,59 @@ class ReportManager:
             
             f.write("</details>\n\n")
             f.write("---\n")
+    
+    def _write_markdown_decomposition(self, f, m, total):
+        """Generates markdown for decomposition evaluation mode."""
+        f.write("## 1. Decomposition Summary\n\n")
+        f.write("| Key Metric | Value |\n")
+        f.write("| :--- | :--- |\n")
+        f.write(f"| **Total Questions** | {m['total']} |\n")
+        f.write(f"| **Fully Successful Decompositions** | {m['successful_decompositions']} |\n")
+        f.write(f"| **Success Rate** | {(m['successful_decompositions']/total*100):.1f}%" if total > 0 else "N/A")
+        f.write(" |\n\n")
+        
+        # Detailed Results
+        f.write("## 2. Decomposition Analysis\n")
+        f.write("Below is the detailed breakdown of each decomposition execution.\n\n")
+        f.write("---\n")
+        
+        for item in reversed(self.stats["results"]):
+            f.write(f"### Question ID: {item['id']}\n\n")
+            f.write(f"> **Input Question:** {item['question']}\n\n")
+            
+            # Decomposition Stats
+            decomp = item['decomposition']
+            f.write(f"- **Total Steps:** {decomp['total_steps']}\n")
+            f.write(f"- **Successful Steps:** {decomp['successful_steps']}\n")
+            f.write(f"- **Success Rate:** {item['metrics']['success_rate']:.1f}%\n\n")
+            
+            # Steps Breakdown
+            f.write("**Decomposition Steps:**\n\n")
+            for step_idx, step in enumerate(decomp['steps'], 1):
+                status = step.get('metadata', {}).get('status', 'unknown')
+                status_emoji = "✅" if status == "success" else "❌"
+                description = step.get('description', 'N/A')[:80]
+                result_count = step.get('metadata', {}).get('result_count', 0)
+                
+                f.write(f"{status_emoji} **Step {step_idx}:** {description}\n")
+                f.write(f"   - Type: `{step.get('query_type', 'N/A')}`\n")
+                f.write(f"   - Status: `{status}`\n")
+                f.write(f"   - Results: {result_count} items\n")
+                
+                if step.get('metadata', {}).get('query'):
+                    query = step['metadata']['query'].replace('\n', ' ')
+                    f.write(f"   - Query: `{query}`\n")
+                f.write("\n")
+            
+            # Final Answer
+            f.write("**Final Answer:**\n\n")
+            f.write(f"```\n{item['final_answer']}\n```\n\n")
+            
+            # Execution Log
+            f.write("<details>\n<summary><b>View Full Execution Log</b></summary>\n\n")
+            f.write(f"```json\n{json.dumps(item['execution']['log'], indent=2)}\n```\n")
+            f.write("</details>\n\n")
+            f.write("---\n")
 
     def _flush_to_disk(self):
         """Persists current evaluation state to JSON and Markdown files."""
@@ -286,14 +398,19 @@ class ReportManager:
         self._flush_to_disk()
         
         avg_f1 = self.stats['metrics']['avg_f1']
-        new_folder_name = f"F1-{avg_f1:.2f}_{self.folder_name}"
-        new_path = self.base_report_dir / new_folder_name
         
-        try:
-            if not new_path.exists():
-                self.run_dir.rename(new_path)
-                logger.info(f"Report Artifacts available at: {new_path}")
-            else:
-                logger.info(f"Report saved at: {self.run_dir}")
-        except Exception as e:
-            logger.warning(f"Could not rename report folder : {e}")
+        # Only rename if mode is "standard" (has F1 scores)
+        if self.mode == "standard":
+            new_folder_name = f"F1-{avg_f1:.2f}_{self.folder_name}"
+            new_path = self.base_report_dir / new_folder_name
+            
+            try:
+                if not new_path.exists() and self.run_dir.exists():
+                    self.run_dir.rename(new_path)
+                    logger.info(f"Report Artifacts available at: {new_path}")
+                else:
+                    logger.info(f"Report saved at: {self.run_dir}")
+            except Exception as e:
+                logger.warning(f"Could not rename report folder: {e}")
+        else:
+            logger.info(f"Report saved at: {self.run_dir}")

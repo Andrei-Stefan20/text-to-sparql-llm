@@ -1,5 +1,5 @@
 """
-Pipeline utilities for robust evaluation with error handling, caching, and optimization.
+Pipeline utilities for evaluation with error handling, caching, and optimization.
 Provides context managers, decorators, and helper functions for reliable execution.
 """
 
@@ -86,7 +86,7 @@ def timeout(seconds: float):
             import sys
             
             if sys.platform == 'win32':
-                # Timeout not reliably supported on Windows
+                # Timeout mechanism not reliably supported on Windows platform.
                 logger.debug(f"Timeout decorator not supported on Windows, skipping for {func.__name__}")
                 return func(*args, **kwargs)
             
@@ -130,12 +130,15 @@ class SimpleCache:
         return hashlib.md5(key.encode()).hexdigest()
     
     def get(self, key: str) -> Optional[Any]:
-        """Get value from cache."""
-        # Try memory cache first
+        """Retrieve value from cache using memory or file storage.
+        
+        Tries in-memory cache first, then file-based persistent cache.
+        """
+        # Try memory cache first for fast access.
         if key in self.memory_cache:
             return self.memory_cache[key]
         
-        # Try file cache
+        # Try file cache as fallback for persistence.
         cache_file = self.cache_dir / f"{self._get_key_hash(key)}.pkl"
         if cache_file.exists():
             try:
@@ -149,11 +152,11 @@ class SimpleCache:
         return None
     
     def set(self, key: str, value: Any) -> None:
-        """Set value in cache."""
-        # Store in memory
+        """Store value in both memory and file-based cache."""
+        # Store in in-memory cache for quick access.
         self.memory_cache[key] = value
         
-        # Store in file
+        # Store in file cache for persistence across sessions.
         cache_file = self.cache_dir / f"{self._get_key_hash(key)}.pkl"
         try:
             with open(cache_file, 'wb') as f:
@@ -196,7 +199,7 @@ class BatchProcessor:
                 self.failed += 1
                 logger.error(f"Error processing item {i+1}/{self.total}: {e}")
             
-            # Log progress every batch_size items
+            # Log progress updates at regular batch intervals for monitoring.
             if (i + 1) % self.batch_size == 0:
                 logger.info(f"Progress: {i+1}/{self.total} (failed: {self.failed})")
         
@@ -204,18 +207,21 @@ class BatchProcessor:
 
 def validate_sparql_output(raw_output: str) -> Optional[str]:
     """
-    Extract and validate SPARQL from LLM output.
+    Extract and validate SPARQL query from raw LLM output.
+    
+    Handles various output formats including markdown code blocks,
+    plain SPARQL, and text with embedded SPARQL.
     
     Args:
-        raw_output: Raw LLM output (may contain markdown, text, etc.)
+        raw_output: Raw output from LLM generation (may contain formatting).
         
     Returns:
-        Cleaned SPARQL query or None if invalid
+        Cleaned SPARQL query string or None if no valid query found.
     """
     if not raw_output or not isinstance(raw_output, str):
         return None
     
-    # Try to extract from code blocks first
+    # First attempt: Extract from markdown code blocks.
     import re
     pattern = r"```(?:sparql)?\s*(SELECT.*?)```"
     match = re.search(pattern, raw_output, re.DOTALL | re.IGNORECASE)
@@ -223,12 +229,12 @@ def validate_sparql_output(raw_output: str) -> Optional[str]:
     if match:
         query = match.group(1).strip()
     else:
-        # If no code block, try to find SELECT statement
+        # Fallback: Extract SELECT statement if no code block found.
         pattern = r"(SELECT\s+.*)"
         match = re.search(pattern, raw_output, re.IGNORECASE | re.DOTALL)
         query = match.group(1).strip() if match else raw_output.strip()
     
-    # Basic validation
+    # Validate that query starts with SELECT keyword.
     if not query.upper().startswith('SELECT'):
         return None
     

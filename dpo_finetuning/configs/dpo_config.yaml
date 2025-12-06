@@ -1,0 +1,57 @@
+# DPO Fine-Tuning Configuration
+
+# Model settings
+model:
+  name: "google/gemini-2.0-flash"
+  tokenizer: "google/gemini-2.0-flash"
+  dtype: "bfloat16"  # or float16, float32
+  load_in_8bit: false
+  load_in_4bit: true
+
+# Dataset settings
+dataset:
+  train_path: "dpo_finetuning/datasets/processed/train_split.jsonl"
+  eval_path: "dpo_finetuning/datasets/processed/validation_split.jsonl"
+  max_length: 1024
+  batch_size: 4
+  eval_batch_size: 8
+
+# Training settings
+training:
+  num_epochs: 3
+  learning_rate: 5.0e-5
+  weight_decay: 0.01
+  warmup_steps: 100
+  gradient_accumulation_steps: 2
+  max_grad_norm: 1.0
+  save_strategy: "epoch"
+  eval_strategy: "epoch"
+  logging_steps: 10
+  seed: 42
+
+# DPO settings
+dpo:
+  beta: 0.1  # Control strength of preference learning
+  loss_type: "sigmoid"  # Options: sigmoid, hinge, ipo
+  label_smoothing: 0.0
+  sanity_check: false
+
+# Compute settings
+compute:
+  num_gpus: 1
+  gpu_memory_fraction: 0.9
+  gradient_checkpointing: true
+  torch_compile: false
+
+# Output settings
+output:
+  output_dir: "./dpo_finetuning/models"
+  overwrite_output_dir: true
+  push_to_hub: false
+  hub_model_id: "text-to-sparql-dpo"
+
+# Logging
+logging:
+  use_wandb: false
+  wandb_project: "text-to-sparql"
+  wandb_entity: null
