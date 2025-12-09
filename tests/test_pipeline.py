@@ -232,14 +232,14 @@ class TestErrorHandling:
         # This would test actual API response handling
         # Requires mocking the endpoint
     
-    @patch('src.models.retriever.FewShotRetriever.__init__')
+    @patch('src.models.retriever.ExampleRetriever.__init__')
     def test_retriever_missing_files(self, mock_init):
         """Should raise FileNotFoundError for missing indices."""
         mock_init.side_effect = FileNotFoundError("Index not found")
         
         with pytest.raises(FileNotFoundError):
-            from src.models.retriever import FewShotRetriever
-            FewShotRetriever("fake_index.faiss", "fake_meta.pkl")
+            from src.models.retriever import ExampleRetriever
+            ExampleRetriever("fake_index.faiss", "fake_meta.pkl")
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

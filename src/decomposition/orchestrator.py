@@ -1,22 +1,22 @@
 import logging
 from typing import Dict, List, Any
-from .planner import QueryDecomposer
-from .executor import StepExecutor
+from .planner import QueryPlanner
+from .executor import StepRunner
 
 logger = logging.getLogger(__name__)
 
-class DecompositionOrchestrator:
-    """Intelligently coordinates query decomposition with iterative refinement and synthesis."""
+class QueryProcessor:
+    """Coordinates query decomposition with iterative refinement and synthesis."""
     
     def __init__(self, llm, generator, retriever):
         self.llm = llm
-        self.planner = QueryDecomposer(llm)
-        self.executor = StepExecutor(generator, retriever)
+        self.planner = QueryPlanner(llm)
+        self.executor = StepRunner(generator, retriever)
         self.execution_log = []
         
     def run(self, user_question: str) -> str:
         """
-        Orchestrates the complete decomposition pipeline with intelligent iteration.
+        Runs the complete decomposition pipeline with iterative refinement.
         
         Args:
             user_question: Natural language query to process
@@ -81,7 +81,7 @@ class DecompositionOrchestrator:
                 continue
         
         # Phase 3: Synthesize final answer from all results
-        final_answer = self._synthesize_answer(user_question, steps_plan, execution_results)
+        final_answer = self._combine_results(user_question, steps_plan, execution_results)
         
         logger.info(f"\n{'='*80}")
         logger.info("FINAL ANSWER")
@@ -90,9 +90,9 @@ class DecompositionOrchestrator:
         
         return final_answer
     
-    def _synthesize_answer(self, question: str, steps: List[Dict], results: Dict[str, Any]) -> str:
+    def _combine_results(self, question: str, steps: List[Dict], results: Dict[str, Any]) -> str:
         """
-        Intelligently synthesizes final answer from all step results.
+        Combines and synthesizes final answer from all step results.
         """
         # Filter successful results
         successful_results = {
@@ -107,7 +107,7 @@ class DecompositionOrchestrator:
         logger.info(f"Synthesizing results from {len(successful_results)} successful steps")
         
         # Build synthesis prompt
-        synthesis_prompt = self._build_synthesis_prompt(question, steps, successful_results)
+        synthesis_prompt = self._build_result_prompt(question, steps, successful_results)
         
         try:
             # Use LLM to synthesize natural language answer
@@ -118,9 +118,9 @@ class DecompositionOrchestrator:
             # Fallback: return structured results
             return self._fallback_synthesis(successful_results)
     
-    def _build_synthesis_prompt(self, question: str, steps: List[Dict], results: Dict) -> str:
+    def _build_result_prompt(self, question: str, steps: List[Dict], results: Dict) -> str:
         """
-        Builds prompt for final answer synthesis.
+        Builds prompt for final answer combination.
         """
         results_summary = "\n".join([
             f"Step {i+1} ({step.get('description', 'N/A')[:50]}): {len(results.get(f'step_{i+1}', []))} results"

@@ -28,7 +28,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class ComparativeEvaluator:
+class ModelComparison:
     """Compare baseline and fine-tuned models."""
     
     def __init__(self, baseline_path: Path, finetuned_path: Path, device: str = "cuda"):
@@ -315,7 +315,7 @@ def main():
             eval_data = eval_data[:args.num_samples]
         
         # Initialize evaluator
-        evaluator = ComparativeEvaluator(
+        evaluator = ModelComparison(
             args.baseline,
             args.finetuned,
             device=args.device,

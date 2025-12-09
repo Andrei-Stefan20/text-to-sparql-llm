@@ -33,7 +33,7 @@ from src.validators import validate_file_exists, validate_json_file, validate_ap
 from src.logging_config import get_logger
 from src.models.generator import build_prompt
 from src.models.entities import extract_gold_context
-from src.models.retriever import FewShotRetriever
+from src.models.retriever import ExampleRetriever
 from src.evaluation.mlflow_reporter import MLflowReporter
 from src.evaluation.metrics import (
     SPARQLSyntaxMetric,
@@ -46,7 +46,7 @@ from src.pipeline_utils import timer, BatchProcessor
 
 logger = get_logger(__name__)
 
-class GeminiGenerator:
+class GeminiQueryGenerator:
     """API wrapper for Google Gemini models with error handling."""
     
     def __init__(self, model_id: str, max_retries: int = 2):
@@ -180,9 +180,9 @@ def main():
     # Initialize components
     try:
         with timer("Component initialization"):
-            retriever = FewShotRetriever(DATA_INDEX, DATA_META)
+            retriever = ExampleRetriever(DATA_INDEX, DATA_META)
             sparql_client = SPARQLClient(timeout=30)
-            generator = GeminiGenerator(MODEL_ID, max_retries=2)
+            generator = GeminiQueryGenerator(MODEL_ID, max_retries=2)
     except Exception as e:
         logger.error(f"Failed to initialize components: {e}")
         return

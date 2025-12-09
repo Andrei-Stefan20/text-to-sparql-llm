@@ -25,7 +25,7 @@ def test_imports():
         logger.info("SPARQL client imported")
         
         logger.info("Testing retriever...")
-        from src.models.retriever import FewShotRetriever
+        from src.models.retriever import ExampleRetriever
         logger.info("Retriever imported")
         
         logger.info("Testing generator utilities...")
@@ -34,7 +34,7 @@ def test_imports():
         
         logger.info("Testing evaluation modules...")
         from src.evaluate_gemini import GeminiGenerator as GG
-        from src.evaluate import LocalLLMGenerator as LLG
+        from src.evaluate import LocalQueryGenerator as LLG
         logger.info("Evaluation modules imported")
         
         logger.info("Testing MLflow reporter...")

@@ -27,7 +27,7 @@ from src.validators import validate_file_exists, validate_json_file
 from src.logging_config import get_logger
 from src.models.generator import build_prompt
 from src.models.entities import extract_gold_context
-from src.models.retriever import FewShotRetriever
+from src.models.retriever import ExampleRetriever
 from src.evaluation.mlflow_reporter import MLflowReporter
 from src.evaluation.metrics import (
     SPARQLSyntaxMetric,
@@ -40,7 +40,7 @@ from src.pipeline_utils import timer
 
 logger = get_logger(__name__)
 
-class LocalLLMGenerator:
+class LocalQueryGenerator:
     """Wrapper for HuggingFace Transformers models with hardware optimization."""
     
     def __init__(self, model_id: str):
@@ -169,9 +169,9 @@ def main():
     # Initialize components
     try:
         with timer("Component initialization"):
-            retriever = FewShotRetriever(index_path, meta_path)
+            retriever = ExampleRetriever(index_path, meta_path)
             sparql_client = SPARQLClient(timeout=30)
-            generator = LocalLLMGenerator(model_id)
+            generator = LocalQueryGenerator(model_id)
     except Exception as e:
         logger.error(f"Failed to initialize components: {e}")
         return

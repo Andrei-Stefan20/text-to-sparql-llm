@@ -12,8 +12,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
 # Internal Imports 
-from src.decomposition.orchestrator import DecompositionOrchestrator
-from src.models.retriever import FewShotRetriever 
+from src.decomposition.orchestrator import QueryProcessor
+from src.models.retriever import ExampleRetriever 
 
 # Logging Configuration
 logging.basicConfig(
@@ -133,14 +133,14 @@ def main():
     # A. The Brain (LLM)
     llm = HuggingFaceLLM(MODEL_ID)
     
-    # B. The Knowledge (Few-Shot Retriever)  if Executor needs examples
-    # retriever = FewShotRetriever(INDEX_PATH, META_PATH) 
+    # B. The Knowledge (Example Retriever)  if Runner needs examples
+    # retriever = ExampleRetriever(INDEX_PATH, META_PATH) 
     
     # C. The Tools (Wikidata Client)
     kg_client = WikidataClient()
 
     # 4. Initialize Orchestrator
-    orchestrator = DecompositionOrchestrator(
+    orchestrator = QueryProcessor(
         llm=llm, 
         generator=llm, 
         retriever=kg_client

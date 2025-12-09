@@ -21,8 +21,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class DPOSPARQLGenerator:
-    """Generate SPARQL using DPO fine-tuned model."""
+class SPARQLGenerator:
+    """Generate SPARQL using fine-tuned model."""
     
     def __init__(
         self,
@@ -219,7 +219,7 @@ def main():
     
     try:
         # Initialize generator
-        generator = DPOSPARQLGenerator(
+        generator = SPARQLGenerator(
             args.model,
             device=args.device,
             dtype=args.dtype,

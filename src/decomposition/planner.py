@@ -4,8 +4,8 @@ from typing import List, Dict, Tuple, Optional
 
 logger = logging.getLogger(__name__)
 
-class QueryDecomposer:
-    """Intelligently decomposes complex queries with iterative refinement."""
+class QueryPlanner:
+    """Decomposes complex queries into structured steps with iterative refinement."""
     
     def __init__(self, llm):
         self.llm = llm
@@ -36,8 +36,8 @@ class QueryDecomposer:
             # Build context string from results of previously completed steps.
             context_str = self._build_context_str(steps)
             
-            # Request LLM to generate the next decomposition step autonomously.
-            next_step, needs_more_steps = self._generate_next_step(
+            # Request LLM to generate the next decomposition step.
+            next_step, needs_more_steps = self._plan_next_step(
                 user_question, 
                 step_count, 
                 context_str,
@@ -59,9 +59,9 @@ class QueryDecomposer:
         self.context_window['last_steps'] = steps
         return steps
     
-    def _generate_next_step(self, question: str, step_num: int, context: str, prev_steps: List) -> Tuple[Optional[Dict], bool]:
+    def _plan_next_step(self, question: str, step_num: int, context: str, prev_steps: List) -> Tuple[Optional[Dict], bool]:
         """
-        Uses LLM to generate the next step autonomously.
+        Plans the next step using the language model.
         """
         prev_steps_text = "\n".join([f"  {i+1}. {s.get('description', 'N/A')}" for i, s in enumerate(prev_steps)])
         

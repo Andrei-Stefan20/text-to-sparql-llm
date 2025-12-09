@@ -23,7 +23,7 @@ def _get_embedding_model(model_name: str = 'sentence-transformers/all-mpnet-base
             raise
     return _MODEL_CACHE[model_name]
 
-class FewShotRetriever:
+class ExampleRetriever:
     """Retrieves semantically similar examples using FAISS vector search with caching."""
     
     def __init__(self, index_path: Path, metadata_path: Path, embedding_cache: Optional[Dict] = None):

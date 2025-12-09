@@ -35,13 +35,13 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 from src.models.generator import build_prompt
 from src.models.entities import extract_gold_context
-from src.models.retriever import FewShotRetriever
+from src.models.retriever import ExampleRetriever
 from src.utils.report_manager import ReportManager
 from src.utils.sparql_client import SPARQLClient
-from src.decomposition.orchestrator import DecompositionOrchestrator
-from src.decomposition.planner import QueryDecomposer
-from src.decomposition.orchestrator import DecompositionOrchestrator
-from src.decomposition.planner import QueryDecomposer
+from src.decomposition.orchestrator import QueryProcessor
+from src.decomposition.planner import QueryPlanner
+from src.decomposition.orchestrator import QueryProcessor
+from src.decomposition.planner import QueryPlanner
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -50,7 +50,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-class GeminiDecompositionLLM:
+class GeminiQueryModel:
     """Wrapper for Google Gemini to work with the decomposition pipeline."""
     
     def __init__(self, model_id: str):
@@ -130,7 +130,7 @@ class WikidataClientGemini:
 class SPARQLEvaluator:
     """Legacy evaluator for non-decomposition queries."""
     
-    def __init__(self, model_id: str, retriever: FewShotRetriever):
+    def __init__(self, model_id: str, retriever: ExampleRetriever):
         self.retriever = retriever
         self.endpoint = SPARQLWrapper("https://query.wikidata.org/sparql")
         self.endpoint.setReturnFormat(JSON)
@@ -280,11 +280,11 @@ def main():
         return
 
     # Initialize Gemini LLM and Wikidata client
-    llm = GeminiDecompositionLLM(model_id)
+    llm = GeminiQueryModel(model_id)
     kg_client = WikidataClientGemini()
     
     # Initialize orchestrator
-    orchestrator = DecompositionOrchestrator(
+    orchestrator = QueryProcessor(
         llm=llm,
         generator=llm,
         retriever=kg_client

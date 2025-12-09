@@ -18,8 +18,8 @@ Error: Property P50 used for a movie director.
 Response: STRATEGY: For movie directors, use wdt:P57, not wdt:P50.
 """
 
-class ACEEngine:
-    """Automated Correction Engine that learns from SPARQL query errors."""
+class CorrectionHandler:
+    """Handler that learns from SPARQL query errors."""
     
     def __init__(self, generator_interface: Any, playbook_path: Path):
         """

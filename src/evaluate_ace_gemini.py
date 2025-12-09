@@ -32,14 +32,14 @@ from src.validators import validate_file_exists, validate_json_file, validate_ap
 from src.logging_config import get_logger
 from src.models.generator import build_ace_prompt
 from src.models.entities import extract_gold_context
-from src.models.retriever import FewShotRetriever
-from src.models.ace import ACEEngine
+from src.models.retriever import ExampleRetriever
+from src.models.ace import CorrectionHandler
 from src.utils.report_manager import ReportManager
 from src.utils.sparql_client import SPARQLClient
 
 logger = get_logger(__name__)
 
-class GeminiGenerator:
+class GeminiQueryGenerator:
     """API wrapper for Google Gemini with ACE integration."""
     
     def __init__(self, model_id: str):
@@ -105,10 +105,10 @@ def main():
         logger.error(f"Data validation error: {e}")
         return
 
-    retriever = FewShotRetriever(DATA_INDEX, DATA_META)
+    retriever = ExampleRetriever(DATA_INDEX, DATA_META)
     sparql_client = SPARQLClient()
-    generator = GeminiGenerator(MODEL_ID)
-    ace_engine = ACEEngine(generator, PLAYBOOK_PATH)
+    generator = GeminiQueryGenerator(MODEL_ID)
+    ace_engine = CorrectionHandler(generator, PLAYBOOK_PATH)
     reporter = ReportManager(PROJECT_ROOT, f"ACE_{MODEL_ID.replace('/', '_')}", run_prefix="ace")
     
     SAMPLES = test_data['questions'][:20]

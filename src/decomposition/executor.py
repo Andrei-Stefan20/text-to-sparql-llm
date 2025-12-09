@@ -3,8 +3,8 @@ from typing import Dict, List, Optional, Any, Tuple
 
 logger = logging.getLogger(__name__)
 
-class StepExecutor:
-    """Executes individual decomposition steps with intelligent retry and error recovery."""
+class StepRunner:
+    """Runs individual decomposition steps with retry and error recovery logic."""
     
     def __init__(self, generator_model, retriever_tool):
         self.generator = generator_model
@@ -14,7 +14,7 @@ class StepExecutor:
 
     def execute_step(self, step_dict: Dict, context_history: Dict) -> Tuple[Optional[List], Dict]:
         """
-        Executes a decomposition step with intelligent error recovery.
+        Executes a decomposition step with error recovery.
         
         Args:
             step_dict: Step dictionary with description, query_type, dependencies
