@@ -1,0 +1,18 @@
+{
+    "meta": {
+        "date": "2025-12-09",
+        "model": "models-gemini-2.0-flash",
+        "run_id": 1,
+        "start_time": "120136",
+        "mode": "decomposition"
+    },
+    "metrics": {
+        "total": 0,
+        "valid_syntax": 0,
+        "correct_answer": 0,
+        "avg_f1": 0.0,
+        "retries_successful": 0,
+        "successful_decompositions": 0
+    },
+    "results": []
+}

@@ -283,15 +283,16 @@ def main():
     llm = GeminiQueryModel(model_id)
     kg_client = WikidataClientGemini()
     
-    # Initialize orchestrator
+    # Initialize report manager with decomposition mode
+    reporter = ReportManager(PROJECT_ROOT, clean_model_name, run_prefix="decomposition", mode="decomposition")
+    
+    # Initialize orchestrator with unified reporting
     orchestrator = QueryProcessor(
         llm=llm,
         generator=llm,
-        retriever=kg_client
+        retriever=kg_client,
+        reporter=reporter  # Pass reporter for unified logging
     )
-    
-    # Initialize report manager with decomposition mode
-    reporter = ReportManager(PROJECT_ROOT, clean_model_name, run_prefix="decomposition", mode="decomposition")
 
     # Test questions
     test_questions = [
@@ -308,17 +309,10 @@ def main():
         logger.info(f"{'='*80}\n")
         
         try:
-            # Run decomposition orchestrator
-            final_answer = orchestrator.run(question)
+            # Run decomposition orchestrator (reporter is internal to orchestrator)
+            final_answer = orchestrator.run(question, question_id=i)
             
-            # Log to report
-            reporter.log_decomposition(
-                question=question,
-                decomposition_steps=orchestrator.planner.context_window.get('last_steps', orchestrator.planner.create_plan_iterative(question)),
-                execution_results={},
-                final_answer=final_answer,
-                execution_log=orchestrator.execution_log
-            )
+            logger.info(f"\nFinal Answer: {final_answer}\n")
             
         except Exception as e:
             logger.error(f"Error processing question {i}: {e}")

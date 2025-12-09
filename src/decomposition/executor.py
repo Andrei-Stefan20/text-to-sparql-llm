@@ -4,21 +4,33 @@ from typing import Dict, List, Optional, Any, Tuple
 logger = logging.getLogger(__name__)
 
 class StepRunner:
-    """Runs individual decomposition steps with retry and error recovery logic."""
+    """Executes individual decomposition steps with intelligent retry and error recovery.
+    
+    Handles SPARQL query generation, execution, and result management for each
+    step in a decomposed query. Supports automatic retry with adaptive strategies
+    and provides structured error reporting through ReportManager.
+    """
     
     def __init__(self, generator_model, retriever_tool):
+        """Initialize StepRunner.
+        
+        Args:
+            generator_model: LLM or model that generates SPARQL queries
+            retriever_tool: Tool that executes SPARQL against knowledge base
+        """
         self.generator = generator_model
         self.retriever = retriever_tool
         self.max_retries = 3
         self.retry_strategies = ['relax_constraints', 'simplify_query', 'alternative_property']
 
-    def execute_step(self, step_dict: Dict, context_history: Dict) -> Tuple[Optional[List], Dict]:
+    def execute_step(self, step_dict: Dict, context_history: Dict, current_step_idx: int = None) -> Tuple[Optional[List], Dict]:
         """
         Executes a decomposition step with error recovery.
         
         Args:
             step_dict: Step dictionary with description, query_type, dependencies
-            context_history: Dictionary of results from previous steps
+            context_history: Dictionary of 0-based step index -> results from previous steps
+            current_step_idx: 0-based index of current step (used for validation)
             
         Returns:
             Tuple of (results, step_metadata)
@@ -27,7 +39,6 @@ class StepRunner:
         query_type = step_dict.get('query_type', 'entity_search')
         depends_on = step_dict.get('depends_on_step')
         
-        # Normalize depends_on field: convert lists and strings to integer or None.
         if isinstance(depends_on, list):
             depends_on = depends_on[0] if depends_on else None
         if isinstance(depends_on, str):
@@ -36,12 +47,23 @@ class StepRunner:
             except (ValueError, TypeError):
                 depends_on = None
         
+        # Convert 1-based step numbers from planner to 0-based for context_history lookup
+        if depends_on is not None and depends_on > 0:
+            depends_on = depends_on - 1  # Convert 1-based to 0-based
+        
         logger.info(f"Executing step: {step_description[:80]}...")
         
-        # Verify all dependencies are satisfied before proceeding with execution.
-        if depends_on and depends_on not in context_history:
-            logger.warning(f"Step depends on step {depends_on} which has not been executed yet.")
-            return None, {'status': 'skipped', 'reason': 'missing_dependency'}
+        # Validate dependencies: check that depends_on_step is valid and available
+        if depends_on is not None:
+            if depends_on < 0:
+                logger.error(f"Invalid step dependency: step {depends_on + 1} cannot be negative.")
+                return None, {'status': 'failed', 'reason': 'invalid_dependency', 'detail': f'Step number must be positive, got {depends_on + 1}'}
+            if current_step_idx is not None and depends_on >= current_step_idx:
+                logger.error(f"Invalid step dependency: step {depends_on + 1} is not before current step {current_step_idx + 1}.")
+                return None, {'status': 'failed', 'reason': 'forward_dependency', 'detail': f'Step {depends_on + 1} not yet executed'}
+            if depends_on not in context_history:
+                logger.warning(f"Step depends on step {depends_on + 1} which has not been executed yet or failed.")
+                return None, {'status': 'skipped', 'reason': 'missing_dependency', 'detail': f'Step {depends_on + 1} not available'}
         
         # Build comprehensive prompt with execution context from previous steps.
         context_str = self._format_context(context_history)
@@ -72,19 +94,24 @@ class StepRunner:
                                   depends_on: Optional[int], context_history: Dict) -> Optional[str]:
         """
         Generate SPARQL query from step description using LLM-based generation.
-        Incorporates context from previous decomposition steps.
+        Incorporates context from previous decomposition steps and provides
+        guidance on common Wikidata patterns for the query type.
         """
         dependency_context = ""
-        if depends_on and depends_on in context_history:
+        if depends_on is not None and depends_on in context_history:
             # Include results from previous step to inform current query generation.
+            # Note: depends_on is already 0-based at this point
             dep_results = context_history[depends_on]
             if dep_results:
                 results_preview = str(dep_results)[:200] if isinstance(dep_results, list) else str(dep_results)
-                dependency_context = f"\nUse results from step {depends_on}: {results_preview}"
+                dependency_context = f"\nUse results from step {depends_on + 1}: {results_preview}"
             else:
-                dependency_context = f"\nNote: Step {depends_on} returned no results. Generate fallback query."
-        elif depends_on:
-            dependency_context = f"\nNote: Step {depends_on} was skipped or failed. Generate independent query."
+                dependency_context = f"\nNote: Step {depends_on + 1} returned no results. Generate fallback query."
+        elif depends_on is not None:
+            dependency_context = f"\nNote: Step {depends_on + 1} was skipped or failed. Generate independent query."
+        
+        # Provide query-type-specific guidance and Wikidata patterns
+        type_guidance = self._get_query_type_guidance(query_type)
         
         prompt = f"""You are a SPARQL expert for Wikidata. Generate a single, executable SPARQL query.
 
@@ -95,11 +122,15 @@ Context from previous steps:
 {context}
 {dependency_context}
 
+Query Type Guidance:
+{type_guidance}
+
 Requirements:
 - Generate only valid SPARQL syntax (no markdown, no explanations).
 - Use Wikidata properties (P* format) and entities (Q* format).
 - Include LIMIT 100 to prevent excessive data retrieval.
 - Handle missing data gracefully with OPTIONAL clauses.
+- For entity matching, use string matching on labels (rdfs:label) or search properties.
 
 SPARQL Query:"""
         
@@ -112,6 +143,45 @@ SPARQL Query:"""
         except Exception as e:
             logger.error(f"Error generating SPARQL: {e}")
             return None
+    
+    def _get_query_type_guidance(self, query_type: str) -> str:
+        """
+        Provides query-type-specific guidance and common Wikidata patterns.
+        """
+        guidance = {
+            'entity_search': """Find entities (people, places, things) matching criteria.
+            Common patterns:
+            - Birth place: ?person wdt:P19 ?birthplace
+            - Birth date: ?person wdt:P569 ?birthdate
+            - Occupation: ?person wdt:P106 ?occupation
+            - Instance of: ?entity wdt:P31 ?class""",
+                        
+                        'property_search': """Find values of specific properties for given entities.
+            Common patterns:
+            - Publications: ?author wdt:P800 ?work
+            - Located in: ?building wdt:P131 ?location
+            - Award received: ?person wdt:P166 ?award""",
+                        
+                        'filtering': """Filter results based on constraints (date ranges, numeric values, etc).
+            Common patterns:
+            - Date filtering: ?item wdt:P582 ?endDate . FILTER (?endDate > "2000-01-01"^^xsd:dateTime)
+            - String matching: ?item rdfs:label ?label . FILTER (CONTAINS(?label, "pattern"))
+            - Numeric: ?item wdt:P1106 ?value . FILTER (?value > 100)""",
+                        
+                        'aggregation': """Count, group, or find extremes (max/min) in results.
+            Common patterns:
+            - Count: SELECT (COUNT(?item) as ?count)
+            - Group by: GROUP BY ?property
+            - Order by: ORDER BY DESC(?value)
+            - Top-K: LIMIT 10""",
+                        
+                        'join': """Combine results from different entity searches via shared properties.
+            Common patterns:
+            - Direct link: ?entity1 wdt:P123 ?entity2
+            - Intermediate: ?entity1 wdt:P123 ?intermediate . ?intermediate wdt:P456 ?entity2"""
+        }
+        
+        return guidance.get(query_type, "Generate a SPARQL query matching the description.")
     
     def _execute_with_retry(self, query: str, step_description: str) -> Tuple[Optional[List], Dict]:
         """
@@ -145,17 +215,40 @@ SPARQL Query:"""
     
     def _format_context(self, context_history: Dict) -> str:
         """
-        Format previous step results into human-readable context string.
-        Provides contextual information for subsequent step generation.
+        Format previous step results into human-readable context string for LLM.
+        Preserves structured information while keeping context concise.
+        
+        Args:
+            context_history: Dictionary of 0-based step index -> results (list of bindings)
+            
+        Returns:
+            Formatted context string showing previous step results
         """
         if not context_history:
             return "(No previous context)"
         
         context_lines = []
-        for step_num, results in context_history.items():
-            if results:
-                result_preview = str(results)[:200]
-                context_lines.append(f"Step {step_num} results: {result_preview}")
+        for step_idx, results in sorted(context_history.items()):
+            step_num = step_idx + 1  # Convert to 1-based for display
+            if results and isinstance(results, list):
+                # Provide both count and structured sample of results
+                context_lines.append(f"Step {step_num}: {len(results)} results found")
+                
+                # Show structured samples (first 2-3 results) preserving key-value pairs
+                if results and isinstance(results[0], dict):
+                    # SPARQL results are dicts with key -> value mappings
+                    sample_items = []
+                    for item in results[:2]:
+                        item_str = ", ".join([f"{k}: {v.get('value', v) if isinstance(v, dict) else v}" 
+                                             for k, v in list(item.items())[:3]])
+                        sample_items.append(f"  [{item_str}]")
+                    context_lines.extend(sample_items)
+                elif results:
+                    # Fallback for other formats
+                    sample = str(results[0])[:100]
+                    context_lines.append(f"  Sample: {sample}")
+            elif results is None:
+                context_lines.append(f"Step {step_num}: No results (skipped or failed)")
         
         return "\n".join(context_lines) if context_lines else "(No usable context)"
     

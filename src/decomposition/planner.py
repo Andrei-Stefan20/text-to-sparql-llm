@@ -5,24 +5,40 @@ from typing import List, Dict, Tuple, Optional
 logger = logging.getLogger(__name__)
 
 class QueryPlanner:
-    """Decomposes complex queries into structured steps with iterative refinement."""
+    """Decomposes complex natural language questions into structured execution steps.
+    
+    Uses iterative LLM-based planning to break down complex queries into manageable,
+    executable steps with clear dependencies and semantic meaning.
+    """
     
     def __init__(self, llm):
+        """Initialize QueryPlanner.
+        
+        Args:
+            llm: Language model for step generation and planning
+        """
         self.llm = llm
         self.max_iterations = 5
         self.context_window = {}
         
     def create_plan_iterative(self, user_question: str, max_steps: int = 10) -> List[Dict]:
-        """
-        Generates and refines decomposition plan iteratively.
-        The LLM generates one step at a time, deciding if more steps are needed.
+        """Generates decomposition plan through iterative LLM-guided step creation.
+        
+        The planner iteratively asks the LLM to generate one execution step at a time,
+        using results from previous steps to inform subsequent steps. This enables
+        complex multi-hop reasoning and logical step dependencies.
         
         Args:
             user_question: Natural language question to decompose
-            max_steps: Maximum number of steps to generate
+            max_steps: Maximum number of steps to generate (prevents infinite loops)
             
         Returns:
-            List of step dictionaries with task descriptions and dependencies
+            List of step dictionaries, each containing:
+                - description: Human-readable step description
+                - query_type: Type of operation (entity_search, filtering, etc)
+                - depends_on_step: Step number (1-based) this step depends on (optional)
+                - needs_more_steps: Whether additional steps are needed
+                - reasoning: Why this step is necessary
         """
         steps = []
         step_count = 0
@@ -76,12 +92,33 @@ Current Context Available:
 {context if context else "(No results yet)"}
 
 Task: Generate EXACTLY ONE next step needed to answer the question.
-Consider:
-- Is this step independent or does it depend on previous results?
-- What specific entity/property should this step query?
-- Is this a filtering/aggregation step or a data retrieval step?
 
-IMPORTANT: Respond ONLY with valid JSON, no other text.
+Decision Logic:
+1. DATA RETRIEVAL (entity_search, property_search): Start by finding base entities or properties matching the question
+2. FILTERING: Apply constraints (dates, regions, numeric ranges) to narrow results
+3. JOIN: Combine results from previous steps (e.g., linking entities through relationships)
+4. AGGREGATION: Count, group, or summarize results
+5. SYNTHESIS: Final step to prepare answer format
+
+Guidelines:
+- Step 1 should be INDEPENDENT (no dependencies) to kickstart the pipeline
+- Each step builds on previous ones for multi-hop queries (e.g., "authors from Germany" -> "their books" -> "filter by rating")
+- Avoid redundant steps - don't repeat queries from previous steps
+- For multi-entity queries ("authors AND books"), decompose into separate retrieval steps
+- Keep step scope focused: one entity type or one constraint per step
+
+Examples of good decomposition:
+Q: "Books by German authors born after 1900 with rating > 4"
+Step 1: Find authors born in Germany after 1900 (entity_search, independent)
+Step 2: Get books written by these authors (entity_search, depends_on_step: 1)
+Step 3: Filter books by rating > 4 (filtering, depends_on_step: 2)
+
+Q: "Tallest buildings in New York completed after 2000"
+Step 1: Find buildings in New York (entity_search, independent)
+Step 2: Filter by completion year > 2000 (filtering, depends_on_step: 1)
+Step 3: Sort by height and get top results (aggregation, depends_on_step: 2)
+
+IMPORTANT: Respond ONLY with valid JSON, no other text. Step numbers in depends_on_step are 1-based (1, 2, 3, etc).
 Response format:
 {{"step_description": "Clear description of what this step should do", "query_type": "entity_search|property_search|aggregation|filtering|join", "depends_on_step": null, "needs_more_steps": true, "reasoning": "Why this step is needed"}}"""
         
@@ -119,35 +156,48 @@ Response format:
         
         # Strategy 1: Try direct JSON parsing.
         try:
-            return json.loads(response)
-        except json.JSONDecodeError:
-            pass
+            parsed = json.loads(response)
+            # Validate that result is a dict and has required fields
+            if not isinstance(parsed, dict):
+                logger.warning(f"Expected dict, got {type(parsed).__name__}")
+                return None
+            return parsed
+        except json.JSONDecodeError as e:
+            logger.debug(f"Direct JSON parse failed: {e}")
         
         # Strategy 2: Extract JSON object from response (may contain extra text).
         try:
-            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', response, re.DOTALL)
             if json_match:
                 json_str = json_match.group(0)
-                return json.loads(json_str)
-        except json.JSONDecodeError:
-            logger.warning(f"Failed to parse extracted JSON: {response[:100]}")
+                parsed = json.loads(json_str)
+                if isinstance(parsed, dict):
+                    return parsed
+                logger.warning(f"Extracted content is {type(parsed).__name__}, not dict")
+        except json.JSONDecodeError as e:
+            logger.debug(f"Failed to parse extracted JSON: {e}")
         
         # Strategy 3: Clean common formatting issues and retry parsing.
         try:
             # Remove markdown code fence markers.
             cleaned = response.replace('```json', '').replace('```', '').strip()
             # Extract just the JSON object.
-            json_match = re.search(r'\{.*\}', cleaned, re.DOTALL)
+            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', cleaned, re.DOTALL)
             if json_match:
                 json_str = json_match.group(0)
                 # Fix common JSON formatting issues.
                 json_str = json_str.replace("'", '"')  # Single quotes to double quotes.
-                return json.loads(json_str)
+                # Ensure proper escaping for newlines in strings
+                json_str = json_str.replace('\n', '\\n')
+                parsed = json.loads(json_str)
+                if isinstance(parsed, dict):
+                    return parsed
         except Exception as e:
-            logger.warning(f"Failed after cleanup attempt: {e}")
+            logger.debug(f"Failed after cleanup attempt: {e}")
         
-        # All parsing strategies failed, return None.
-        logger.warning(f"Could not parse JSON response: {response[:200]}")
+        # All parsing strategies failed, return None with detailed error logging.
+        logger.error(f"Could not parse JSON response from LLM. Response (first 500 chars): {response[:500]}")
+        logger.error(f"Full response available for debugging in step generation log")
         return None
     
     def _build_context_str(self, steps: List[Dict]) -> str:

@@ -189,6 +189,49 @@ class ReportManager:
         
         self._flush_to_disk()
 
+    def log_decomposition_step(self, question_id: int, step_num: int, step_description: str, 
+                               query_type: str, status: str, result_count: int, 
+                               query: Optional[str] = None, error: Optional[str] = None,
+                               depends_on: Optional[int] = None):
+        """
+        Log individual step execution within a decomposition.
+        Provides uniform, granular step-level reporting across the pipeline.
+        
+        Args:
+            question_id: ID of the parent question being decomposed
+            step_num: Step number (1-based)
+            step_description: Human-readable step description
+            query_type: Type of query (entity_search, property_search, filtering, aggregation, join)
+            status: Execution status (success, failed, skipped)
+            result_count: Number of results returned from this step
+            query: The SPARQL/semantic query executed (optional)
+            error: Error message if status is failed (optional)
+            depends_on: Step number this step depends on (optional)
+        """
+        step_log = {
+            "timestamp": datetime.datetime.now().isoformat(),
+            "question_id": question_id,
+            "step_num": step_num,
+            "description": step_description,
+            "query_type": query_type,
+            "status": status,
+            "result_count": result_count,
+            "query": query,
+            "error": error,
+            "depends_on": depends_on
+        }
+        
+        # Store in execution context for later retrieval
+        if not hasattr(self, '_step_logs'):
+            self._step_logs = []
+        self._step_logs.append(step_log)
+        
+        logger.debug(f"Step {step_num}: {status.upper()} ({result_count} results)")
+
+    def get_step_logs(self) -> List[Dict]:
+        """Retrieve all step logs recorded in current session."""
+        return getattr(self, '_step_logs', [])
+
     def _generate_plots(self):
         """Generates performance visualization charts for the report."""
         if not MATPLOTLIB_AVAILABLE or not self.stats["results"]:
