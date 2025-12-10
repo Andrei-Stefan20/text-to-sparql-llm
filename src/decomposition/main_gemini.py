@@ -1,8 +1,3 @@
-"""
-Decomposition-based evaluation pipeline using Google Gemini.
-Integrates iterative query decomposition with comprehensive reporting.
-"""
-
 import logging
 import json
 import sys

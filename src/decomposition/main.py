@@ -133,7 +133,7 @@ def main():
     # A. The Brain (LLM)
     llm = HuggingFaceLLM(MODEL_ID)
     
-    # B. The Knowledge (Example Retriever)  if Runner needs examples
+    # B. The Knowledge (Example Retriever) 
     # retriever = ExampleRetriever(INDEX_PATH, META_PATH) 
     
     # C. The Tools (Wikidata Client)
