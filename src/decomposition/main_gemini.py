@@ -46,7 +46,7 @@ logging.basicConfig(
 )
 
 class GeminiQueryModel:
-    """Wrapper for Google Gemini to work with the decomposition pipeline."""
+    """Wrapper for Google Gemini."""
     
     def __init__(self, model_id: str):
         self.model_id = model_id
@@ -117,13 +117,13 @@ class WikidataClientGemini:
             if not bindings:
                 return []
             
-            # Limit results to prevent context overflow in decomposition pipeline.
+            # Limit results to prevent context overflow
             return bindings[:100]
             
         except Exception as e:
             logger.error(f"SPARQL Execution Failed: {e}")
 class SPARQLEvaluator:
-    """Legacy evaluator for non-decomposition queries."""
+    """Evaluator for non-decomposition queries."""
     
     def __init__(self, model_id: str, retriever: ExampleRetriever):
         self.retriever = retriever
@@ -259,12 +259,10 @@ class SPARQLEvaluator:
                 return gen_sparql, raw_response, None, False, error_info, attempt, prompt, context
 
 def get_model_id():
-    # Usa il nome corretto per l'API attuale
     return "models/gemini-2.0-flash"
 
 def main():
     model_id = get_model_id()
-    # Clean model name for folder (remove slashes and spaces)
     clean_model_name = model_id.replace('/', '-').replace(' ', '_')
 
     index_path = PROJECT_ROOT / "data/processed/train_index.faiss"
@@ -278,15 +276,13 @@ def main():
     llm = GeminiQueryModel(model_id)
     kg_client = WikidataClientGemini()
     
-    # Initialize report manager with decomposition mode
     reporter = ReportManager(PROJECT_ROOT, clean_model_name, run_prefix="decomposition", mode="decomposition")
     
-    # Initialize orchestrator with unified reporting
     orchestrator = QueryProcessor(
         llm=llm,
         generator=llm,
         retriever=kg_client,
-        reporter=reporter  # Pass reporter for unified logging
+        reporter=reporter  
     )
 
     # Test questions
@@ -304,7 +300,6 @@ def main():
         logger.info(f"{'='*80}\n")
         
         try:
-            # Run decomposition orchestrator (reporter is internal to orchestrator)
             final_answer = orchestrator.run(question, question_id=i)
             
             logger.info(f"\nFinal Answer: {final_answer}\n")

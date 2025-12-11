@@ -24,10 +24,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class HuggingFaceLLM:
-    """
-    Wrapper for the Hugging Face model to act as the 'Brain' for the agents.
-    It mimics the interface expected by the Planner and Executor.
-    """
     def __init__(self, model_id):
         self.model_id = model_id
         logger.info(f"Initializing Model: {model_id}")
@@ -80,7 +76,7 @@ class HuggingFaceLLM:
 
 class WikidataClient:
     """
-    Tool for the Executor to run SPARQL queries against Wikidata.
+    Executor to run SPARQL queries against Wikidata.
     """
     def __init__(self):
         self.endpoint = SPARQLWrapper("https://query.wikidata.org/sparql")
@@ -133,7 +129,7 @@ def main():
     # A. The Brain (LLM)
     llm = HuggingFaceLLM(MODEL_ID)
     
-    # B. The Knowledge (Example Retriever) 
+    # B. The Knowledge
     # retriever = ExampleRetriever(INDEX_PATH, META_PATH) 
     
     # C. The Tools (Wikidata Client)

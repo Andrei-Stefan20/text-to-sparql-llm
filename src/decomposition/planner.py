@@ -5,11 +5,6 @@ from typing import List, Dict, Tuple, Optional
 logger = logging.getLogger(__name__)
 
 class QueryPlanner:
-    """Decomposes complex natural language questions into structured execution steps.
-    
-    Uses iterative LLM-based planning to break down complex queries into manageable,
-    executable steps with clear dependencies and semantic meaning.
-    """
     
     def __init__(self, llm):
         """Initialize QueryPlanner.
@@ -22,11 +17,9 @@ class QueryPlanner:
         self.context_window = {}
         
     def create_plan_iterative(self, user_question: str, max_steps: int = 10) -> List[Dict]:
-        """Generates decomposition plan through iterative LLM-guided step creation.
-        
+        """
         The planner iteratively asks the LLM to generate one execution step at a time,
-        using results from previous steps to inform subsequent steps. This enables
-        complex multi-hop reasoning and logical step dependencies.
+        using results from previous steps to inform subsequent steps. 
         
         Args:
             user_question: Natural language question to decompose
@@ -34,25 +27,22 @@ class QueryPlanner:
             
         Returns:
             List of step dictionaries, each containing:
-                - description: Human-readable step description
-                - query_type: Type of operation (entity_search, filtering, etc)
-                - depends_on_step: Step number (1-based) this step depends on (optional)
+                - description: Step description
+                - query_type: Type of operation (entity_search, filtering)
+                - depends_on_step: Step number
                 - needs_more_steps: Whether additional steps are needed
                 - reasoning: Why this step is necessary
         """
         steps = []
         step_count = 0
         
-        # Start iterative decomposition of the user question into structured steps.
         logger.info(f"Starting iterative decomposition for: {user_question}")
         
         while step_count < max_steps:
             step_count += 1
             
-            # Build context string from results of previously completed steps.
             context_str = self._build_context_str(steps)
             
-            # Request LLM to generate the next decomposition step.
             next_step, needs_more_steps = self._plan_next_step(
                 user_question, 
                 step_count, 
@@ -70,8 +60,7 @@ class QueryPlanner:
             if not needs_more_steps:
                 logger.info("Decomposition plan complete.")
                 break
-        
-        # Store completed steps in context window for orchestrator access.
+
         self.context_window['last_steps'] = steps
         return steps
     
@@ -127,11 +116,9 @@ Response format:
             step_data = self._parse_json_response(response)
             
             if step_data:
-                # Normalize field names: convert 'step_description' to 'description' if needed.
                 if 'step_description' in step_data and 'description' not in step_data:
                     step_data['description'] = step_data.pop('step_description')
                 
-                # Ensure all required keys have default values for safety.
                 step_data.setdefault('description', f'Step {step_num}')
                 step_data.setdefault('query_type', 'entity_search')
                 step_data.setdefault('depends_on_step', None)
@@ -145,7 +132,7 @@ Response format:
     
     def _parse_json_response(self, response: str) -> Optional[Dict]:
         """
-        Safely parse JSON from LLM response using multiple fallback strategies.
+        Parse JSON from LLM response using multiple fallback strategies.
         Handles various formatting issues and markdown artifacts.
         """
         import json
@@ -157,7 +144,6 @@ Response format:
         # Strategy 1: Try direct JSON parsing.
         try:
             parsed = json.loads(response)
-            # Validate that result is a dict and has required fields
             if not isinstance(parsed, dict):
                 logger.warning(f"Expected dict, got {type(parsed).__name__}")
                 return None
@@ -165,7 +151,7 @@ Response format:
         except json.JSONDecodeError as e:
             logger.debug(f"Direct JSON parse failed: {e}")
         
-        # Strategy 2: Extract JSON object from response (may contain extra text).
+        # Strategy 2: Extract JSON object from response.
         try:
             json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', response, re.DOTALL)
             if json_match:
@@ -186,8 +172,7 @@ Response format:
             if json_match:
                 json_str = json_match.group(0)
                 # Fix common JSON formatting issues.
-                json_str = json_str.replace("'", '"')  # Single quotes to double quotes.
-                # Ensure proper escaping for newlines in strings
+                json_str = json_str.replace("'", '"') 
                 json_str = json_str.replace('\n', '\\n')
                 parsed = json.loads(json_str)
                 if isinstance(parsed, dict):

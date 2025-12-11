@@ -4,15 +4,14 @@ from typing import Dict, List, Optional, Any, Tuple
 logger = logging.getLogger(__name__)
 
 class StepRunner:
-    """Executes individual decomposition steps with intelligent retry and error recovery.
+    """Executes individual decomposition steps with retry and error recovery.
     
     Handles SPARQL query generation, execution, and result management for each
-    step in a decomposed query. Supports automatic retry with adaptive strategies
-    and provides structured error reporting through ReportManager.
+    step in a decomposed query. 
     """
     
     def __init__(self, generator_model, retriever_tool):
-        """Initialize StepRunner.
+        """Initialize Step Runner.
         
         Args:
             generator_model: LLM or model that generates SPARQL queries
@@ -49,7 +48,7 @@ class StepRunner:
         
         # Convert 1-based step numbers from planner to 0-based for context_history lookup
         if depends_on is not None and depends_on > 0:
-            depends_on = depends_on - 1  # Convert 1-based to 0-based
+            depends_on = depends_on - 1  
         
         logger.info(f"Executing step: {step_description[:80]}...")
         
@@ -78,7 +77,6 @@ class StepRunner:
         if not sparql_query:
             return None, {'status': 'failed', 'reason': 'query_generation_failed'}
         
-        # Execute SPARQL query with automatic retry logic and error recovery.
         results, execution_info = self._execute_with_retry(sparql_query, step_description)
         
         logger.info(f"Step result: {len(results) if results else 0} items retrieved from Wikidata.")
@@ -100,7 +98,6 @@ class StepRunner:
         dependency_context = ""
         if depends_on is not None and depends_on in context_history:
             # Include results from previous step to inform current query generation.
-            # Note: depends_on is already 0-based at this point
             dep_results = context_history[depends_on]
             if dep_results:
                 results_preview = str(dep_results)[:200] if isinstance(dep_results, list) else str(dep_results)
@@ -115,24 +112,24 @@ class StepRunner:
         
         prompt = f"""You are a SPARQL expert for Wikidata. Generate a single, executable SPARQL query.
 
-Task: {description}
-Query Type: {query_type}
+        Task: {description}
+        Query Type: {query_type}
 
-Context from previous steps:
-{context}
-{dependency_context}
+        Context from previous steps:
+        {context}
+        {dependency_context}
 
-Query Type Guidance:
-{type_guidance}
+        Query Type Guidance:
+        {type_guidance}
 
-Requirements:
-- Generate only valid SPARQL syntax (no markdown, no explanations).
-- Use Wikidata properties (P* format) and entities (Q* format).
-- Include LIMIT 100 to prevent excessive data retrieval.
-- Handle missing data gracefully with OPTIONAL clauses.
-- For entity matching, use string matching on labels (rdfs:label) or search properties.
+        Requirements:
+        - Generate only valid SPARQL syntax (no markdown, no explanations).
+        - Use Wikidata properties (P* format) and entities (Q* format).
+        - Include LIMIT 100 to prevent excessive data retrieval.
+        - Handle missing data gracefully with OPTIONAL clauses.
+        - For entity matching, use string matching on labels (rdfs:label) or search properties.
 
-SPARQL Query:"""
+        SPARQL Query:"""
         
         try:
             # Generate SPARQL using the configured language model.
@@ -156,19 +153,19 @@ SPARQL Query:"""
             - Occupation: ?person wdt:P106 ?occupation
             - Instance of: ?entity wdt:P31 ?class""",
                         
-                        'property_search': """Find values of specific properties for given entities.
+            'property_search': """Find values of specific properties for given entities.
             Common patterns:
             - Publications: ?author wdt:P800 ?work
             - Located in: ?building wdt:P131 ?location
             - Award received: ?person wdt:P166 ?award""",
                         
-                        'filtering': """Filter results based on constraints (date ranges, numeric values, etc).
+            'filtering': """Filter results based on constraints (date ranges, numeric values, etc).
             Common patterns:
             - Date filtering: ?item wdt:P582 ?endDate . FILTER (?endDate > "2000-01-01"^^xsd:dateTime)
             - String matching: ?item rdfs:label ?label . FILTER (CONTAINS(?label, "pattern"))
             - Numeric: ?item wdt:P1106 ?value . FILTER (?value > 100)""",
                         
-                        'aggregation': """Count, group, or find extremes (max/min) in results.
+            'aggregation': """Count, group, or find extremes (max/min) in results.
             Common patterns:
             - Count: SELECT (COUNT(?item) as ?count)
             - Group by: GROUP BY ?property
@@ -259,7 +256,6 @@ SPARQL Query:"""
         This is critical for SPARQL syntax compliance and Wikidata endpoint compatibility.
         """
         q = query.strip()
-        # Remove markdown code fence markers if present.
         q = q.replace('```sparql', '').replace('```', '').strip()
         q = q.split('```')[0].strip()
         
