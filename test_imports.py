@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Quick test to verify all imports and configuration work correctly.
 """
