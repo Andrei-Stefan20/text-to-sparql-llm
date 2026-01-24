@@ -1,0 +1,3 @@
+method: "relik"
+model_path: "sapienzanlp/relik-entity-linking-large"
+window_size: 32

@@ -1,0 +1,15 @@
+name: "gpt-4o"
+platform: "azure"
+env_var: "AZURE_OPENAI_KEY"
+
+connection:
+  endpoint: "https://tuo-resource.openai.azure.com/"
+  api_version: "2024-12-01-preview"
+  deployment: "gpt-4o"
+
+params:
+  temperature: 0.0
+  max_tokens: 4096
+
+concurrency: 20
+timeout: 60

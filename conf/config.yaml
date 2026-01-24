@@ -1,0 +1,26 @@
+defaults:
+  - model: azure_gpt4
+  - linking: rebel
+  - retrieval: 3shot
+  - prompt: standard       
+  - _self_
+
+hydra:
+  run:
+    dir: outputs/${experiment_name}/${now:%Y-%m-%d_%H-%M-%S}
+
+system:
+  experiment_name: "param_test" 
+  seed: 42
+  debug: false
+
+dataset:
+  name: "casey-martin/qald_9_plus"
+  split: "test"
+  language: "en"
+  limit: null               
+
+rag:
+  index_path: "data/processed/train_index.faiss"
+  metadata_path: "data/processed/train_metadata.pkl"
+  encoder_model: "all-MiniLM-L6-v2"

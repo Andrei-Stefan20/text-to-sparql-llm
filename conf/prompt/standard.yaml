@@ -1,0 +1,6 @@
+name: "std"
+use_system_msg: true
+include_examples: true      
+include_entities: true      
+include_schema_hint: false  
+custom_instruction: "Output ONLY the SPARQL query code."

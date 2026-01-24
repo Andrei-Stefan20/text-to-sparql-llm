@@ -1,0 +1,3 @@
+k: 3
+index_path: "data/processed/train_index.faiss"
+metadata_path: "data/processed/train_metadata.pkl"

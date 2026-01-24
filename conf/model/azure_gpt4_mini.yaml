@@ -1,0 +1,15 @@
+name: "gpt-4o-mini"
+platform: "azure"
+env_var: "AZURE_OPENAI_KEY"
+
+connection:
+  endpoint: "https://tuo-resource.openai.azure.com/"
+  api_version: "2024-12-01-preview"
+  deployment: "gpt-4o-mini"
+
+params:
+  temperature: 0.0
+  max_tokens: 2048
+
+concurrency: 30
+timeout: 30
