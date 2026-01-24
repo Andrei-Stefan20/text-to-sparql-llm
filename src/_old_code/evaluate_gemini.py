@@ -34,7 +34,6 @@ from src.logging_config import get_logger
 from src.models.generator import build_prompt
 from src.models.entities import extract_gold_context
 from src.models.retriever import ExampleRetriever
-from src.evaluation.mlflow_reporter import MLflowReporter
 from src.evaluation.metrics import (
     SPARQLSyntaxMetric,
     SPARQLExecutionMetric,
@@ -187,24 +186,7 @@ def main():
         logger.error(f"Failed to initialize components: {e}")
         return
     
-    # Initialize MLflow reporter
-    try:
-        reporter = MLflowReporter(
-            experiment_name=f"gemini-evaluation-{MODEL_ID.split('/')[-1]}",
-            artifact_location=PROJECT_ROOT / "mlruns"
-        )
-        
-        reporter.log_params({
-            "model": MODEL_ID,
-            "temperature": config.model.temperature,
-            "max_retries": config.evaluation.max_retries,
-            "k_examples": config.retrieval.k_examples,
-            "dataset": "QALD-10",
-            "sample_size": 100
-        })
-    except Exception as e:
-        logger.error(f"Failed to initialize MLflow: {e}")
-        return
+    # MLflow reporter removed
     
     # Initialize metrics
     syntax_metric = SPARQLSyntaxMetric()
@@ -303,19 +285,7 @@ def main():
             except Exception as e:
                 logger.debug(f"Q{i+1}: DeepEval metric error: {e}")
             
-            # Log to MLflow
-            reporter.log_question_result(
-                question_id=i+1,
-                question=question,
-                gold_sparql=gold_sparql,
-                generated_sparql=gen_sparql,
-                is_valid=is_valid,
-                f1_score=f1,
-                attempts=attempts,
-                error_info=error_info if error_info else None,
-                metrics=custom_metrics,
-                prompt=prompt
-            )
+            # MLflow logging removed
             
         except Exception as e:
             logger.error(f"Error processing question {i+1}: {e}")
@@ -324,13 +294,7 @@ def main():
     for i, q_obj in enumerate(SAMPLES):
         process_question((i, q_obj))
     
-    # Finalize
-    try:
-        summary = reporter.finalize()
-        logger.info(f"Evaluation complete! Summary: {summary}")
-        logger.info("To view results, run: mlflow ui --port 5000")
-    except Exception as e:
-        logger.error(f"Failed to finalize report: {e}")
+    # MLflow finalize removed
 
 if __name__ == "__main__":
     main()

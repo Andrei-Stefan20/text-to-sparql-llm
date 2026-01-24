@@ -28,7 +28,6 @@ from src.logging_config import get_logger
 from src.models.generator import build_prompt
 from src.models.entities import extract_gold_context
 from src.models.retriever import ExampleRetriever
-from src.evaluation.mlflow_reporter import MLflowReporter
 from src.evaluation.metrics import (
     SPARQLSyntaxMetric,
     SPARQLExecutionMetric,
@@ -176,24 +175,7 @@ def main():
         logger.error(f"Failed to initialize components: {e}")
         return
     
-    # Initialize MLflow reporter
-    try:
-        reporter = MLflowReporter(
-            experiment_name=f"local-{model_id.split('/')[-1]}-evaluation",
-            artifact_location=PROJECT_ROOT / "mlruns"
-        )
-        
-        reporter.log_params({
-            "model": model_id,
-            "temperature": config.model.temperature,
-            "max_retries": config.model.max_retries,
-            "k_examples": config.retrieval.k_examples,
-            "dataset": "QALD-10",
-            "sample_size": 20
-        })
-    except Exception as e:
-        logger.error(f"Failed to initialize MLflow: {e}")
-        return
+    # MLflow reporter removed
     
     # Initialize metrics
     syntax_metric = SPARQLSyntaxMetric()
@@ -290,30 +272,13 @@ def main():
             except Exception as e:
                 logger.debug(f"Metric error: {e}")
             
-            # Log to MLflow
-            reporter.log_question_result(
-                question_id=i+1,
-                question=question,
-                gold_sparql=gold_sparql,
-                generated_sparql=gen_sparql,
-                is_valid=is_valid,
-                f1_score=f1,
-                attempts=attempts,
-                error_info=error_info if error_info else None,
-                metrics=custom_metrics
-            )
+            # MLflow logging removed
             
         except Exception as e:
             logger.error(f"Error processing Q{i+1}: {e}")
             continue
 
-    # Finalize
-    try:
-        summary = reporter.finalize()
-        logger.info(f"Evaluation complete! {summary}")
-        logger.info("View results: mlflow ui --port 5000")
-    except Exception as e:
-        logger.error(f"Failed to finalize: {e}")
+    # MLflow finalize removed
 
 if __name__ == "__main__":
     main()
