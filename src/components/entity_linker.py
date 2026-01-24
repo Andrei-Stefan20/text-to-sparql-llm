@@ -23,7 +23,7 @@ class RebelLinker(BaseLinker):
     
     def __init__(self, config: DictConfig):
         model_path = config.get("model_path", "Babelscape/rebel-large")
-        device = config.get("device", -1) # -1 for CPU, 0 for GPU
+        device = config.get("device", 0) # -1 for CPU, 0 for GPU
         
         logger.info(f"Loading REBEL model from '{model_path}' on device {device}...")
         try:

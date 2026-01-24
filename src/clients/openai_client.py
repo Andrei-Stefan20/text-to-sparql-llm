@@ -8,7 +8,7 @@ from .base import BaseClient
 load_dotenv()
 
 class OpenAIClient(BaseClient):
-    """Client for OpenAI-compatible APIs (e.g., Llama, Mistral)."""
+    """Client for OpenAI APIs."""
 
     def __init__(self, config: DictConfig):
         self.config = config
