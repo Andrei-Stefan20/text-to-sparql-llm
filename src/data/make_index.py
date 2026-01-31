@@ -1,8 +1,10 @@
+import os
 import pickle
 import logging
 import faiss
 import numpy as np
 import ssl
+import certifi
 from pathlib import Path
 from datasets import load_dataset
 from sentence_transformers import SentenceTransformer
@@ -13,6 +15,7 @@ except AttributeError:
     pass
 else:
     ssl._create_default_https_context = _create_unverified_https_context
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -44,14 +47,15 @@ def build_index():
 
     logger.info("Processing data...")
     for i, row in enumerate(dataset):
-        question = row.get("question")
-        lang = row.get("language", "")
+        raw_qs = row.get("question")
+        question = None
+        
+        if isinstance(raw_qs, str):
+            question = raw_qs
+        elif isinstance(raw_qs, list) and len(raw_qs) > 0:
+            question = raw_qs[0]
 
-        if lang not in ['en', 'ru', 'de', 'fr']: 
-             pass
-        
         sparql = row.get("query.sparql")
-        
         if not sparql:
              sparql = row.get("sparql")
         
@@ -64,9 +68,9 @@ def build_index():
             })
 
     if not questions:
-        logger.error("No valid data found to index. Dumping sample row:")
+        logger.error("No valid data found to index. Check dataset structure.")
         if len(dataset) > 0:
-            logger.info(dataset[0])
+            logger.info(f"Sample row: {dataset[0]}")
         return
 
     logger.info(f"Encoding {len(questions)} items...")

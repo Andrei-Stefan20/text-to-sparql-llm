@@ -17,13 +17,12 @@ class BaseLinker(ABC):
 
 class RebelLinker(BaseLinker):
     """
-    Implements Entity Linking using the REBEL model (Relation Extraction By End-to-end Language generation).
-    It parses the generated triplets to identify salient entities in the question.
+    Implements Entity Linking using the REBEL model.
     """
     
     def __init__(self, config: DictConfig):
         model_path = config.get("model_path", "Babelscape/rebel-large")
-        device = config.get("device", 0) # -1 for CPU, 0 for GPU
+        device = config.get("device", 0)
         
         logger.info(f"Loading REBEL model from '{model_path}' on device {device}...")
         try:
@@ -33,9 +32,6 @@ class RebelLinker(BaseLinker):
             raise
 
     def extract(self, text: str) -> List[str]:
-        """
-        Generates triplets and extracts the subject/object entities.
-        """
         if not text:
             return []
 
@@ -50,67 +46,57 @@ class RebelLinker(BaseLinker):
             )
             
             raw_text = self.pipe.tokenizer.decode(generated_ids[0], skip_special_tokens=False)
-            
             print(f"\n[REBEL RAW]: {raw_text}") 
-            
-            #Clean string (es. <pad>, </s>)
             return self._parse_rebel_output(raw_text)
             
         except Exception as e:
-            logger.warning(f"REBEL generation failed for text '{text[:30]}...': {e}")
+            logger.warning(f"REBEL generation failed: {e}")
             return []
 
     def _parse_rebel_output(self, text: str) -> List[str]:
         """
-        Parses REBEL output format: <triplet> Subject <subj> Relation <obj> Object
-        Returns a list of unique entity names found.
+        Parses REBEL output. 
         """
         text = text.replace("</s>", "").replace("<s>", "")
         entities = set()
         
-        # Split by the triplet token to isolate relations
         relations = text.split("<triplet>")
         
         for relation in relations:
-            # Each relation should contain <subj> and <obj> tokens
-            # We extract the text before <subj> (Subject) and after <obj> (Object)
-            
-            # Extract Subject
             if "<subj>" in relation:
                 parts = relation.split("<subj>")
                 subject = parts[0].strip()
                 if subject:
                     entities.add(subject)
                 
-                # Extract Object
                 if len(parts) > 1 and "<obj>" in parts[1]:
                     obj_parts = parts[1].split("<obj>")
+                
+                    rel_text = obj_parts[0].strip()
+                    if rel_text:
+                        entities.add(rel_text)
+
                     if len(obj_parts) > 1:
                         obj = obj_parts[1].strip()
-                        if obj:
+                        if obj and obj.lower() != "instance of":
                             entities.add(obj)
                             
         return list(entities)
 
 class RelikLinker(BaseLinker):
-    """Wrapper for the ReLiK entity linking system."""
-    
     def __init__(self, config: DictConfig):
         try:
             import relik
         except ImportError:
-            raise ImportError("The 'relik' library is not installed. Please install it to use RelikLinker.")
-            
+            raise ImportError("The 'relik' library is not installed.")
         logger.info(f"Loading ReLiK model from '{config.model_path}'...")
         self.model = relik.Relik.from_pretrained(config.model_path)
 
     def extract(self, text: str) -> List[str]:
         response = self.model(text)
-        # ReLiK returns spans; we extract the text of the identified entities
         return [span.text for span in response.spans]
 
 def get_linker(config: DictConfig) -> BaseLinker:
-    """Factory function to instantiate the correct linker based on configuration."""
     method = config.method.lower()
     if method == "rebel":
         return RebelLinker(config)
