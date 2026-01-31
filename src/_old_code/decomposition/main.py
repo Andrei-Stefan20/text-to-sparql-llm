@@ -1,8 +1,9 @@
-import sys
 import logging
-import torch
+import sys
 from pathlib import Path
-from SPARQLWrapper import SPARQLWrapper, JSON
+
+import torch
+from SPARQLWrapper import JSON, SPARQLWrapper
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Path Setup

@@ -7,12 +7,8 @@ Main components:
 - prepare_data: Dataset preparation utility
 """
 
-from complete_finetuning_pipeline import (
-    InferenceEngine,
-    DataHandler,
-    QueryComparator,
-    run_pipeline,
-)
+from complete_finetuning_pipeline import (DataHandler, InferenceEngine,
+                                          QueryComparator, run_pipeline)
 
 __version__ = "1.0.0"
 

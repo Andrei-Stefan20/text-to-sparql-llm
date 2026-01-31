@@ -1,9 +1,10 @@
+import logging
+import re
 from abc import ABC, abstractmethod
 from typing import List, Tuple
+
 from omegaconf import DictConfig
 from transformers import pipeline
-import re
-import logging
 
 # Configure logger
 logger = logging.getLogger(__name__)

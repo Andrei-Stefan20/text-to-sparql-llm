@@ -3,18 +3,21 @@ Unit tests for pipeline error handling and edge cases.
 Tests error scenarios, malformed inputs, timeout handling, etc.
 """
 
-import pytest
 import sys
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 FILE = Path(__file__).resolve()
 PROJECT_ROOT = FILE.parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.utils.sparql_client import SPARQLClient
-from src.pipeline_utils import retry, SimpleCache, validate_sparql_output, RetryError
 from src.exceptions import DataError
+from src.pipeline_utils import (RetryError, SimpleCache, retry,
+                                validate_sparql_output)
+
+from src.utils.sparql_client import SPARQLClient
 
 
 class TestSPARQLClient:

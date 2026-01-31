@@ -2,15 +2,11 @@
 Unit tests for configuration management.
 """
 
-import pytest
 from pathlib import Path
-from src.config import (
-    Config,
-    ModelConfig,
-    RetrievalConfig,
-    EvaluationConfig,
-    SPARQLConfig,
-)
+
+import pytest
+from src.config import (Config, EvaluationConfig, ModelConfig, RetrievalConfig,
+                        SPARQLConfig)
 
 
 def test_model_config_defaults():

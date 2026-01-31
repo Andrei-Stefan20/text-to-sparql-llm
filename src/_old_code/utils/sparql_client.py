@@ -1,9 +1,10 @@
-import re
 import logging
+import re
 import time
-from typing import Tuple, List, Optional, Dict, Any
-from SPARQLWrapper import SPARQLWrapper, JSON
 from contextlib import contextmanager
+from typing import Any, Dict, List, Optional, Tuple
+
+from SPARQLWrapper import JSON, SPARQLWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -78,8 +79,8 @@ class SPARQLClient:
             }
 
         try:
-            from rdflib.plugins.sparql.parser import parseQuery
             from pyparsing import ParseException
+            from rdflib.plugins.sparql.parser import parseQuery
 
             parseQuery(query)
             return {"valid": True, "type": None, "detail": None}

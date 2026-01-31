@@ -3,11 +3,11 @@ Input validation utilities for the Text-to-SPARQL project.
 Ensures data integrity before processing.
 """
 
-from pathlib import Path
-from typing import Dict, Any, List, Optional
 import json
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from src.exceptions import ValidationError, DataError
+from src.exceptions import DataError, ValidationError
 
 
 def validate_file_exists(file_path: Path, description: str = "File") -> None:

@@ -1,10 +1,11 @@
-import faiss
-import pickle
 import logging
-from sentence_transformers import SentenceTransformer
+import pickle
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
+
+import faiss
 import numpy as np
+from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import List, Any
+from typing import Any, List
 
 logger = logging.getLogger(__name__)
 

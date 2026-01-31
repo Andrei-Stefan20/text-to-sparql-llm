@@ -1,8 +1,10 @@
 import os
+
 import tenacity
 from dotenv import load_dotenv
-from openai import AsyncAzureOpenAI
 from omegaconf import DictConfig
+from openai import AsyncAzureOpenAI
+
 from .base import BaseClient
 
 load_dotenv()

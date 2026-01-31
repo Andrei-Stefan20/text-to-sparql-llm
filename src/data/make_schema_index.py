@@ -1,11 +1,12 @@
-import faiss
-import pickle
 import logging
-import numpy as np
+import pickle
 import ssl
 from pathlib import Path
+
+import faiss
+import numpy as np
 from sentence_transformers import SentenceTransformer
-from SPARQLWrapper import SPARQLWrapper, JSON
+from SPARQLWrapper import JSON, SPARQLWrapper
 
 try:
     _create_unverified_https_context = ssl._create_unverified_context

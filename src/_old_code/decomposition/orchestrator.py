@@ -1,7 +1,8 @@
 import logging
-from typing import Dict, List, Any, Optional
-from .planner import QueryPlanner
+from typing import Any, Dict, List, Optional
+
 from .executor import StepRunner
+from .planner import QueryPlanner
 
 logger = logging.getLogger(__name__)
 

@@ -1,11 +1,13 @@
 import asyncio
 import logging
+from typing import Any, Dict, List
+
 from tqdm.asyncio import tqdm
-from typing import List, Dict, Any
+
 from src.clients.base import BaseClient
 from src.components.entity_linker import BaseLinker
-from src.components.rag_retriever import RagRetriever
 from src.components.prompt_builder import PromptBuilder
+from src.components.rag_retriever import RagRetriever
 
 logger = logging.getLogger(__name__)
 

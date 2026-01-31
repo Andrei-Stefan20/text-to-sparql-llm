@@ -1,9 +1,10 @@
-import logging
-import time
 import json
+import logging
 import ssl
-from typing import List, Dict, Any, Set, Tuple
-from SPARQLWrapper import SPARQLWrapper, JSON
+import time
+from typing import Any, Dict, List, Set, Tuple
+
+from SPARQLWrapper import JSON, SPARQLWrapper
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)

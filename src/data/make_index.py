@@ -1,11 +1,12 @@
+import logging
 import os
 import pickle
-import logging
+import ssl
+from pathlib import Path
+
+import certifi
 import faiss
 import numpy as np
-import ssl
-import certifi
-from pathlib import Path
 from datasets import load_dataset
 from sentence_transformers import SentenceTransformer
 

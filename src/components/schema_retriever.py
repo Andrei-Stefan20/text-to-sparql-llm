@@ -1,8 +1,9 @@
-import faiss
-import pickle
-import numpy as np
 import logging
+import pickle
 from pathlib import Path
+
+import faiss
+import numpy as np
 from omegaconf import DictConfig
 from sentence_transformers import SentenceTransformer
 

@@ -4,8 +4,8 @@ Executes Text-to-SPARQL translation with iterative self-correction.
 """
 
 import json
-import sys
 import os
+import sys
 import time
 import traceback
 from pathlib import Path
@@ -26,23 +26,21 @@ except ImportError:
     pass
 
 import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
-
+from google.generativeai.types import HarmBlockThreshold, HarmCategory
 from src.config import config
 from src.exceptions import APIError, DataError
-from src.validators import validate_file_exists, validate_json_file, validate_api_key
 from src.logging_config import get_logger
-from src.models.generator import build_prompt
 from src.models.entities import extract_gold_context
+from src.models.generator import build_prompt
 from src.models.retriever import ExampleRetriever
-from src.evaluation.metrics import (
-    SPARQLSyntaxMetric,
-    SPARQLExecutionMetric,
-    SPARQLAnswerCorrectnessMetric,
-    create_test_case,
-)
+from src.pipeline_utils import BatchProcessor, timer
+from src.validators import (validate_api_key, validate_file_exists,
+                            validate_json_file)
+
+from src.evaluation.metrics import (SPARQLAnswerCorrectnessMetric,
+                                    SPARQLExecutionMetric, SPARQLSyntaxMetric,
+                                    create_test_case)
 from src.utils.sparql_client import SPARQLClient
-from src.pipeline_utils import timer, BatchProcessor
 
 logger = get_logger(__name__)
 

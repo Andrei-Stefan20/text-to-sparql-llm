@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-import json
 import argparse
+import json
 import random
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 
 def load_data(filepath: Path) -> List[Dict]:

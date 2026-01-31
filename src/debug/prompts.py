@@ -1,18 +1,19 @@
-import hydra
 import logging
-import sys
 import os
+import sys
 import time
-from typing import List, Any
-from omegaconf import DictConfig, OmegaConf
+from typing import Any, List
+
+import hydra
 from dotenv import load_dotenv
+from omegaconf import DictConfig, OmegaConf
 
 sys.path.append(os.getcwd())
 
 from src.components.entity_linker import get_linker
+from src.components.prompt_builder import PromptBuilder
 from src.components.rag_retriever import RagRetriever
 from src.components.schema_retriever import SchemaRetriever
-from src.components.prompt_builder import PromptBuilder
 
 logger = logging.getLogger("PromptInspector")
 

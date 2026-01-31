@@ -3,8 +3,9 @@ Unit tests for SPARQL client functionality.
 """
 
 import pytest
-from src.utils.sparql_client import SPARQLClient
 from src.exceptions import SPARQLError
+
+from src.utils.sparql_client import SPARQLClient
 
 
 @pytest.fixture

@@ -3,18 +3,10 @@ Unit tests for custom exceptions.
 """
 
 import pytest
-from src.exceptions import (
-    TextToSPARQLError,
-    ModelError,
-    APIError,
-    SPARQLError,
-    SyntaxError,
-    ExecutionError,
-    RetrievalError,
-    ConfigurationError,
-    DataError,
-    ValidationError,
-)
+from src.exceptions import (APIError, ConfigurationError, DataError,
+                            ExecutionError, ModelError, RetrievalError,
+                            SPARQLError, SyntaxError, TextToSPARQLError,
+                            ValidationError)
 
 
 def test_base_exception():

@@ -3,15 +3,16 @@ Dataset preprocessing pipeline for QALD-10.
 Generates semantic embeddings and builds FAISS index for retrieval.
 """
 
-import click
-import logging
 import json
+import logging
 import pickle
-import numpy as np
-import faiss
 from pathlib import Path
-from sentence_transformers import SentenceTransformer
+
+import click
+import faiss
+import numpy as np
 from dotenv import find_dotenv, load_dotenv
+from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 

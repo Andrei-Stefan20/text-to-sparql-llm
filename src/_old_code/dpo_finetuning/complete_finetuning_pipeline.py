@@ -2,10 +2,10 @@
 
 import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from dataclasses import asdict, dataclass
 from datetime import datetime
-from dataclasses import dataclass, asdict
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 from tqdm import tqdm
@@ -244,9 +244,9 @@ def finetune_model(
         return None
 
     try:
+        from datasets import Dataset
         from transformers import TrainingArguments
         from trl import DPOTrainer
-        from datasets import Dataset
 
         dataset = Dataset.from_dict(
             {

@@ -2,12 +2,13 @@
 Custom evaluation metrics for SPARQL generation using DeepEval.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from deepeval.metrics import BaseMetric
 from deepeval.test_case import LLMTestCase
+from src.logging_config import get_logger
 
 from src.utils.sparql_client import SPARQLClient
-from src.logging_config import get_logger
 
 logger = get_logger(__name__)
 

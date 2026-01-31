@@ -1,13 +1,13 @@
-import logging
 import json
-import sys
-import re
-import traceback
+import logging
 import os
+import re
+import sys
 import time
-from pathlib import Path
-from typing import Tuple, List, Dict, Optional
+import traceback
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 FILE = Path(__file__).resolve()
 PROJECT_ROOT = FILE.parents[2]
@@ -25,19 +25,17 @@ except ImportError:
     print("ERROR: python-dotenv not installed")
     sys.exit(1)
 
-from SPARQLWrapper import SPARQLWrapper, JSON
 import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
-
-from src.models.generator import build_prompt
+from google.generativeai.types import HarmBlockThreshold, HarmCategory
+from SPARQLWrapper import JSON, SPARQLWrapper
+from src.decomposition.orchestrator import QueryProcessor
+from src.decomposition.planner import QueryPlanner
 from src.models.entities import extract_gold_context
+from src.models.generator import build_prompt
 from src.models.retriever import ExampleRetriever
+
 from src.utils.report_manager import ReportManager
 from src.utils.sparql_client import SPARQLClient
-from src.decomposition.orchestrator import QueryProcessor
-from src.decomposition.planner import QueryPlanner
-from src.decomposition.orchestrator import QueryProcessor
-from src.decomposition.planner import QueryPlanner
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -199,8 +197,8 @@ class SPARQLEvaluator:
     def validate_syntax_local(self, query: str) -> dict:
         error_info = {"valid": True, "type": None, "detail": None}
         try:
-            from rdflib.plugins.sparql.parser import parseQuery
             from pyparsing import ParseException
+            from rdflib.plugins.sparql.parser import parseQuery
 
             parseQuery(query)
         except ImportError:
