@@ -23,5 +23,8 @@ relik
 rdflib>=7.0.0
 SPARQLWrapper>=2.0.0
 
-black              
-isort              
+black
+isort
+pre-commit
+pytest
+mypy         
