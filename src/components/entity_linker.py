@@ -46,7 +46,9 @@ class RebelLinker(BaseLinker):
             )
             
             raw_text = self.pipe.tokenizer.decode(generated_ids[0], skip_special_tokens=False)
-            print(f"\n[REBEL RAW]: {raw_text}") 
+            
+            logger.info(f"[REBEL RAW]: {raw_text}") 
+            
             return self._parse_rebel_output(raw_text)
             
         except Exception as e:

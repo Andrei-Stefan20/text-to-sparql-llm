@@ -4,6 +4,7 @@ import logging
 import os
 from omegaconf import DictConfig, OmegaConf
 from dotenv import load_dotenv
+from hydra.core.hydra_config import HydraConfig
 
 from src.data.loader import DatasetLoader
 from src.components.entity_linker import get_linker
@@ -16,15 +17,10 @@ from src.utils.logging_utils import ExperimentLogger, generate_run_name
 
 from src.clients.azure_client import AzureClient
 from src.clients.openai_client import OpenAIClient
-
 from src.evaluation.metrics import OfflineEvaluator
 
 load_dotenv()
 
-logging.basicConfig(
-    level=logging.INFO, 
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
 logger = logging.getLogger(__name__)
 
 def get_client_factory(cfg: DictConfig):
@@ -43,14 +39,10 @@ def get_client_factory(cfg: DictConfig):
 def main(cfg: DictConfig):
     """
     Main entry point for the Text-to-SPARQL.
-    
-    Workflow:
-    1. Initialize Experiment Logging (Artifacts).
-    2. Load and filter the Dataset (QALD).
-    3. Initialize Logic Components (Linker, Retriever, Schema).
-    4. Execute the Async Batch Pipeline.
-    5. Compute and Save Evaluation Metrics.
     """
+    
+    output_dir = HydraConfig.get().runtime.output_dir
+    logger.info(f"Experiment started. Output directory: {output_dir}")
     
     # 1. Experiment Setup
     run_id = generate_run_name(cfg)
@@ -101,7 +93,6 @@ def main(cfg: DictConfig):
         # 4. Pipeline Execution
         logger.info(f"Starting Batch Pipeline with concurrency limit: {cfg.model.concurrency}")
         
-        # Initialize the runner with all dependencies
         runner = BatchRunner(
             client=client, 
             prompt_builder=prompt_builder, 
@@ -109,17 +100,14 @@ def main(cfg: DictConfig):
             schema_retriever=schema_retriever
         )
         
-        # Execute the pipeline asynchronously
         results = asyncio.run(runner.run(dataset, linker, retriever))
 
         # 5. Evaluation & Reporting
         logger.info("Computing offline evaluation metrics...")
         
-        # Compute proxy metrics (Syntax Validity, Exact Match)
         metrics = OfflineEvaluator.compute_metrics(results)
         logger.info(f"Final Metrics: {metrics}")
         
-        # Prepare the final output object structure
         final_output = {
             "meta": {
                 "run_id": run_id,
@@ -133,7 +121,7 @@ def main(cfg: DictConfig):
 
         # 6. Artifact Persistence
         exp_logger.save_results(final_output)
-        logger.info("Experiment completed successfully. All artifacts saved.")
+        logger.info(f"Experiment completed successfully. Artifacts saved in: {output_dir}")
 
     except Exception as e:
         logger.critical(f"Critical System Failure: {e}", exc_info=True)

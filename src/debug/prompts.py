@@ -14,13 +14,7 @@ from src.components.rag_retriever import RagRetriever
 from src.components.schema_retriever import SchemaRetriever
 from src.components.prompt_builder import PromptBuilder
 
-logging.basicConfig(
-    level=logging.ERROR,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-
 logger = logging.getLogger("PromptInspector")
-logger.setLevel(logging.INFO)
 
 load_dotenv()
 
@@ -28,25 +22,26 @@ def format_section(title: str, content: Any, active: bool = True) -> None:
     """
     Prints a structured section for debug output.
     """
-    print(f"\n--- {title.upper()} ---")
+    logger.info(f"--- {title.upper()} ---")
     
     if not active:
-        print("[SKIPPED] Feature disabled in configuration.")
+        logger.info("[SKIPPED] Feature disabled in configuration.")
         return
 
     if isinstance(content, list):
         if not content:
-            print("[EMPTY] No results found.")
+            logger.info("[EMPTY] No results found.")
         else:
             for i, item in enumerate(content, 1):
-                print(f"{i}. {item}")
+                logger.info(f"{i}. {item}")
     elif isinstance(content, str):
         if not content.strip():
-            print("[EMPTY] No content.")
+            logger.info("[EMPTY] No content.")
         else:
-            print(content)
+            for line in content.split('\n'):
+                logger.info(line)
     else:
-        print(str(content))
+        logger.info(str(content))
 
 def measure_latency(func, *args):
     """Executes a function and returns (result, latency_ms)."""
@@ -60,12 +55,12 @@ def run_inspection(cfg: DictConfig):
     logger.info("Initializing Semantic Query:")
     
     # 1. Configuration Audit
-    print("\n=== ACTIVE CONFIGURATION ===")
-    print(f"Model:      {cfg.model.name}")
-    print(f"Retrieval:  k={cfg.retrieval.k}")
-    print(f"Linking:    {cfg.linking.method}")
-    print(f"Prompting:  Examples={cfg.prompt.include_examples}, Entities={cfg.prompt.include_entities}")
-    print("============================")
+    logger.info("=== ACTIVE CONFIGURATION ===")
+    logger.info(f"Model:      {cfg.model.name}")
+    logger.info(f"Retrieval:  k={cfg.retrieval.k}")
+    logger.info(f"Linking:    {cfg.linking.method}")
+    logger.info(f"Prompting:  Examples={cfg.prompt.include_examples}, Entities={cfg.prompt.include_entities}")
+    logger.info("============================")
 
     # 2. Component Initialization
     try:
@@ -88,8 +83,10 @@ def run_inspection(cfg: DictConfig):
     logger.info("System Ready. Starting Interactive Loop.")
 
     # 3. Interactive Testing Loop
-    print("\n[INSTRUCTION] Enter a natural language question to analyze the pipeline.")
-    print("[INSTRUCTION] Type 'exit' or 'quit' to terminate the session.\n")
+    logger.info("[INSTRUCTION] Enter a natural language question to analyze the pipeline.")
+    logger.info("[INSTRUCTION] Type 'exit' or 'quit' to terminate the session.")
+
+    print("\nSystem Ready. Check logs in outputs/ folder for details.\n") 
 
     while True:
         try:
@@ -101,7 +98,8 @@ def run_inspection(cfg: DictConfig):
                 logger.info("Session terminated by user.")
                 break
 
-            print(f"\n>>> PROCESSING QUERY: '{question}'")
+            logger.info(f"USER_INPUT> {question}")
+            logger.info(f">>> PROCESSING QUERY: '{question}'")
 
             #A. Entity Linking
             linking_active = cfg.linking.method.lower() != "none"
@@ -135,12 +133,15 @@ def run_inspection(cfg: DictConfig):
                 schema_hints=hints
             )
             
-            print("\n=== FINAL GENERATED PROMPT ===")
-            print(final_prompt)
-            print("==========================================\n")
+            logger.info("=== FINAL GENERATED PROMPT ===")
+            for line in final_prompt.split('\n'):
+                logger.info(line)
+            logger.info("==========================================")
+            
+            print("Query processed. Check logs.")
 
         except KeyboardInterrupt:
-            print("\nOperation cancelled.")
+            logger.info("Operation cancelled by KeyboardInterrupt.")
             break
         except Exception as e:
             logger.error(f"Error processing input: {e}", exc_info=True)
