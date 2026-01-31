@@ -1,11 +1,18 @@
-import os
 import pickle
 import logging
 import faiss
 import numpy as np
+import ssl
 from pathlib import Path
 from datasets import load_dataset
 from sentence_transformers import SentenceTransformer
+
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -27,6 +34,8 @@ def build_index():
         logger.error(f"Failed to load dataset: {e}")
         return
 
+    logger.info(f"Dataset loaded. Rows: {len(dataset)}")
+    
     logger.info(f"Loading encoder model: {MODEL_NAME}")
     encoder = SentenceTransformer(MODEL_NAME)
 
@@ -34,30 +43,30 @@ def build_index():
     metadata = []
 
     logger.info("Processing data...")
-    for row in dataset:
-        en_question = None
-        raw_qs = row.get("question", [])
-        
-        if isinstance(raw_qs, list):
-            for q in raw_qs:
-                if q.get("language") == "en":
-                    en_question = q.get("string")
-                    break
-        elif isinstance(raw_qs, str):
-            en_question = raw_qs
+    for i, row in enumerate(dataset):
+        question = row.get("question")
+        lang = row.get("language", "")
 
-        sparql = row.get("query", {}).get("sparql", "")
+        if lang not in ['en', 'ru', 'de', 'fr']: 
+             pass
         
-        if en_question and sparql:
-            questions.append(en_question)
+        sparql = row.get("query.sparql")
+        
+        if not sparql:
+             sparql = row.get("sparql")
+        
+        if question and sparql and isinstance(question, str) and isinstance(sparql, str):
+            questions.append(question)
             metadata.append({
-                "id": str(row.get("id")),
-                "question": en_question,
+                "id": str(row.get("id", i)),
+                "question": question,
                 "sparql": sparql
             })
 
     if not questions:
-        logger.error("No valid data found to index.")
+        logger.error("No valid data found to index. Dumping sample row:")
+        if len(dataset) > 0:
+            logger.info(dataset[0])
         return
 
     logger.info(f"Encoding {len(questions)} items...")
@@ -66,7 +75,7 @@ def build_index():
 
     faiss.normalize_L2(embeddings)
 
-    logger.info("Building FAISS index:")
+    logger.info(f"Building FAISS index {embeddings.shape[1]}...")
     dimension = embeddings.shape[1]
     index = faiss.IndexFlatIP(dimension)
     index.add(embeddings)
@@ -79,7 +88,7 @@ def build_index():
     with open(meta_path, "wb") as f:
         pickle.dump(metadata, f)
 
-    logger.info("Indexing completed successfully.")
+    logger.info(f"Indexing completed successfully. Saved to {index_path}")
 
 if __name__ == "__main__":
     build_index()

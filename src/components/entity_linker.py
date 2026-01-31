@@ -39,12 +39,23 @@ class RebelLinker(BaseLinker):
         if not text:
             return []
 
-        # Generate text with REBEL
         try:
-            # Beam search is used for better quality generation
-            model_output = self.pipe(text, max_length=256, num_beams=3, num_return_sequences=1)
-            raw_text = model_output[0]['generated_text']
+            model_inputs = self.pipe.tokenizer(text, return_tensors="pt").to(self.pipe.device)
+            
+            generated_ids = self.pipe.model.generate(
+                **model_inputs,
+                max_length=256,
+                num_beams=3,
+                num_return_sequences=1
+            )
+            
+            raw_text = self.pipe.tokenizer.decode(generated_ids[0], skip_special_tokens=False)
+            
+            print(f"\n[REBEL RAW]: {raw_text}") 
+            
+            #Clean string (es. <pad>, </s>)
             return self._parse_rebel_output(raw_text)
+            
         except Exception as e:
             logger.warning(f"REBEL generation failed for text '{text[:30]}...': {e}")
             return []
@@ -54,6 +65,7 @@ class RebelLinker(BaseLinker):
         Parses REBEL output format: <triplet> Subject <subj> Relation <obj> Object
         Returns a list of unique entity names found.
         """
+        text = text.replace("</s>", "").replace("<s>", "")
         entities = set()
         
         # Split by the triplet token to isolate relations
@@ -70,7 +82,7 @@ class RebelLinker(BaseLinker):
                 if subject:
                     entities.add(subject)
                 
-                # Extract Object (if present)
+                # Extract Object
                 if len(parts) > 1 and "<obj>" in parts[1]:
                     obj_parts = parts[1].split("<obj>")
                     if len(obj_parts) > 1:

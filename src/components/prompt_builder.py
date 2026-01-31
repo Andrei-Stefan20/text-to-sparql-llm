@@ -14,7 +14,7 @@ class PromptBuilder:
         # 1. Task Definition
         parts.append("Task: Generate a valid SPARQL query for Wikidata.")
         
-        # 2. Schema Hints (SOTA Feature)
+        # 2. Schema Hints
         if schema_hints:
             parts.append(f"### Relevant Properties (Hints):\nConsider using: {schema_hints}")
             

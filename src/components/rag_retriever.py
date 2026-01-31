@@ -10,14 +10,14 @@ logger = logging.getLogger(__name__)
 
 class RagRetriever:
     """
-    Retrieval-Augmented Generation (RAG) component.
-    Retrieves semantically similar examples (Question, SPARQL) from a FAISS index.
+    Retrieval-Augmented Generation.
+    Retrieves semantically similar examples from a FAISS index.
     """
 
     def __init__(self, config: DictConfig, rag_config: DictConfig):
         self.k = config.k
         if self.k == 0:
-            logger.info("Retrieval disabled (k=0).")
+            logger.info("Retrieval disabled.")
             return
 
         index_path = Path(rag_config.index_path)
@@ -26,7 +26,7 @@ class RagRetriever:
 
         # Validation
         if not index_path.exists():
-            raise FileNotFoundError(f"FAISS index not found at {index_path}. Please run the indexing script first.")
+            raise FileNotFoundError(f"FAISS index not found at {index_path}. Run the indexing script first.")
         if not meta_path.exists():
             raise FileNotFoundError(f"Metadata file not found at {meta_path}.")
 
@@ -51,8 +51,9 @@ class RagRetriever:
         try:
             # 1. Encode the query
             query_vec = self.encoder.encode([query])
+            query_vec = np.array(query_vec).astype('float32')
             
-            # 2. Search in FAISS (assuming L2 normalized index for cosine similarity)
+            # 2. Search in FAISS
             faiss.normalize_L2(query_vec)
             distances, indices = self.index.search(query_vec, self.k)
             
@@ -62,9 +63,16 @@ class RagRetriever:
                 if idx != -1 and idx < len(self.metadata):
                     item = self.metadata[idx]
                     
-                    # Adapt these keys based on your specific metadata structure
+                    # Gestione robusta per diversi formati di metadati
                     q_text = item.get('question', '')
-                    s_text = item.get('sparql', '')
+                    if isinstance(q_text, dict):
+                        q_text = q_text.get('en', str(q_text))
+                    
+                    raw_sparql = item.get('sparql', '')
+                    if isinstance(raw_sparql, dict):
+                        s_text = raw_sparql.get('sparql', str(raw_sparql))
+                    else:
+                        s_text = str(raw_sparql)
                     
                     if q_text and s_text:
                         examples.append(f"Example Question: {q_text}\nExample SPARQL: {s_text}")
