@@ -17,8 +17,8 @@ from complete_finetuning_pipeline import (
 __version__ = "1.0.0"
 
 __all__ = [
-    'InferenceEngine',
-    'DataHandler',
-    'QueryComparator',
-    'run_pipeline',
+    "InferenceEngine",
+    "DataHandler",
+    "QueryComparator",
+    "run_pipeline",
 ]

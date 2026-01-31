@@ -12,7 +12,7 @@ from src.validators import (
     validate_json_file,
     validate_qald_data,
     validate_sparql_query,
-    validate_api_key
+    validate_api_key,
 )
 from src.exceptions import ValidationError, DataError
 
@@ -21,7 +21,7 @@ def test_validate_file_exists_success(tmp_path):
     """Test file validation with existing file."""
     test_file = tmp_path / "test.txt"
     test_file.write_text("test content")
-    
+
     validate_file_exists(test_file)  # Should not raise
 
 
@@ -53,7 +53,7 @@ def test_validate_json_file_success(tmp_path):
     test_file = tmp_path / "test.json"
     test_data = {"key": "value"}
     test_file.write_text(json.dumps(test_data))
-    
+
     result = validate_json_file(test_file)
     assert result == test_data
 
@@ -62,7 +62,7 @@ def test_validate_json_file_invalid(tmp_path):
     """Test JSON file validation with invalid JSON."""
     test_file = tmp_path / "invalid.json"
     test_file.write_text("{ invalid json }")
-    
+
     with pytest.raises(DataError, match="Invalid JSON"):
         validate_json_file(test_file)
 
@@ -73,11 +73,11 @@ def test_validate_qald_data_success():
         "questions": [
             {
                 "question": [{"language": "en", "string": "Test question"}],
-                "query": {"sparql": "SELECT * WHERE { ?s ?p ?o }"}
+                "query": {"sparql": "SELECT * WHERE { ?s ?p ?o }"},
             }
         ]
     }
-    
+
     result = validate_qald_data(valid_data)
     assert len(result) == 1
 

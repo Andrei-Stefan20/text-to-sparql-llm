@@ -18,13 +18,14 @@ Error: Property P50 used for a movie director.
 Response: STRATEGY: For movie directors, use wdt:P57, not wdt:P50.
 """
 
+
 class CorrectionHandler:
     """Handler that learns from SPARQL query errors."""
-    
+
     def __init__(self, generator_interface: Any, playbook_path: Path):
         """
         Initializes the ACE engine with a generator and playbook storage.
-        
+
         Args:
             generator_interface: Object with .generate_raw(prompt, stop=...) method
             playbook_path: Path to JSON file containing learned strategies
@@ -38,14 +39,14 @@ class CorrectionHandler:
         """Loads existing strategies from persistent storage."""
         if self.playbook_path.exists():
             try:
-                with open(self.playbook_path, 'r', encoding='utf-8') as f:
+                with open(self.playbook_path, "r", encoding="utf-8") as f:
                     self.playbook = json.load(f)
             except Exception:
                 self.playbook = []
 
     def save_playbook(self):
         """Persists current strategies to disk."""
-        with open(self.playbook_path, 'w', encoding='utf-8') as f:
+        with open(self.playbook_path, "w", encoding="utf-8") as f:
             json.dump(self.playbook, f, indent=2)
 
     def get_context_block(self) -> str:
@@ -57,7 +58,7 @@ class CorrectionHandler:
     def curate(self, question: str, wrong_sparql: str, error_msg: str):
         """
         Analyzes query failures and generates corrective strategies.
-        
+
         Args:
             question: Original natural language question
             wrong_sparql: Failed SPARQL query
@@ -71,22 +72,22 @@ class CorrectionHandler:
 
         try:
             text = self.generator.generate_raw(
-                prompt,
-                max_new_tokens=128,
-                stop=["\n\n", "User Question:"]
+                prompt, max_new_tokens=128, stop=["\n\n", "User Question:"]
             )
-            
+
             strategy = text.strip()
-            
+
             if "STRATEGY:" in text:
                 strategy = text.split("STRATEGY:")[1].strip()
             elif len(text) > 5 and "STRATEGY" not in text:
                 strategy = text
-                
+
             strategy = strategy.strip('"').strip("'")
 
-            is_valid_rule = len(strategy) > 10 and any(x in strategy for x in ["P", "Q", "FILTER", "SELECT", "use", "Use"])
-            
+            is_valid_rule = len(strategy) > 10 and any(
+                x in strategy for x in ["P", "Q", "FILTER", "SELECT", "use", "Use"]
+            )
+
             if is_valid_rule:
                 if strategy not in self.playbook:
                     self.playbook.append(strategy)

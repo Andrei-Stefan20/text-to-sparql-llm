@@ -23,6 +23,7 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
+
 def get_client_factory(cfg: DictConfig):
     """
     Method to instantiate the correct LLM Client based on the configuration.
@@ -35,15 +36,16 @@ def get_client_factory(cfg: DictConfig):
     else:
         raise ValueError(f"Unsupported platform: {platform}")
 
+
 @hydra.main(config_path="conf", config_name="config", version_base=None)
 def main(cfg: DictConfig):
     """
     Main entry point for the Text-to-SPARQL.
     """
-    
+
     output_dir = HydraConfig.get().runtime.output_dir
     logger.info(f"Experiment started. Output directory: {output_dir}")
-    
+
     # 1. Experiment Setup
     run_id = generate_run_name(cfg)
     logger.info(f"Initializing Experiment Run: {run_id}")
@@ -55,12 +57,12 @@ def main(cfg: DictConfig):
         # 2. Data Loading
         logger.info("Loading dataset...")
         loader = DatasetLoader(
-            dataset_name=cfg.dataset.name, 
-            split=cfg.dataset.split, 
-            language=cfg.dataset.language
+            dataset_name=cfg.dataset.name,
+            split=cfg.dataset.split,
+            language=cfg.dataset.language,
         )
         full_dataset = loader.load()
-        
+
         limit = cfg.dataset.get("limit")
         if limit is not None and limit > 0:
             logger.info(f"Dataset limit applied: processing first {limit} items only.")
@@ -74,58 +76,63 @@ def main(cfg: DictConfig):
 
         # 3. Component Initialization
         logger.info("Initializing system components...")
-        
+
         # A. LLM Client
         client = get_client_factory(cfg.model)
-        
-        # B. Entity Linker 
+
+        # B. Entity Linker
         linker = get_linker(cfg.linking)
-        
+
         # C. RAG Retriever (Fetches similar Q&A pairs for few-shot learning)
         retriever = RagRetriever(cfg.retrieval, cfg.rag)
-        
+
         # D. Schema Retriever
-        schema_retriever = SchemaRetriever(cfg.rag) 
-        
-        # E. Prompt Builder 
+        schema_retriever = SchemaRetriever(cfg.rag)
+
+        # E. Prompt Builder
         prompt_builder = PromptBuilder(cfg.prompt)
 
         # 4. Pipeline Execution
-        logger.info(f"Starting Batch Pipeline with concurrency limit: {cfg.model.concurrency}")
-        
-        runner = BatchRunner(
-            client=client, 
-            prompt_builder=prompt_builder, 
-            concurrency=cfg.model.concurrency,
-            schema_retriever=schema_retriever
+        logger.info(
+            f"Starting Batch Pipeline with concurrency limit: {cfg.model.concurrency}"
         )
-        
+
+        runner = BatchRunner(
+            client=client,
+            prompt_builder=prompt_builder,
+            concurrency=cfg.model.concurrency,
+            schema_retriever=schema_retriever,
+        )
+
         results = asyncio.run(runner.run(dataset, linker, retriever))
 
         # 5. Evaluation & Reporting
         logger.info("Computing offline evaluation metrics...")
-        
+
         metrics = OfflineEvaluator.compute_metrics(results)
         logger.info(f"Final Metrics: {metrics}")
-        
+
         final_output = {
             "meta": {
                 "run_id": run_id,
                 "status": "completed",
-                "dataset_size": len(dataset)
+                "dataset_size": len(dataset),
             },
             "configuration": OmegaConf.to_container(cfg, resolve=True),
             "metrics": metrics,
-            "results": results
+            "results": results,
         }
 
         # 6. Artifact Persistence
         exp_logger.save_results(final_output)
-        logger.info(f"Experiment completed successfully. Artifacts saved in: {output_dir}")
+        logger.info(
+            f"Experiment completed successfully. Artifacts saved in: {output_dir}"
+        )
 
     except Exception as e:
         logger.critical(f"Critical System Failure: {e}", exc_info=True)
         raise e
+
 
 if __name__ == "__main__":
     main()

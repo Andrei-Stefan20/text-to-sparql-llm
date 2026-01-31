@@ -57,7 +57,7 @@ def test_calculate_f1_identical(client):
     """Test F1 calculation with identical results."""
     results1 = [{"var": {"value": "http://example.org/Q123"}}]
     results2 = [{"var": {"value": "http://example.org/Q123"}}]
-    
+
     f1 = client.calculate_f1(results1, results2)
     assert f1 == 1.0
 
@@ -72,7 +72,7 @@ def test_calculate_f1_no_overlap(client):
     """Test F1 calculation with no overlap."""
     results1 = [{"var": {"value": "http://example.org/Q123"}}]
     results2 = [{"var": {"value": "http://example.org/Q456"}}]
-    
+
     f1 = client.calculate_f1(results1, results2)
     assert f1 == 0.0
 
@@ -81,12 +81,12 @@ def test_calculate_f1_partial_overlap(client):
     """Test F1 calculation with partial overlap."""
     results1 = [
         {"var": {"value": "http://example.org/Q123"}},
-        {"var": {"value": "http://example.org/Q456"}}
+        {"var": {"value": "http://example.org/Q456"}},
     ]
     results2 = [
         {"var": {"value": "http://example.org/Q123"}},
-        {"var": {"value": "http://example.org/Q789"}}
+        {"var": {"value": "http://example.org/Q789"}},
     ]
-    
+
     f1 = client.calculate_f1(results1, results2)
     assert 0 < f1 < 1.0

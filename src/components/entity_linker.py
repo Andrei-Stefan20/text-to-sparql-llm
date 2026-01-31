@@ -8,25 +8,33 @@ import logging
 # Configure logger
 logger = logging.getLogger(__name__)
 
+
 class BaseLinker(ABC):
     """Abstract base class for Entity Linking strategies."""
+
     @abstractmethod
     def extract(self, text: str) -> List[str]:
         """Extracts a list of entity mentions from the text."""
         pass
 
+
 class RebelLinker(BaseLinker):
     """
     Implements Entity Linking using the REBEL model.
     """
-    
+
     def __init__(self, config: DictConfig):
         model_path = config.get("model_path", "Babelscape/rebel-large")
         device = config.get("device", 0)
-        
+
         logger.info(f"Loading REBEL model from '{model_path}' on device {device}...")
         try:
-            self.pipe = pipeline("text2text-generation", model=model_path, tokenizer=model_path, device=device)
+            self.pipe = pipeline(
+                "text2text-generation",
+                model=model_path,
+                tokenizer=model_path,
+                device=device,
+            )
         except Exception as e:
             logger.error(f"Failed to load REBEL model: {e}")
             raise
@@ -36,44 +44,45 @@ class RebelLinker(BaseLinker):
             return []
 
         try:
-            model_inputs = self.pipe.tokenizer(text, return_tensors="pt").to(self.pipe.device)
-            
-            generated_ids = self.pipe.model.generate(
-                **model_inputs,
-                max_length=256,
-                num_beams=3,
-                num_return_sequences=1
+            model_inputs = self.pipe.tokenizer(text, return_tensors="pt").to(
+                self.pipe.device
             )
-            
-            raw_text = self.pipe.tokenizer.decode(generated_ids[0], skip_special_tokens=False)
-            
-            logger.info(f"[REBEL RAW]: {raw_text}") 
-            
+
+            generated_ids = self.pipe.model.generate(
+                **model_inputs, max_length=256, num_beams=3, num_return_sequences=1
+            )
+
+            raw_text = self.pipe.tokenizer.decode(
+                generated_ids[0], skip_special_tokens=False
+            )
+
+            logger.info(f"[REBEL RAW]: {raw_text}")
+
             return self._parse_rebel_output(raw_text)
-            
+
         except Exception as e:
             logger.warning(f"REBEL generation failed: {e}")
             return []
 
     def _parse_rebel_output(self, text: str) -> List[str]:
         """
-        Parses REBEL output. 
+        Parses REBEL output.
         """
         text = text.replace("</s>", "").replace("<s>", "")
         entities = set()
-        
+
         relations = text.split("<triplet>")
-        
+
         for relation in relations:
             if "<subj>" in relation:
                 parts = relation.split("<subj>")
                 subject = parts[0].strip()
                 if subject:
                     entities.add(subject)
-                
+
                 if len(parts) > 1 and "<obj>" in parts[1]:
                     obj_parts = parts[1].split("<obj>")
-                
+
                     rel_text = obj_parts[0].strip()
                     if rel_text:
                         entities.add(rel_text)
@@ -82,8 +91,9 @@ class RebelLinker(BaseLinker):
                         obj = obj_parts[1].strip()
                         if obj and obj.lower() != "instance of":
                             entities.add(obj)
-                            
+
         return list(entities)
+
 
 class RelikLinker(BaseLinker):
     def __init__(self, config: DictConfig):
@@ -97,6 +107,7 @@ class RelikLinker(BaseLinker):
     def extract(self, text: str) -> List[str]:
         response = self.model(text)
         return [span.text for span in response.spans]
+
 
 def get_linker(config: DictConfig) -> BaseLinker:
     method = config.method.lower()

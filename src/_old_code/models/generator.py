@@ -1,4 +1,3 @@
-
 STANDARD_PREFIXES = """PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -17,15 +16,18 @@ PREFIX pq: [http://www.wikidata.org/prop/qualifier/](http://www.wikidata.org/pro
 PREFIX rdfs: [http://www.w3.org/2000/01/rdf-schema#](http://www.w3.org/2000/01/rdf-schema#)
 PREFIX bd: [http://www.bigdata.com/rdf#](http://www.bigdata.com/rdf#)"""
 
-def build_prompt(user_question: str, similar_examples: list, candidate_entities: str) -> str:
+
+def build_prompt(
+    user_question: str, similar_examples: list, candidate_entities: str
+) -> str:
     """
     Constructs a few-shot learning prompt for SPARQL generation.
-    
+
     Args:
         user_question: Natural language query to translate
         similar_examples: Retrieved examples containing question-SPARQL pairs
         candidate_entities: Formatted schema context with entity/property IDs
-        
+
     Returns:
         Formatted prompt string ready for LLM inference
     """
@@ -42,27 +44,33 @@ def build_prompt(user_question: str, similar_examples: list, candidate_entities:
 
     prompt += "\n### Few-Shot Examples:\n"
     for ex in similar_examples:
-        sparql_code = ex.get('sparql', ex.get('query', ''))
+        sparql_code = ex.get("sparql", ex.get("query", ""))
         sparql_code = sparql_code.strip()
         prompt += f"User: {ex['question']}\nQuery:\n```sparql\n{sparql_code}\n```\n\n"
 
     prompt += f"### Context (Schema):\n{candidate_entities}\n\n"
     prompt += f"### User Question:\n{user_question}\n\n"
-    
-    prompt += "```sparql" 
-    
+
+    prompt += "```sparql"
+
     return prompt
 
-def build_ace_prompt(user_question: str, similar_examples: list, candidate_entities: str, playbook_context: str) -> str:
+
+def build_ace_prompt(
+    user_question: str,
+    similar_examples: list,
+    candidate_entities: str,
+    playbook_context: str,
+) -> str:
     """
     Constructs an ACE-enhanced prompt with learned strategies.
-    
+
     Args:
         user_question: Natural language query to translate
         similar_examples: Retrieved examples containing question-SPARQL pairs
         candidate_entities: Formatted schema context with entity/property IDs
         playbook_context: Formatted string of learned corrective strategies
-        
+
     Returns:
         ACE-enhanced prompt with strategic guidelines
     """
@@ -91,10 +99,10 @@ def build_ace_prompt(user_question: str, similar_examples: list, candidate_entit
 
     prompt += "\n### FEW-SHOT EXAMPLES (Reference Only):\n"
     for ex in similar_examples:
-        sparql_code = ex.get('sparql', ex.get('query', '')).strip()
+        sparql_code = ex.get("sparql", ex.get("query", "")).strip()
         prompt += f"Q: {ex['question']}\nA: ```sparql\n{sparql_code}\n```\n\n"
 
     prompt += f"### USER QUESTION:\n{user_question}\n\n"
     prompt += "### SOLUTION:\n```sparql"
-    
+
     return prompt

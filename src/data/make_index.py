@@ -17,19 +17,23 @@ else:
     ssl._create_default_https_context = _create_unverified_https_context
 
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 PROCESSED_DIR = Path("data/processed")
-MODEL_NAME = "all-MiniLM-L6-v2" 
+MODEL_NAME = "all-MiniLM-L6-v2"
+
 
 def ensure_directory(path: Path):
     if not path.exists():
         path.mkdir(parents=True)
 
+
 def build_index():
     ensure_directory(PROCESSED_DIR)
-    
+
     logger.info("Loading training dataset...")
     try:
         dataset = load_dataset("casey-martin/qald_9_plus", split="train")
@@ -38,7 +42,7 @@ def build_index():
         return
 
     logger.info(f"Dataset loaded. Rows: {len(dataset)}")
-    
+
     logger.info(f"Loading encoder model: {MODEL_NAME}")
     encoder = SentenceTransformer(MODEL_NAME)
 
@@ -49,7 +53,7 @@ def build_index():
     for i, row in enumerate(dataset):
         raw_qs = row.get("question")
         question = None
-        
+
         if isinstance(raw_qs, str):
             question = raw_qs
         elif isinstance(raw_qs, list) and len(raw_qs) > 0:
@@ -57,15 +61,18 @@ def build_index():
 
         sparql = row.get("query.sparql")
         if not sparql:
-             sparql = row.get("sparql")
-        
-        if question and sparql and isinstance(question, str) and isinstance(sparql, str):
+            sparql = row.get("sparql")
+
+        if (
+            question
+            and sparql
+            and isinstance(question, str)
+            and isinstance(sparql, str)
+        ):
             questions.append(question)
-            metadata.append({
-                "id": str(row.get("id", i)),
-                "question": question,
-                "sparql": sparql
-            })
+            metadata.append(
+                {"id": str(row.get("id", i)), "question": question, "sparql": sparql}
+            )
 
     if not questions:
         logger.error("No valid data found to index. Check dataset structure.")
@@ -75,7 +82,7 @@ def build_index():
 
     logger.info(f"Encoding {len(questions)} items...")
     embeddings = encoder.encode(questions, show_progress_bar=True)
-    embeddings = np.array(embeddings).astype('float32')
+    embeddings = np.array(embeddings).astype("float32")
 
     faiss.normalize_L2(embeddings)
 
@@ -93,6 +100,7 @@ def build_index():
         pickle.dump(metadata, f)
 
     logger.info(f"Indexing completed successfully. Saved to {index_path}")
+
 
 if __name__ == "__main__":
     build_index()

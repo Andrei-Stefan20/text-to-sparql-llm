@@ -7,6 +7,7 @@ from .base import BaseClient
 
 load_dotenv()
 
+
 class OpenAIClient(BaseClient):
     """Client for OpenAI APIs."""
 
@@ -17,15 +18,13 @@ class OpenAIClient(BaseClient):
             raise ValueError(f"Environment variable {config.env_var} not found.")
 
         self.client = AsyncOpenAI(
-            base_url=config.connection.base_url,
-            api_key=api_key,
-            timeout=config.timeout
+            base_url=config.connection.base_url, api_key=api_key, timeout=config.timeout
         )
 
     @tenacity.retry(
         wait=tenacity.wait_exponential(min=1, max=10),
         stop=tenacity.stop_after_attempt(5),
-        retry=tenacity.retry_if_exception_type(Exception)
+        retry=tenacity.retry_if_exception_type(Exception),
     )
     async def generate(self, prompt: str, system_prompt: str = None) -> str:
         messages = [{"role": "user", "content": prompt}]
@@ -36,6 +35,6 @@ class OpenAIClient(BaseClient):
             model=self.config.connection.model,
             messages=messages,
             temperature=self.config.params.temperature,
-            max_tokens=self.config.params.max_tokens
+            max_tokens=self.config.params.max_tokens,
         )
         return response.choices[0].message.content

@@ -7,6 +7,7 @@ from .base import BaseClient
 
 load_dotenv()
 
+
 class AzureClient(BaseClient):
     """Client for Azure OpenAI Service."""
 
@@ -20,13 +21,13 @@ class AzureClient(BaseClient):
             api_version=config.connection.api_version,
             azure_endpoint=config.connection.endpoint,
             api_key=api_key,
-            timeout=config.timeout
+            timeout=config.timeout,
         )
 
     @tenacity.retry(
         wait=tenacity.wait_exponential(min=2, max=15),
         stop=tenacity.stop_after_attempt(5),
-        retry=tenacity.retry_if_exception_type(Exception)
+        retry=tenacity.retry_if_exception_type(Exception),
     )
     async def generate(self, prompt: str, system_prompt: str = None) -> str:
         messages = [{"role": "user", "content": prompt}]
@@ -37,6 +38,6 @@ class AzureClient(BaseClient):
             model=self.config.connection.deployment,
             messages=messages,
             temperature=self.config.params.temperature,
-            max_tokens=self.config.params.max_tokens
+            max_tokens=self.config.params.max_tokens,
         )
         return response.choices[0].message.content

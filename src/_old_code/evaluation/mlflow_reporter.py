@@ -18,67 +18,70 @@ logger = get_logger(__name__)
 
 # Configure seaborn style
 sns.set_theme(style="whitegrid")
-plt.rcParams['figure.figsize'] = (12, 6)
+plt.rcParams["figure.figsize"] = (12, 6)
 
 
 class MLflowReporter:
     """
     Creates comprehensive reports with metrics, artifacts, and visualizations.
     """
-    
+
     def __init__(
-        self, 
+        self,
         experiment_name: str,
         tracking_uri: Optional[str] = None,
-        artifact_location: Optional[Path] = None
+        artifact_location: Optional[Path] = None,
     ):
         """
         Initialize MLflow experiment tracker.
-        
+
         Args:
             experiment_name: Name of the experiment (e.g., "gemini-evaluation")
             tracking_uri: MLflow tracking URI (default: ./mlruns)
             artifact_location: Custom artifact storage location
         """
         self.experiment_name = experiment_name
-        
+
         # Set tracking URI (local by default)
         if tracking_uri is None:
             tracking_uri = "file:./mlruns"
         mlflow.set_tracking_uri(tracking_uri)
-        
+
         # Create or get experiment
         experiment = mlflow.get_experiment_by_name(experiment_name)
         if experiment is None:
             experiment_id = mlflow.create_experiment(
                 experiment_name,
-                artifact_location=str(artifact_location) if artifact_location else None
+                artifact_location=str(artifact_location) if artifact_location else None,
             )
         else:
             experiment_id = experiment.experiment_id
-        
+
         mlflow.set_experiment(experiment_name)
-        
+
         # Start run
         self.run = mlflow.start_run()
         self.run_id = self.run.info.run_id
-        
+
         # Create timestamped output directory
         from pathlib import Path
-        self.timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+
+        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.output_dir = Path("reports") / f"run_{self.timestamp}"
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Results storage
         self.results: List[Dict[str, Any]] = []
-        
-        logger.info(f"MLflow tracking started: {experiment_name} (run_id: {self.run_id})")
+
+        logger.info(
+            f"MLflow tracking started: {experiment_name} (run_id: {self.run_id})"
+        )
         logger.info(f"Output directory: {self.output_dir}")
-    
+
     def log_params(self, params: Dict[str, Any]):
         """Log hyperparameters and configuration."""
         mlflow.log_params(params)
-    
+
     def log_question_result(
         self,
         question_id: int,
@@ -90,11 +93,11 @@ class MLflowReporter:
         attempts: int,
         error_info: Optional[Dict] = None,
         metrics: Optional[Dict[str, float]] = None,
-        prompt: Optional[str] = None
+        prompt: Optional[str] = None,
     ):
         """
         Log individual question evaluation result.
-        
+
         Args:
             question_id: Question number (1-indexed)
             question: Natural language question
@@ -117,126 +120,145 @@ class MLflowReporter:
             "attempts": attempts,
             "error_type": error_info.get("type") if error_info else None,
             "error_detail": error_info.get("detail") if error_info else None,
-            "prompt": prompt
+            "prompt": prompt,
         }
-        
+
         # Add custom metrics
         if metrics:
             result.update(metrics)
-        
+
         self.results.append(result)
-        
+
         # Log metrics to MLflow (step = question_id)
         mlflow.log_metric("f1_score", f1_score, step=question_id)
         mlflow.log_metric("is_valid", 1.0 if is_valid else 0.0, step=question_id)
         mlflow.log_metric("attempts", attempts, step=question_id)
-        
+
         if metrics:
             for key, value in metrics.items():
                 mlflow.log_metric(key, value, step=question_id)
-    
+
     def generate_summary_metrics(self) -> Dict[str, float]:
         """Calculate aggregate metrics across all questions."""
         if not self.results:
             return {}
-        
+
         total = len(self.results)
         valid_count = sum(1 for r in self.results if r["is_valid"])
         correct_count = sum(1 for r in self.results if r["f1_score"] == 1.0)
-        retry_success = sum(1 for r in self.results if r["attempts"] > 1 and r["is_valid"])
-        
+        retry_success = sum(
+            1 for r in self.results if r["attempts"] > 1 and r["is_valid"]
+        )
+
         avg_f1 = sum(r["f1_score"] for r in self.results) / total
         avg_attempts = sum(r["attempts"] for r in self.results) / total
-        
+
         metrics = {
             "total_questions": total,
             "syntax_accuracy": valid_count / total,
             "answer_accuracy": correct_count / total,
             "avg_f1_score": avg_f1,
             "avg_attempts": avg_attempts,
-            "retry_success_rate": retry_success / total if total > 0 else 0.0
+            "retry_success_rate": retry_success / total if total > 0 else 0.0,
         }
-        
+
         # Log summary metrics
         for key, value in metrics.items():
             mlflow.log_metric(f"summary_{key}", value)
-        
+
         return metrics
-    
+
     def create_visualizations(self):
         """Generate and save visualization charts."""
         if not self.results:
             logger.warning("No results to visualize")
             return
-        
+
         df = pd.DataFrame(self.results)
-        
+
         # 1. F1 Score Distribution
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.histplot(data=df, x="f1_score", bins=20, kde=True, ax=ax)
-        ax.set_title("F1 Score Distribution", fontsize=14, fontweight='bold')
+        ax.set_title("F1 Score Distribution", fontsize=14, fontweight="bold")
         ax.set_xlabel("F1 Score")
         ax.set_ylabel("Count")
         plt.tight_layout()
         chart_path = self.output_dir / "f1_distribution.png"
-        fig.savefig(chart_path, dpi=150, bbox_inches='tight')
+        fig.savefig(chart_path, dpi=150, bbox_inches="tight")
         mlflow.log_artifact(str(chart_path))
         plt.close()
-        
+
         # 2. Success Rate by Attempts
         fig, ax = plt.subplots(figsize=(10, 6))
-        attempt_stats = df.groupby('attempts').agg({
-            'is_valid': 'mean',
-            'f1_score': 'mean'
-        }).reset_index()
-        
-        ax.bar(attempt_stats['attempts'], attempt_stats['is_valid'], 
-               alpha=0.7, label='Syntax Valid Rate')
-        ax.bar(attempt_stats['attempts'], attempt_stats['f1_score'], 
-               alpha=0.7, label='Correct Answer Rate')
-        ax.set_title("Success Rate by Number of Attempts", fontsize=14, fontweight='bold')
+        attempt_stats = (
+            df.groupby("attempts")
+            .agg({"is_valid": "mean", "f1_score": "mean"})
+            .reset_index()
+        )
+
+        ax.bar(
+            attempt_stats["attempts"],
+            attempt_stats["is_valid"],
+            alpha=0.7,
+            label="Syntax Valid Rate",
+        )
+        ax.bar(
+            attempt_stats["attempts"],
+            attempt_stats["f1_score"],
+            alpha=0.7,
+            label="Correct Answer Rate",
+        )
+        ax.set_title(
+            "Success Rate by Number of Attempts", fontsize=14, fontweight="bold"
+        )
         ax.set_xlabel("Attempts")
         ax.set_ylabel("Success Rate")
         ax.legend()
         plt.tight_layout()
         chart_path = self.output_dir / "attempts_success.png"
-        fig.savefig(chart_path, dpi=150, bbox_inches='tight')
+        fig.savefig(chart_path, dpi=150, bbox_inches="tight")
         mlflow.log_artifact(str(chart_path))
         plt.close()
-        
+
         # 3. Error Type Distribution (if errors exist)
-        errors = df[df['error_type'].notna()]
+        errors = df[df["error_type"].notna()]
         if not errors.empty:
             fig, ax = plt.subplots(figsize=(10, 6))
-            error_counts = errors['error_type'].value_counts()
-            sns.barplot(x=error_counts.values, y=error_counts.index, ax=ax, palette="rocket")
-            ax.set_title("Error Type Distribution", fontsize=14, fontweight='bold')
+            error_counts = errors["error_type"].value_counts()
+            sns.barplot(
+                x=error_counts.values, y=error_counts.index, ax=ax, palette="rocket"
+            )
+            ax.set_title("Error Type Distribution", fontsize=14, fontweight="bold")
             ax.set_xlabel("Count")
             ax.set_ylabel("Error Type")
             plt.tight_layout()
             chart_path = self.output_dir / "error_distribution.png"
-            fig.savefig(chart_path, dpi=150, bbox_inches='tight')
+            fig.savefig(chart_path, dpi=150, bbox_inches="tight")
             mlflow.log_artifact(str(chart_path))
             plt.close()
-        
+
         # 4. F1 Score Over Time (question progression)
         fig, ax = plt.subplots(figsize=(12, 6))
-        ax.plot(df['id'], df['f1_score'], marker='o', linewidth=2, markersize=4)
-        ax.axhline(y=df['f1_score'].mean(), color='r', linestyle='--', 
-                   label=f'Average: {df["f1_score"].mean():.3f}')
-        ax.set_title("F1 Score Progression", fontsize=14, fontweight='bold')
+        ax.plot(df["id"], df["f1_score"], marker="o", linewidth=2, markersize=4)
+        ax.axhline(
+            y=df["f1_score"].mean(),
+            color="r",
+            linestyle="--",
+            label=f'Average: {df["f1_score"].mean():.3f}',
+        )
+        ax.set_title("F1 Score Progression", fontsize=14, fontweight="bold")
         ax.set_xlabel("Question ID")
         ax.set_ylabel("F1 Score")
         ax.legend()
         ax.grid(True, alpha=0.3)
         plt.tight_layout()
         chart_path = self.output_dir / "f1_progression.png"
-        fig.savefig(chart_path, dpi=150, bbox_inches='tight')
+        fig.savefig(chart_path, dpi=150, bbox_inches="tight")
         mlflow.log_artifact(str(chart_path))
         plt.close()
-        
+
         logger.info(f"Generated 4 visualization charts in {self.output_dir}")
-    
+
     def save_detailed_results(self):
         """Save detailed results as JSON and CSV artifacts."""
         # JSON format
@@ -245,40 +267,46 @@ class MLflowReporter:
             "experiment": self.experiment_name,
             "timestamp": datetime.now().isoformat(),
             "summary": self.generate_summary_metrics(),
-            "results": self.results
+            "results": self.results,
         }
-        
+
         json_path = self.output_dir / "results.json"
-        with open(json_path, 'w', encoding='utf-8') as f:
+        with open(json_path, "w", encoding="utf-8") as f:
             import json
+
             json.dump(results_json, f, indent=2, ensure_ascii=False)
         mlflow.log_artifact(str(json_path))
-        
+
         # CSV format for easy analysis
         df = pd.DataFrame(self.results)
         csv_path = self.output_dir / "results.csv"
         df.to_csv(csv_path, index=False)
         mlflow.log_artifact(str(csv_path))
-        
+
         logger.info(f"Saved detailed results in {self.output_dir} (JSON + CSV)")
-    
+
     def generate_html_report(self):
         """Generate comprehensive professional HTML report."""
         from datetime import datetime
+
         summary = self.generate_summary_metrics()
-        
+
         # Calculate additional statistics
-        syntax_valid = sum(1 for r in self.results if r['is_valid'])
-        perfect_matches = sum(1 for r in self.results if r['f1_score'] == 1.0)
-        avg_f1 = sum(r['f1_score'] for r in self.results) / len(self.results) if self.results else 0
-        total_attempts = sum(r['attempts'] for r in self.results)
-        
+        syntax_valid = sum(1 for r in self.results if r["is_valid"])
+        perfect_matches = sum(1 for r in self.results if r["f1_score"] == 1.0)
+        avg_f1 = (
+            sum(r["f1_score"] for r in self.results) / len(self.results)
+            if self.results
+            else 0
+        )
+        total_attempts = sum(r["attempts"] for r in self.results)
+
         # Error distribution
         error_types = {}
         for r in self.results:
-            if r['error_type']:
-                error_types[r['error_type']] = error_types.get(r['error_type'], 0) + 1
-        
+            if r["error_type"]:
+                error_types[r["error_type"]] = error_types.get(r["error_type"], 0) + 1
+
         html = f"""
         <!DOCTYPE html>
         <html lang="en">
@@ -508,7 +536,7 @@ class MLflowReporter:
                         <div class="metric-sublabel">Self-correction effectiveness</div>
                     </div>
                 </div>"""
-        
+
         # Error distribution
         if error_types:
             html += """
@@ -523,8 +551,10 @@ class MLflowReporter:
                             </tr>
                         </thead>
                         <tbody>"""
-            
-            for error_type, count in sorted(error_types.items(), key=lambda x: x[1], reverse=True):
+
+            for error_type, count in sorted(
+                error_types.items(), key=lambda x: x[1], reverse=True
+            ):
                 percentage = (count / len(self.results)) * 100
                 html += f"""
                             <tr>
@@ -532,12 +562,12 @@ class MLflowReporter:
                                 <td>{count}</td>
                                 <td>{percentage:.1f}%</td>
                             </tr>"""
-            
+
             html += """
                         </tbody>
                     </table>
                 </div>"""
-        
+
         # Detailed results
         html += """
                 <div class="section">
@@ -553,11 +583,19 @@ class MLflowReporter:
                             </tr>
                         </thead>
                         <tbody>"""
-        
+
         for idx, r in enumerate(self.results, 1):
-            status_badge = "badge-success" if r["f1_score"] == 1.0 else ("badge-warning" if r["is_valid"] else "badge-error")
-            status_text = "Perfect" if r["f1_score"] == 1.0 else ("Valid" if r["is_valid"] else "Invalid")
-            
+            status_badge = (
+                "badge-success"
+                if r["f1_score"] == 1.0
+                else ("badge-warning" if r["is_valid"] else "badge-error")
+            )
+            status_text = (
+                "Perfect"
+                if r["f1_score"] == 1.0
+                else ("Valid" if r["is_valid"] else "Invalid")
+            )
+
             html += f"""
                             <tr class="expandable" onclick="toggleDetails({idx})">
                                 <td><strong>{idx}</strong></td>
@@ -580,8 +618,8 @@ class MLflowReporter:
                                                     <div class="code-block">{r.get('gold_sparql', 'N/A')}</div>
                                                 </td>
                                             </tr>"""
-            
-            if r.get('prompt'):
+
+            if r.get("prompt"):
                 html += f"""
                                             <tr>
                                                 <td colspan="2" style="border: none; padding-top: 15px;">
@@ -589,8 +627,8 @@ class MLflowReporter:
                                                     <div class="code-block">{r['prompt'][:2000]}{'...' if len(r.get('prompt', '')) > 2000 else ''}</div>
                                                 </td>
                                             </tr>"""
-            
-            if r.get('error_type'):
+
+            if r.get("error_type"):
                 html += f"""
                                             <tr>
                                                 <td colspan="2" style="border: none; padding-top: 10px;">
@@ -598,67 +636,72 @@ class MLflowReporter:
                                                     {f" - {r.get('error_detail', '')}" if r.get('error_detail') else ''}
                                                 </td>
                                             </tr>"""
-            
+
             html += """
                                         </table>
                                     </div>
                                 </td>
                             </tr>"""
-        
-        html += """
+
+        html += (
+            """
                         </tbody>
                     </table>
                 </div>
                 
                 <div class="footer">
                     <p>Generated by MLflow Reporter - Text-to-SPARQL Evaluation System</p>
-                    <p>Report generated at: """ + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + """</p>
+                    <p>Report generated at: """
+            + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            + """</p>
                 </div>
             </div>
         </body>
         </html>
         """
-        
+        )
+
         # Save to timestamped output directory
         html_path = self.output_dir / "report.html"
-        
-        with open(html_path, 'w', encoding='utf-8') as f:
+
+        with open(html_path, "w", encoding="utf-8") as f:
             f.write(html)
-        
+
         # Also save as latest for easy access
         from pathlib import Path
+
         latest_path = Path("reports") / "report.html"
-        with open(latest_path, 'w', encoding='utf-8') as f:
+        with open(latest_path, "w", encoding="utf-8") as f:
             f.write(html)
-        
+
         mlflow.log_artifact(str(html_path))
         logger.info(f"Generated HTML report: {html_path}")
-    
+
     def finalize(self):
         """
         Finalize experiment: generate all reports and close MLflow run.
         Call this at the end of evaluation.
         """
         logger.info("Finalizing evaluation report...")
-        
+
         # Generate summary metrics
         summary = self.generate_summary_metrics()
-        
+
         # Create visualizations
         self.create_visualizations()
-        
+
         # Save detailed results
         self.save_detailed_results()
-        
+
         # Generate HTML report
         self.generate_html_report()
-        
+
         # End MLflow run
         mlflow.end_run()
-        
+
         logger.info(f"✓ Evaluation complete!")
         logger.info(f"  View results: mlflow ui --port 5000")
         logger.info(f"  Run ID: {self.run_id}")
         logger.info(f"  Summary: {summary}")
-        
+
         return summary

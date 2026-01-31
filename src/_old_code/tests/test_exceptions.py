@@ -13,7 +13,7 @@ from src.exceptions import (
     RetrievalError,
     ConfigurationError,
     DataError,
-    ValidationError
+    ValidationError,
 )
 
 
