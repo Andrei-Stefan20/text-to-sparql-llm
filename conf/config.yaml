@@ -7,7 +7,7 @@ defaults:
 
 hydra:
   run:
-    dir: outputs/${experiment_name}/${now:%Y-%m-%d_%H-%M-%S}
+    dir: outputs/${system.experiment_name}/${now:%Y-%m-%d_%H-%M-%S}
 
 system:
   experiment_name: "param_test" 
