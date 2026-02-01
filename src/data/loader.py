@@ -1,76 +1,103 @@
 import logging
-from typing import Any, Dict, List
-
+import json
+import os
+import pandas as pd
 from datasets import load_dataset
+from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-
 class DatasetLoader:
-    """
-    Handles loading and normalization of QALD datasets.
-    Specifically optimized for 'casey-martin/qald_9_plus'.
-    """
-
-    def __init__(self, dataset_name: str, split: str = "test", language: str = "en"):
+    def __init__(self, dataset_name: str, split: str = "train", language: str = "en"):
         self.dataset_name = dataset_name
         self.split = split
         self.language = language
+        
+        self.local_path = f"data/raw/QALD-10/data/qald_9_plus/qald_9_plus_{split}_wikidata.json"
 
     def load(self) -> List[Dict[str, Any]]:
         """
-        Loads the dataset from HuggingFace Hub and normalizes it.
-        Returns: A list of dictionaries with 'id', 'question', 'gold_sparql'.
+        Carica il dataset dando priorità assoluta ai file locali JSON.
         """
-        logger.info(
-            f"Downloading dataset '{self.dataset_name}' (split: {self.split})..."
-        )
+        logger.info(f"Loading dataset '{self.dataset_name}' (split: {self.split})...")
+        
+        if os.path.exists(self.local_path):
+            logger.info(f"Found local file at '{self.local_path}'. Loading directly...")
+            try:
+                return self._load_local_json(self.local_path)
+            except Exception as e:
+                logger.error(f"Error loading local file: {e}. Falling back to standard download...")
+        else:
+            logger.warning(f"Local file not found at '{self.local_path}'.")
+            logger.warning("Please ensure you have unpacked the QALD data in 'data/raw/'.")
+            logger.warning("Attempting standard Hugging Face download as fallback...")
+
         try:
             ds = load_dataset(self.dataset_name, split=self.split)
+            
+            if self.language:
+                ds = ds.filter(lambda x: x.get('language', '') == self.language or x.get('lang', '') == self.language)
+            
+            data = []
+            for item in ds:
+                question = item.get('question')
+                sparql = item.get('sparql') or item.get('query') or item.get('query.sparql')
+                uid = item.get('id') or item.get('uid')
+                
+                if question and sparql:
+                    data.append({
+                        "id": str(uid),
+                        "question": question,
+                        "gold_sparql": sparql,
+                        "language": item.get('language', 'en')
+                    })
+            return data
+            
         except Exception as e:
-            logger.error(f"Failed to load dataset: {e}")
-            raise
+            logger.critical(f"🔥 All loading methods failed. Error: {e}")
+            raise e
 
-        normalized_data = []
-        logger.info(f"Filtering dataset for language '{self.language}'...")
-
-        for row in ds:
-            try:
-                question_text = None
-
-                # Handle QALD multilingual structure
-                # The 'question' field can be a string or a list of dicts
-                raw_question = row.get("question", [])
-
-                if isinstance(raw_question, list):
-                    # Search for the specific language
-                    for q in raw_question:
-                        if q.get("language") == self.language:
-                            question_text = q.get("string")
-                            break
-                elif isinstance(raw_question, str):
-                    question_text = raw_question
-
-                # Get SPARQL query
-                raw_query = row.get("query", {})
-                sparql_text = ""
-                if isinstance(raw_query, dict):
-                    sparql_text = raw_query.get("sparql", "")
-                else:
-                    sparql_text = str(raw_query)
-
-                if question_text:
-                    normalized_data.append(
-                        {
-                            "id": str(row.get("id", "unknown")),
-                            "question": question_text,
-                            "gold_sparql": sparql_text,
-                        }
-                    )
-            except Exception as e:
-                # Log warning but continue processing other rows
-                logger.debug(f"Skipping malformed row: {e}")
+    def _load_local_json(self, path: str) -> List[Dict[str, Any]]:
+        """
+        Legge e processa il file JSON locale di QALD-9-plus.
+        """
+        with open(path, 'r', encoding='utf-8') as f:
+            raw_data = json.load(f)
+            
+        questions_list = raw_data.get("questions", [])
+        logger.info(f"Parsed JSON. Found {len(questions_list)} questions total.")
+        
+        processed_data = []
+        
+        for item in questions_list:
+            question_text = None
+            
+            q_translations = item.get("question", [])
+            if isinstance(q_translations, list):
+                for q_obj in q_translations:
+                    if q_obj.get("language") == self.language:
+                        question_text = q_obj.get("string")
+                        break
+            elif isinstance(q_translations, str):
+                question_text = q_translations 
+            
+            if not question_text:
                 continue
-
-        logger.info(f"Successfully loaded {len(normalized_data)} items.")
-        return normalized_data
+            query_obj = item.get("query", {})
+            sparql_query = None
+            
+            if isinstance(query_obj, dict):
+                sparql_query = query_obj.get("sparql")
+            elif isinstance(query_obj, str):
+                sparql_query = query_obj
+            
+            if question_text and sparql_query:
+                processed_data.append({
+                    "id": str(item.get("id")),
+                    "question": question_text,
+                    "gold_sparql": sparql_query,
+                    "language": self.language
+                })
+                
+        logger.info(f"Successfully processed {len(processed_data)} items for language '{self.language}'.")
+        return processed_data
