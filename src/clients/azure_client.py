@@ -1,45 +1,63 @@
+import logging
 import os
 
-import tenacity
-from dotenv import load_dotenv
 from omegaconf import DictConfig
-from openai import AsyncAzureOpenAI
+from openai import AzureOpenAI
 
-from .base import BaseClient
+from src.clients.base import BaseClient
 
-load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 class AzureClient(BaseClient):
-    """Client for Azure OpenAI Service."""
+    """
+    Client for Azure OpenAI models (GPT-4o, GPT-4o-mini).
+    """
 
     def __init__(self, config: DictConfig):
-        self.config = config
-        api_key = os.getenv(config.env_var)
-        if not api_key:
-            raise ValueError(f"Environment variable {config.env_var} not found.")
+        endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        api_key = os.getenv("AZURE_OPENAI_API_KEY")
 
-        self.client = AsyncAzureOpenAI(
-            api_version=config.connection.api_version,
-            azure_endpoint=config.connection.endpoint,
+        if not endpoint or not api_key:
+            raise ValueError(
+                "Missing AZURE_OPENAI_ENDPOINT or AZURE_OPENAI_API_KEY environment variables."
+            )
+
+        self.deployment = config.deployment  # "gpt-4o" o "gpt-4o-mini" config yaml
+        self.temperature = config.get("temperature", 1.0)
+        self.top_p = config.get("top_p", 1.0)
+        self.max_tokens = config.get("max_tokens", 4096)
+
+        logger.info(
+            f"Initializing AzureOpenAI Client for deployment: {self.deployment}"
+        )
+
+        self.client = AzureOpenAI(
+            api_version="2024-12-01-preview",
+            azure_endpoint=endpoint,
             api_key=api_key,
-            timeout=config.timeout,
         )
 
-    @tenacity.retry(
-        wait=tenacity.wait_exponential(min=2, max=15),
-        stop=tenacity.stop_after_attempt(5),
-        retry=tenacity.retry_if_exception_type(Exception),
-    )
-    async def generate(self, prompt: str, system_prompt: str = None) -> str:
-        messages = [{"role": "user", "content": prompt}]
-        if system_prompt:
-            messages.insert(0, {"role": "system", "content": system_prompt})
+    async def generate(self, prompt: str) -> str:
+        try:
+            response = self.client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a helpful assistant expert in SPARQL. You will be responsible for translating natural language queries into a query for use on Wikidata.",
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },
+                ],
+                max_tokens=self.max_tokens,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                model=self.deployment,
+            )
+            return response.choices[0].message.content
 
-        response = await self.client.chat.completions.create(
-            model=self.config.connection.deployment,
-            messages=messages,
-            temperature=self.config.params.temperature,
-            max_tokens=self.config.params.max_tokens,
-        )
-        return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"Azure Generation Error: {e}")
+            return ""
