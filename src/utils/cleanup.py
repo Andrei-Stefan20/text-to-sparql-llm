@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 def cleanup_cache():
-    """Remove HuggingFace cache."""
+    """Remove HuggingFace cache and local models."""
     cache_dir = Path.home() / ".cache" / "huggingface"
     if cache_dir.exists():
         print(f"Removing HuggingFace cache: {cache_dir}")
@@ -18,6 +18,15 @@ def cleanup_cache():
         print("✓ Cache removed")
     else:
         print("No HuggingFace cache found")
+    
+    project_root = Path(__file__).parent.parent.parent
+    local_models = project_root / "models"
+    if local_models.exists():
+        print(f"Removing local models: {local_models}")
+        shutil.rmtree(local_models)
+        print("✓ Local models removed")
+    else:
+        print("No local models directory found")
 
 
 def cleanup_pycache():
@@ -102,7 +111,7 @@ def print_help():
     print("\nUsage:")
     print("  python -m src.utils.cleanup [OPTION]")
     print("\nOptions:")
-    print("  --cache      Remove HuggingFace cache (~/.cache/huggingface)")
+    print("  --cache      Remove HuggingFace cache and local models")
     print("  --pycache    Remove __pycache__ and .pyc files")
     print("  --outputs    Remove outputs directory")
     print("  --tmp        Remove temporary files (.DS_Store, etc)")
