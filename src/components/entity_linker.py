@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from abc import ABC, abstractmethod
 from typing import List, Tuple
@@ -144,7 +145,12 @@ class AllLinkersCombo(BaseLinker):
         return combined
 
 
-def get_linker(config: DictConfig) -> BaseLinker:
+def get_linker(config: DictConfig, cache_dir: str = None) -> BaseLinker:
+    # Set HuggingFace cache directory if provided
+    if cache_dir:
+        os.environ['HF_HOME'] = os.path.expanduser(cache_dir)
+        logger.info(f"Using HuggingFace cache: {cache_dir}")
+    
     method = config.method.lower()
     if method == "rebel":
         return RebelLinker(config)

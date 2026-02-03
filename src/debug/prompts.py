@@ -75,7 +75,8 @@ def run_inspection(cfg: DictConfig):
     # 2. Component Initialization
     try:
         logger.info("Loading Entity Linker...")
-        linker = get_linker(cfg.linking)
+        cache_dir = cfg.system.get("cache_dir")
+        linker = get_linker(cfg.linking, cache_dir=cache_dir)
 
         logger.info("Loading RAG Retriever...")
         rag = RagRetriever(cfg.retrieval, cfg.rag)

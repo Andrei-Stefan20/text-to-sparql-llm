@@ -80,7 +80,8 @@ def main(cfg: DictConfig):
         client = get_client_factory(cfg.model)
 
         # B. Entity Linker(s)
-        linker = get_linker(cfg.linking)
+        cache_dir = cfg.system.get("cache_dir")
+        linker = get_linker(cfg.linking, cache_dir=cache_dir)
         
         # Optional: Use a second linker for hybrid approach
         linker2 = None
@@ -90,7 +91,7 @@ def main(cfg: DictConfig):
                 logger.info(f"Initializing secondary linker: {secondary_method}")
                 from omegaconf import DictConfig as OmegaConfConfig
                 secondary_config = OmegaConfConfig({"method": secondary_method})
-                linker2 = get_linker(secondary_config)
+                linker2 = get_linker(secondary_config, cache_dir=cache_dir)
                 logger.info("✓ Dual linker mode enabled")
 
         # C. RAG Retriever (Fetches similar Q&A pairs for few-shot learning)

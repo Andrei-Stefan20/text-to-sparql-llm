@@ -13,6 +13,7 @@ system:
   experiment_name: "param_test" 
   seed: 42
   debug: false
+  cache_dir: ~/.cache/huggingface/hub
 
 dataset:
   name: "casey-martin/qald_9_plus"
