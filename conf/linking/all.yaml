@@ -1,0 +1,7 @@
+method: "all"
+device: -1
+# REBEL config
+rebel_model_path: "Babelscape/rebel-large"
+# RELIK config
+relik_model_path: "sapienzanlp/relik-entity-linking-large"
+window_size: 32

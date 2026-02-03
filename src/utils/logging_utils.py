@@ -44,15 +44,21 @@ def generate_run_name(cfg: DictConfig) -> str:
 
 
 class ExperimentLogger:
-    def __init__(self, cfg: DictConfig):
-        self.log_dir = Path.cwd()
+    def __init__(self, cfg: DictConfig, output_dir: str = None):
+        if output_dir is None:
+            self.log_dir = Path.cwd()
+        else:
+            self.log_dir = Path(output_dir)
+            self.log_dir.mkdir(parents=True, exist_ok=True)
         self._save_config_snapshot(cfg)
 
     def _save_config_snapshot(self, cfg: DictConfig):
-        with open("config_snapshot.yaml", "w", encoding="utf-8") as f:
+        config_path = self.log_dir / "config_snapshot.yaml"
+        with open(config_path, "w", encoding="utf-8") as f:
             OmegaConf.save(cfg, f)
 
-    def save_results(self, results: list):
-        with open("results_full.json", "w", encoding="utf-8") as f:
+    def save_results(self, results: dict):
+        results_path = self.log_dir / "results_full.json"
+        with open(results_path, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2)
-        logger.info(f"Results saved to {self.log_dir}")
+        logger.info(f"Results saved to {results_path}")

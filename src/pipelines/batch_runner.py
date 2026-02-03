@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from tqdm.asyncio import tqdm
 
@@ -13,21 +13,31 @@ logger = logging.getLogger(__name__)
 
 
 class BatchRunner:
-    def __init__(self, client, prompt_builder, concurrency, schema_retriever):
+    def __init__(self, client, prompt_builder, concurrency, schema_retriever, linker2=None):
         self.client = client
         self.prompt_builder = prompt_builder
         self.schema_retriever = schema_retriever
         self.semaphore = asyncio.Semaphore(concurrency)
+        self.linker2 = linker2  # Optional second linker
 
     async def _process_item(self, item, linker, retriever):
         async with self.semaphore:
             question = item["question"]
-            # --- MODIFICA: Recuperiamo la query Gold ---
             gold_sparql = item.get("gold_sparql")
-            # -------------------------------------------
 
-            # 1. Dynamic Steps
+            # 1. Dynamic Steps - Extract entities using both linkers if available
             entities = linker.extract(question)
+            
+            # Combine with second linker if provided
+            if self.linker2:
+                try:
+                    entities2 = self.linker2.extract(question)
+                    # Merge: combine and deduplicate
+                    entities = list(dict.fromkeys(entities + entities2))
+                    logger.info(f"Combined entities from both linkers: {entities}")
+                except Exception as e:
+                    logger.warning(f"Second linker failed: {e}, using primary only")
+            
             context = retriever.retrieve(question)
 
             # 2. Dynamic Schema Retrieval

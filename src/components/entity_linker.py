@@ -110,11 +110,47 @@ class RelikLinker(BaseLinker):
         return [span.text for span in response.spans]
 
 
+class AllLinkersCombo(BaseLinker):
+    """Runs all available linkers and concatenates results."""
+
+    def __init__(self, config: DictConfig):
+        logger.info("Loading all entity linkers...")
+        
+        rebel_config = DictConfig({
+            "method": "rebel",
+            "model_path": config.get("rebel_model_path", "Babelscape/rebel-large"),
+            "device": config.get("device", -1)
+        })
+        relik_config = DictConfig({
+            "method": "relik",
+            "model_path": config.get("relik_model_path", "sapienzanlp/relik-entity-linking-large"),
+            "window_size": config.get("window_size", 32)
+        })
+        
+        self.rebel = RebelLinker(rebel_config)
+        self.relik = RelikLinker(relik_config)
+
+    def extract(self, text: str) -> List[str]:
+        entities_rebel = self.rebel.extract(text)
+        entities_relik = self.relik.extract(text)
+        
+        logger.info(f"[REBEL] {entities_rebel}")
+        logger.info(f"[RELIK] {entities_relik}")
+        
+        # Merge and deduplicate
+        combined = list(dict.fromkeys(entities_rebel + entities_relik))
+        logger.info(f"[COMBINED] {combined}")
+        
+        return combined
+
+
 def get_linker(config: DictConfig) -> BaseLinker:
     method = config.method.lower()
     if method == "rebel":
         return RebelLinker(config)
     elif method == "relik":
         return RelikLinker(config)
+    elif method == "all":
+        return AllLinkersCombo(config)
     else:
         raise ValueError(f"Unknown entity linking method: {method}")

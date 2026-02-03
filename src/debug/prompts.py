@@ -60,12 +60,16 @@ def run_inspection(cfg: DictConfig):
 
     # 1. Configuration Audit
     logger.info("=== ACTIVE CONFIGURATION ===")
-    logger.info(f"Model:      {cfg.model.name}")
-    logger.info(f"Retrieval:  k={cfg.retrieval.k}")
-    logger.info(f"Linking:    {cfg.linking.method}")
-    logger.info(
-        f"Prompting:  Examples={cfg.prompt.include_examples}, Entities={cfg.prompt.include_entities}"
-    )
+    logger.info(f"Model:          {cfg.model.name}")
+    logger.info(f"Retrieval:      k={cfg.retrieval.k} shot")
+    logger.info(f"Linking:        {cfg.linking.method}")
+    logger.info(f"Prompt Config:")
+    logger.info(f"  - Include Examples:      {cfg.prompt.include_examples}")
+    logger.info(f"  - Include Entities:      {cfg.prompt.include_entities}")
+    logger.info(f"  - Include Schema Hints:  {cfg.prompt.include_schema_hint}")
+    logger.info(f"  - Custom Instruction:    {cfg.prompt.custom_instruction}")
+    logger.info(f"Dataset:        {cfg.dataset.name} (split: {cfg.dataset.split})")
+    logger.info(f"Limit:          {cfg.dataset.limit if cfg.dataset.limit else 'No limit'}")
     logger.info("============================")
 
     # 2. Component Initialization
@@ -94,7 +98,14 @@ def run_inspection(cfg: DictConfig):
     )
     logger.info("[INSTRUCTION] Type 'exit' or 'quit' to terminate the session.")
 
-    print("\nSystem Ready. Check logs in outputs/ folder for details.\n")
+    print("\n" + "="*60)
+    print("SYSTEM READY - DEBUG MODE")
+    print("="*60)
+    print("You can override parameters with Hydra syntax:")
+    print("  python src/debug/prompts.py model=azure_gpt4_mini linking=relik")
+    print("  python src/debug/prompts.py retrieval=1shot prompt.include_entities=false")
+    print("  python src/debug/prompts.py prompt.custom_instruction='Your custom instruction'")
+    print("="*60 + "\n")
 
     while True:
         try:
@@ -144,6 +155,7 @@ def run_inspection(cfg: DictConfig):
                 format_section("CONTEXT RETRIEVAL", None, active=False)
 
             # D. Prompt Assembly
+            system_prompt = builder.build_system_prompt()
             final_prompt = builder.build_user_prompt(
                 question=question,
                 entities=entities,
@@ -151,12 +163,24 @@ def run_inspection(cfg: DictConfig):
                 schema_hints=hints,
             )
 
-            logger.info("=== FINAL GENERATED PROMPT ===")
+            # E. Display Prompts
+            print("\n" + "="*70)
+            print("SYSTEM PROMPT")
+            print("="*70)
+            print(system_prompt)
+            print("\n" + "="*70)
+            print("USER PROMPT")
+            print("="*70)
+            print(final_prompt)
+            print("="*70 + "\n")
+
+            logger.info("=== SYSTEM PROMPT ===")
+            for line in system_prompt.split("\n"):
+                logger.info(line)
+            logger.info("=== USER PROMPT ===")
             for line in final_prompt.split("\n"):
                 logger.info(line)
             logger.info("==========================================")
-
-            print("Query processed. Check logs.")
 
         except KeyboardInterrupt:
             logger.info("Operation cancelled by KeyboardInterrupt.")

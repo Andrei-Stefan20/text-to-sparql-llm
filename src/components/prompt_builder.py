@@ -8,7 +8,13 @@ class PromptBuilder:
         self.cfg = config
 
     def build_system_prompt(self) -> str:
-        return self.cfg.get("system_message", "You are a SPARQL expert.")
+        system_msg = self.cfg.get(
+            "system_message",
+            "You are a SPARQL expert. Generate ONLY valid SPARQL query code. "
+            "Do NOT include explanations, comments, or markdown formatting. "
+            "Output ONLY the query, starting with SELECT or CONSTRUCT."
+        )
+        return system_msg
 
     def build_user_prompt(
         self,
@@ -19,25 +25,26 @@ class PromptBuilder:
     ) -> str:
         parts = []
 
-        # 1. Task Definition
-        parts.append("Task: Generate a valid SPARQL query for Wikidata.")
+        # 1. Schema Hints (most specific info first)
+        if schema_hints and self.cfg.get("include_schema_hint", False):
+            parts.append(f"Relevant Properties: {schema_hints}")
 
-        # 2. Schema Hints
-        if schema_hints:
-            parts.append(
-                f"### Relevant Properties (Hints):\nConsider using: {schema_hints}"
-            )
+        # 2. Entity Linking
+        if entities and self.cfg.get("include_entities", False):
+            parts.append(f"Entities: {', '.join(entities)}")
 
-        # 3. Entity Linking
-        if entities:
-            parts.append(f"### Identified Entities:\n{', '.join(entities)}")
+        # 3. Few-Shot Examples (RAG)
+        if context_examples and self.cfg.get("include_examples", False):
+            parts.append(f"Examples of similar queries:\n{context_examples}")
 
-        # 4. Few-Shot Examples (RAG)
-        if context_examples:
-            parts.append(f"### Similar Examples:\n{context_examples}")
+        # 4. Question
+        parts.append(f"Question: {question}")
+        
+        # 5. Explicit instruction for clean output
+        custom_instruction = self.cfg.get("custom_instruction", "")
+        if custom_instruction:
+            parts.append(f"\n{custom_instruction}")
+        else:
+            parts.append("\nOutput ONLY the SPARQL query (no markdown, no explanation):")
 
-        # 5. Question
-        parts.append(f"### Question:\n{question}")
-        parts.append("### SPARQL Query:")
-
-        return "\n\n".join(parts)
+        return "\n".join(parts)

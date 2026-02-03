@@ -50,7 +50,7 @@ def main(cfg: DictConfig):
     logger.info(f"Initializing Experiment Run: {run_id}")
     logger.info(f"Configuration Snapshot:\n{OmegaConf.to_yaml(cfg)}")
 
-    exp_logger = ExperimentLogger(cfg)
+    exp_logger = ExperimentLogger(cfg, output_dir=output_dir)
 
     try:
         # 2. Data Loading
@@ -79,8 +79,19 @@ def main(cfg: DictConfig):
         # A. LLM Client
         client = get_client_factory(cfg.model)
 
-        # B. Entity Linker
+        # B. Entity Linker(s)
         linker = get_linker(cfg.linking)
+        
+        # Optional: Use a second linker for hybrid approach
+        linker2 = None
+        if cfg.linking.get("use_dual_linkers", False):
+            secondary_method = cfg.linking.get("secondary_method")
+            if secondary_method:
+                logger.info(f"Initializing secondary linker: {secondary_method}")
+                from omegaconf import DictConfig as OmegaConfConfig
+                secondary_config = OmegaConfConfig({"method": secondary_method})
+                linker2 = get_linker(secondary_config)
+                logger.info("✓ Dual linker mode enabled")
 
         # C. RAG Retriever (Fetches similar Q&A pairs for few-shot learning)
         retriever = RagRetriever(cfg.retrieval, cfg.rag)
@@ -101,6 +112,7 @@ def main(cfg: DictConfig):
             prompt_builder=prompt_builder,
             concurrency=cfg.model.concurrency,
             schema_retriever=schema_retriever,
+            linker2=linker2,  # Pass secondary linker if available
         )
 
         results = asyncio.run(runner.run(dataset, linker, retriever))

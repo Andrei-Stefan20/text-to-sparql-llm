@@ -1,5 +1,5 @@
 defaults:
-  - model: azure_gpt4
+  - model: azure_gpt4_mini
   - linking: rebel
   - retrieval: 3shot
   - prompt: standard       
