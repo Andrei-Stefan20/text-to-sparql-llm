@@ -82,7 +82,7 @@ python main.py dataset.limit=30 model=azure_gpt4 prompt=standard system.experime
 python main.py dataset.limit=30 model=azure_gpt4 prompt=cot system.experiment_name=exp1_cot_gpt4
 python main.py dataset.limit=30 model=azure_gpt4 prompt=decomposition system.experiment_name=exp1_decomp_gpt4
 
-# === Llama 3.3 ===
+# === Llama 33 ===
 python main.py dataset.limit=30 model=llama_33 prompt=standard system.experiment_name=exp1_standard_llama
 python main.py dataset.limit=30 model=llama_33 prompt=cot system.experiment_name=exp1_cot_llama
 python main.py dataset.limit=30 model=llama_33 prompt=decomposition system.experiment_name=exp1_decomp_llama
@@ -90,7 +90,7 @@ python main.py dataset.limit=30 model=llama_33 prompt=decomposition system.exper
 
 ### Results Matrix:
 
-| Strategy | GPT-4-mini | GPT-4 | Llama 3.3 |
+| Strategy | GPT-4-mini | GPT-4 | Llama 33 |
 |----------|------------|-------|-----------|
 | standard | ___/30 | ___/30 | ___/30 |
 | cot | ___/30 | ___/30 | ___/30 |
@@ -121,7 +121,7 @@ python main.py dataset.limit=30 model=azure_gpt4 linking=rebel system.experiment
 python main.py dataset.limit=30 model=azure_gpt4 linking=relik system.experiment_name=exp2_relik_gpt4
 python main.py dataset.limit=30 model=azure_gpt4 linking=all system.experiment_name=exp2_all_gpt4
 
-# === Llama 3.3 ===
+# === Llama 33 ===
 python main.py dataset.limit=30 model=llama_33 linking=rebel system.experiment_name=exp2_rebel_llama
 python main.py dataset.limit=30 model=llama_33 linking=relik system.experiment_name=exp2_relik_llama
 python main.py dataset.limit=30 model=llama_33 linking=all system.experiment_name=exp2_all_llama
@@ -129,7 +129,7 @@ python main.py dataset.limit=30 model=llama_33 linking=all system.experiment_nam
 
 ### Results Matrix:
 
-| Linker | GPT-4-mini | GPT-4 | Llama 3.3 |
+| Linker | GPT-4-mini | GPT-4 | Llama 33 |
 |--------|------------|-------|-----------|
 | REBEL | ___/30 | ___/30 | ___/30 |
 | ReLiK | ___/30 | ___/30 | ___/30 |
@@ -158,7 +158,7 @@ python main.py dataset.limit=30 model=azure_gpt4 validation.enable_correction=fa
 python main.py dataset.limit=30 model=azure_gpt4 validation.enable_correction=true validation.max_attempts=3 system.experiment_name=exp3_3attempts_gpt4
 python main.py dataset.limit=30 model=azure_gpt4 validation.enable_correction=true validation.max_attempts=5 system.experiment_name=exp3_5attempts_gpt4
 
-# === Llama 3.3 ===
+# === Llama 33 ===
 python main.py dataset.limit=30 model=llama_33 validation.enable_correction=false system.experiment_name=exp3_nocorrect_llama
 python main.py dataset.limit=30 model=llama_33 validation.enable_correction=true validation.max_attempts=3 system.experiment_name=exp3_3attempts_llama
 python main.py dataset.limit=30 model=llama_33 validation.enable_correction=true validation.max_attempts=5 system.experiment_name=exp3_5attempts_llama
@@ -166,7 +166,7 @@ python main.py dataset.limit=30 model=llama_33 validation.enable_correction=true
 
 ### Results Matrix:
 
-| Correction | GPT-4-mini | GPT-4 | Llama 3.3 |
+| Correction | GPT-4-mini | GPT-4 | Llama 33 |
 |------------|------------|-------|-----------|
 | None | ___/30 | ___/30 | ___/30 |
 | 3 attempts | ___/30 | ___/30 | ___/30 |
@@ -198,7 +198,7 @@ python main.py dataset.limit=30 model=azure_gpt4 retrieval.k=0 system.experiment
 python main.py dataset.limit=30 model=azure_gpt4 retrieval=1shot system.experiment_name=exp4_1shot_gpt4
 python main.py dataset.limit=30 model=azure_gpt4 retrieval=3shot system.experiment_name=exp4_3shot_gpt4
 
-# === Llama 3.3 ===
+# === Llama 33 ===
 python main.py dataset.limit=30 model=llama_33 retrieval.k=0 system.experiment_name=exp4_0shot_llama
 python main.py dataset.limit=30 model=llama_33 retrieval=1shot system.experiment_name=exp4_1shot_llama
 python main.py dataset.limit=30 model=llama_33 retrieval=3shot system.experiment_name=exp4_3shot_llama
@@ -206,7 +206,7 @@ python main.py dataset.limit=30 model=llama_33 retrieval=3shot system.experiment
 
 ### Results Matrix:
 
-| Examples | GPT-4-mini | GPT-4 | Llama 3.3 |
+| Examples | GPT-4-mini | GPT-4 | Llama 33 |
 |----------|------------|-------|-----------|
 | 0-shot | ___/30 | ___/30 | ___/30 |
 | 1-shot | ___/30 | ___/30 | ___/30 |
@@ -236,14 +236,14 @@ python main.py dataset.limit=20 model=azure_gpt4_mini validation.self_consistenc
 python main.py dataset.limit=20 model=azure_gpt4 validation.self_consistency_samples=1 system.experiment_name=exp5_1sample_gpt4
 python main.py dataset.limit=20 model=azure_gpt4 validation.self_consistency_samples=3 system.experiment_name=exp5_3samples_gpt4
 
-# === Llama 3.3 ===
+# === Llama 33 ===
 python main.py dataset.limit=20 model=llama_33 validation.self_consistency_samples=1 system.experiment_name=exp5_1sample_llama
 python main.py dataset.limit=20 model=llama_33 validation.self_consistency_samples=3 system.experiment_name=exp5_3samples_llama
 ```
 
 ### Results Matrix:
 
-| Samples | GPT-4-mini | GPT-4 | Llama 3.3 |
+| Samples | GPT-4-mini | GPT-4 | Llama 33 |
 |---------|------------|-------|-----------|
 | 1 | ___/20 | ___/20 | ___/20 |
 | 3 | ___/20 | ___/20 | ___/20 |
@@ -278,7 +278,7 @@ python main.py dataset.limit=50 \
     validation.enable_correction=___ \
     system.experiment_name=exp6_best_gpt4
 
-# === Llama 3.3: Best config ===
+# === Llama 33: Best config ===
 python main.py dataset.limit=50 \
     model=llama_33 \
     prompt=___ \
@@ -294,7 +294,7 @@ python main.py dataset.limit=50 \
 |-------|-------------|----------|------------|
 | GPT-4-mini | | ___/50 | ~$___ |
 | GPT-4 | | ___/50 | ~$___ |
-| Llama 3.3 | | ___/50 | ~$0 |
+| Llama 33 | | ___/50 | ~$0 |
 
 ---
 
@@ -330,7 +330,7 @@ All experiments summarized:
 | 4A | 0-shot | | |
 | 4C | 3-shot | | |
 
-### By Model: Llama 3.3
+### By Model: Llama 33
 
 | Experiment | Config | Result | Notes |
 |------------|--------|--------|-------|
@@ -481,7 +481,7 @@ python main.py model=___ prompt=___ linking=___ validation.enable_correction=tru
 - [ ] Exp 4: Retrieval
 - [ ] Exp 5: Self-consistency
 
-### Llama 3.3 experiments:
+### Llama 33 experiments:
 - [ ] Exp 1: Prompting
 - [ ] Exp 2: Entity linking
 - [ ] Exp 3: Correction
