@@ -290,11 +290,11 @@ python main.py dataset.limit=50 \
 
 ### Final Results:
 
-| Model | Best Config | Accuracy | Cost/query |
-|-------|-------------|----------|------------|
-| GPT-4-mini | | ___/50 | ~$___ |
-| GPT-4 | | ___/50 | ~$___ |
-| Llama 33 | | ___/50 | ~$0 |
+| Model | Best Config | Accuracy |
+|-------|-------------|----------|
+| GPT-4-mini | | ___/50 |
+| GPT-4 | | ___/50 |
+| Llama 33 | | ___/50 |
 
 ---
 
@@ -346,47 +346,6 @@ All experiments summarized:
 
 ---
 
-## Full Test Script
-
-Run everything (WARNING: expensive!):
-
-```bash
-#!/bin/bash
-# run_all_experiments.sh
-
-MODELS=("azure_gpt4_mini" "azure_gpt4" "llama_33")
-MODEL_NAMES=("gpt4mini" "gpt4" "llama")
-
-for i in "${!MODELS[@]}"; do
-    MODEL="${MODELS[$i]}"
-    NAME="${MODEL_NAMES[$i]}"
-    
-    echo "=== Testing model: $MODEL ==="
-    
-    # Experiment 1: Prompting
-    python main.py dataset.limit=30 model=$MODEL prompt=standard system.experiment_name=exp1_standard_$NAME
-    python main.py dataset.limit=30 model=$MODEL prompt=cot system.experiment_name=exp1_cot_$NAME
-    python main.py dataset.limit=30 model=$MODEL prompt=decomposition system.experiment_name=exp1_decomp_$NAME
-    
-    # Experiment 2: Entity Linking
-    python main.py dataset.limit=30 model=$MODEL linking=rebel system.experiment_name=exp2_rebel_$NAME
-    python main.py dataset.limit=30 model=$MODEL linking=relik system.experiment_name=exp2_relik_$NAME
-    
-    # Experiment 3: Correction
-    python main.py dataset.limit=30 model=$MODEL validation.enable_correction=false system.experiment_name=exp3_nocorrect_$NAME
-    python main.py dataset.limit=30 model=$MODEL validation.enable_correction=true validation.max_attempts=3 system.experiment_name=exp3_3attempts_$NAME
-    
-    # Experiment 4: Retrieval
-    python main.py dataset.limit=30 model=$MODEL retrieval.k=0 system.experiment_name=exp4_0shot_$NAME
-    python main.py dataset.limit=30 model=$MODEL retrieval=3shot system.experiment_name=exp4_3shot_$NAME
-    
-    echo "=== Done with $MODEL ==="
-done
-
-echo "All experiments complete!"
-```
-
----
 
 ## Error Analysis
 
