@@ -13,6 +13,11 @@ Question → Entity Linking → Schema Retrieval → Few-shot Context → LLM Ge
 - **Generation**: GPT-4/Llama with configurable prompting strategies
 - **Validation**: Syntax check + optional execution + multi-turn self-correction
 
+## Documentation
+
+- [Research Notes](docs/references/RESEARCH.md) - Papers, TODO list, future work
+- [Test Roadmap](docs/TEST_ROADMAP.md) - Experiments plan and results tracking
+
 ## Setup
 
 ```bash
