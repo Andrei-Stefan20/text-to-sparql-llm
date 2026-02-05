@@ -1,3 +1,6 @@
 method: "relik"
 model_path: "sapienzanlp/relik-entity-linking-large"
 window_size: 32
+
+# Enable Wikidata API fallback for entities without QIDs
+use_wikidata_fallback: true

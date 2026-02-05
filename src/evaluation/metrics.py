@@ -23,12 +23,25 @@ class OfflineEvaluator:
         """
         Iterates over generated results, executes both Gold and Generated queries,
         and calculates the Macro F1 score.
+        
+        Also computes validation/correction statistics if available.
         """
         total_precision = 0.0
         total_recall = 0.0
         total_f1 = 0.0
         syntax_errors = 0
         count = 0
+        
+        # Validation/Correction statistics
+        validation_stats = {
+            "total_validated": 0,
+            "valid_on_first_try": 0,
+            "valid_after_correction": 0,
+            "total_correction_attempts": 0,
+            "self_consistency_used": 0,
+            "correction_success": 0,
+            "still_invalid": 0,
+        }
 
         logger.info(f"Starting QALD Evaluation on {len(results)} items...")
 
@@ -44,6 +57,29 @@ class OfflineEvaluator:
         for item in tqdm(results, desc="Evaluating Queries"):
             gen_query = item.get("generated_sparql", "").strip()
             gold_query = item.get("gold_sparql", "").strip()
+            
+            # Track validation statistics
+            validation_info = item.get("validation")
+            if validation_info:
+                validation_stats["total_validated"] += 1
+                
+                if validation_info.get("is_valid"):
+                    total_attempts = validation_info.get("total_attempts", 1)
+                    correction_method = validation_info.get("correction_method", "none")
+                    
+                    if total_attempts == 1 and correction_method == "none":
+                        validation_stats["valid_on_first_try"] += 1
+                    else:
+                        validation_stats["valid_after_correction"] += 1
+                        validation_stats["correction_success"] += 1
+                    
+                    if correction_method == "self_consistency":
+                        validation_stats["self_consistency_used"] += 1
+                    
+                    validation_stats["total_correction_attempts"] += total_attempts
+                else:
+                    validation_stats["still_invalid"] += 1
+                    validation_stats["total_correction_attempts"] += validation_info.get("total_attempts", 1)
 
             if not gold_query:
                 continue
@@ -88,6 +124,18 @@ class OfflineEvaluator:
             "syntax_error_rate": round(syntax_errors / count, 4),
             "evaluated_count": count,
         }
+        
+        # Add validation/correction statistics if any validation was done
+        if validation_stats["total_validated"] > 0:
+            total_val = validation_stats["total_validated"]
+            metrics["validation"] = {
+                "total_validated": total_val,
+                "valid_first_try_rate": round(validation_stats["valid_on_first_try"] / total_val, 4),
+                "correction_success_rate": round(validation_stats["correction_success"] / total_val, 4) if validation_stats["total_correction_attempts"] > total_val else 0.0,
+                "avg_attempts": round(validation_stats["total_correction_attempts"] / total_val, 2),
+                "still_invalid_rate": round(validation_stats["still_invalid"] / total_val, 4),
+                "self_consistency_used": validation_stats["self_consistency_used"],
+            }
 
         return metrics
 

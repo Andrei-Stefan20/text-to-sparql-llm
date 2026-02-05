@@ -1,0 +1,73 @@
+# =====================================================
+# ADVANCED VALIDATION & CORRECTION CONFIGURATION
+# =====================================================
+# This configuration enables all advanced features:
+# - Multi-pattern SPARQL extraction
+# - Multi-turn conversational correction
+# - Result-based refinement
+# - Self-consistency voting
+
+validation:
+  # ===== Basic Validation =====
+  # Syntax validation using rdflib (fast, local)
+  enable_validation: true
+  
+  # ===== Self-Correction Loop =====
+  # Enables multi-turn conversational correction with error feedback
+  # When enabled, failed queries are retried with:
+  # - Full conversation history (all previous attempts)
+  # - Specific error feedback (syntax/execution/empty results)
+  # - Context-aware suggestions (e.g., "try OPTIONAL for constraints")
+  enable_correction: true
+  
+  # Maximum correction attempts (each with multi-turn context)
+  # Recommended: 3-5 for complex queries
+  max_attempts: 5
+  
+  # ===== Execution Validation =====
+  # Validates by actually running query on Wikidata
+  # WARNING: Makes real API calls, slower but catches semantic errors
+  # Enables result-based refinement when queries return empty results
+  validate_execution: true
+  
+  # ===== Self-Consistency Voting =====
+  # Generates multiple diverse queries and votes for the most common one
+  # Set to 1 to disable, 3-5 to enable
+  # WARNING: Multiplies API costs by this number
+  # Benefits:
+  # - Higher accuracy via majority voting
+  # - Robust to single-sample failures
+  # - Better for ambiguous questions
+  self_consistency_samples: 3
+  
+  # Temperature for diverse sample generation
+  # Higher = more diverse but potentially lower quality
+  # Recommended: 0.7-0.9 for self-consistency
+  consistency_temperature: 0.8
+
+
+# ===== USAGE EXAMPLES =====
+
+# Example 1: Maximum Quality (expensive)
+# enable_validation: true
+# enable_correction: true
+# max_attempts: 5
+# validate_execution: true
+# self_consistency_samples: 5
+# consistency_temperature: 0.8
+
+# Example 2: Balanced (recommended)
+# enable_validation: true
+# enable_correction: true
+# max_attempts: 3
+# validate_execution: false
+# self_consistency_samples: 1
+# consistency_temperature: 0.7
+
+# Example 3: Fast (minimal)
+# enable_validation: true
+# enable_correction: false
+# max_attempts: 1
+# validate_execution: false
+# self_consistency_samples: 1
+# consistency_temperature: 0.0

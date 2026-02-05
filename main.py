@@ -104,16 +104,33 @@ def main(cfg: DictConfig):
         prompt_builder = PromptBuilder(cfg.prompt)
 
         # 4. Pipeline Execution
+        # Get validation and correction settings
+        validation_cfg = cfg.get("validation", {})
+        
         logger.info(
             f"Starting Batch Pipeline with concurrency limit: {cfg.model.concurrency}"
         )
+        
+        if validation_cfg.get("enable_correction", False):
+            logger.info(
+                f"Self-correction enabled: max_attempts={validation_cfg.get('max_attempts', 3)}, "
+                f"self_consistency={validation_cfg.get('self_consistency_samples', 1)}"
+            )
 
         runner = BatchRunner(
             client=client,
             prompt_builder=prompt_builder,
             concurrency=cfg.model.concurrency,
             schema_retriever=schema_retriever,
-            linker2=linker2,  # Pass secondary linker if available
+            linker2=linker2,
+            # Validation & Correction settings
+            enable_validation=validation_cfg.get("enable_validation", True),
+            enable_correction=validation_cfg.get("enable_correction", False),
+            max_correction_attempts=validation_cfg.get("max_attempts", 3),
+            validate_execution=validation_cfg.get("validate_execution", False),
+            # Self-consistency settings
+            self_consistency_samples=validation_cfg.get("self_consistency_samples", 1),
+            consistency_temperature=validation_cfg.get("consistency_temperature", 0.7),
         )
 
         results = asyncio.run(runner.run(dataset, linker, retriever))

@@ -1,3 +1,7 @@
 method: "rebel"
 model_path: "Babelscape/rebel-large"
-device: -1 # -1 CPU, 0 GPU 
+device: -1  # -1 CPU, 0 GPU
+
+# Enable Wikidata API fallback to resolve entity mentions to QIDs
+# REBEL extracts relations, not entity links, so this is recommended
+use_wikidata_fallback: true

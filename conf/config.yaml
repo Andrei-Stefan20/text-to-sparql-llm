@@ -25,3 +25,26 @@ rag:
   index_path: "data/processed/train_index.faiss"
   metadata_path: "data/processed/train_metadata.pkl"
   encoder_model: "all-MiniLM-L6-v2"
+
+
+# Query Validation & Self-Correction Settings
+validation:
+  # Enable syntax validation (rdflib)
+  enable_validation: true
+  
+  # Enable self-correction loop (retries with error feedback)
+  enable_correction: false
+  
+  # Maximum correction attempts before giving up
+  max_attempts: 3
+  
+  # Validate by executing query on Wikidata (slower, more accurate)
+  # WARNING: This makes actual API calls to Wikidata
+  validate_execution: false
+  
+  # Self-consistency: generate N queries and vote for best
+  # Set to 1 to disable, >1 to enable (e.g., 3 or 5)
+  self_consistency_samples: 1
+  
+  # Temperature for generating diverse samples in self-consistency
+  consistency_temperature: 0.7

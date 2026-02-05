@@ -1,137 +1,80 @@
 # Text-to-SPARQL Pipeline
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Config: Hydra](https://img.shields.io/badge/Config-Hydra-89b8cd)](https://hydra.cc/)
-[![Search: FAISS](https://img.shields.io/badge/Search-FAISS-00d1ce)](https://github.com/facebookresearch/faiss)
-[![Models: HuggingFace](https://img.shields.io/badge/Models-HuggingFace-ffcc00)](https://huggingface.co/)
+Translates natural language questions into SPARQL queries for Wikidata using retrieval-augmented generation with LLMs.
 
-Transform natural language questions into executable SPARQL queries for Wikidata.
+## Pipeline
 
-This pipeline uses retrieval-augmented generation to convert plain English into valid SPARQL. It combines semantic search with entity linking to keep outputs grounded in actual schema data, cutting down on hallucinations.
+```
+Question → Entity Linking → Schema Retrieval → Few-shot Context → LLM Generation → Validation → SPARQL
+```
 
-## Why
+- **Entity Linking**: REBEL/ReLiK maps mentions to Wikidata QIDs
+- **Retrieval**: FAISS-based similar examples and schema hints
+- **Generation**: GPT-4/Llama with configurable prompting strategies
+- **Validation**: Syntax check + optional execution + multi-turn self-correction
 
-SPARQL is powerful but not exactly user-friendly. Most people can't write it, and honestly, most people shouldn't have to. This project takes the question you'd ask a librarian and turns it into something a knowledge graph can answer.
-
-The approach: pull in relevant schema elements and query examples, then let an LLM synthesize the final SPARQL with all that context in hand.
-
-## How It Works
-
-The pipeline runs through four stages:
-
-**1. Entity Linking**  
-First, we figure out what entities and relationships the question mentions. Uses models like REBEL or ReLiK to spot things like "Barack Obama" or "born in" and map them to actual Wikidata identifiers.
-
-**2. Schema Retrieval**  
-Next, we translate natural language into Wikidata's property vocabulary. When you say "actors," the system finds property `P161`. This happens through semantic search over a pre-built FAISS index of all relevant properties.
-
-**3. Context Retrieval**  
-The system pulls similar questions from the QALD-9-plus dataset. These examples show the LLM what good SPARQL queries look like for comparable questions.
-
-**4. Generation**  
-Finally, an LLM (GPT-4, Azure OpenAI, or Llama) writes the SPARQL query using everything we've gathered. The retrieved context keeps it honest and syntactically correct.
-
-## Getting Started
-
-### What You Need
-
-- Python 3.10 or newer
-- A virtual environment (just trust me on this one)
-
-### Install
+## Setup
 
 ```bash
-# Clone the repo
-git clone https://github.com/yourusername/text-to-sparql-llm.git
-cd text-to-sparql-llm
-
-# Set up your environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
+python src/data/make_schema_index.py && python src/data/make_index.py
 ```
 
-### Configure API Keys
-
-Create a `.env` file at the project root:
-
-```env
-OPENAI_API_KEY=your_openai_key
-AZURE_OPENAI_API_KEY=your_azure_key
-AZURE_OPENAI_ENDPOINT=your_azure_endpoint
+`.env`:
+```
+AZURE_OPENAI_API_KEY=your_key
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
 ```
 
-### Build the Indices
-
-Before you can run anything, you need to build the vector indices. This is a one-time thing:
+## Usage
 
 ```bash
-# Download and index Wikidata properties
-python src/data/make_schema_index.py
-
-# Index the training examples
-python src/data/make_index.py
+python main.py                                    # Default run
+python main.py dataset.limit=10                   # Limit samples
+python main.py prompt=cot                         # Chain-of-Thought reasoning
+python main.py prompt=decomposition               # Query decomposition
+python main.py validation.enable_correction=true  # Multi-turn self-correction
+python main.py model=azure_gpt4 linking=relik     # Change model/linker
 ```
 
-You'll end up with `data/processed/schema_index.faiss` and `data/processed/train_index.faiss`.
+## Debug
 
-## Running the Pipeline
-
-### Basic Usage
-
-Just run it:
-
+Inspect generated prompts without API calls:
 ```bash
-python main.py
+python src/debug/prompts.py prompt=cot linking=relik retrieval=3shot
 ```
 
-### Debug Mode
+## Configuration
 
-Want to see what's happening under the hood without burning API credits?
-
-```bash
-python src/debug/prompts.py linking.device=-1
-```
-
-This lets you inspect entity extraction and prompt construction before the LLM gets involved.
-
-### Tweak Settings
-
-The whole thing runs on [Hydra](https://hydra.cc/), so you can override configs from the command line:
-
-```bash
-# Switch to Azure GPT-4
-python main.py model=azure_gpt4
-
-# Try a different entity linker
-python main.py linking=relik
-
-# Turn off retrieval entirely (zero-shot mode)
-python main.py retrieval.k=0
-```
+| Parameter | Options | Default |
+|-----------|---------|---------|
+| `model` | `azure_gpt4_mini`, `azure_gpt4`, `llama_33` | `azure_gpt4_mini` |
+| `prompt` | `standard`, `cot`, `decomposition` | `standard` |
+| `linking` | `rebel`, `relik`, `all` | `rebel` |
+| `retrieval` | `1shot`, `3shot` | `3shot` |
+| `validation.enable_correction` | `true`, `false` | `false` |
+| `validation.max_attempts` | `1-10` | `3` |
+| `validation.validate_execution` | `true`, `false` | `false` |
+| `dataset.limit` | `N` or `null` | `null` |
 
 ## Project Structure
 
 ```
-text-to-sparql-llm/
-├── conf/                   # Hydra configuration
-│   ├── model/              # LLM configs (GPT-4, Llama, Azure)
-│   └── linking/            # Entity linker configs (REBEL, ReLiK)
-├── src/
-│   ├── clients/            # LLM API wrappers
-│   ├── components/         # Core modules (Linker, Retriever, Builder)
-│   ├── data/               # Indexing scripts
-│   └── debug/              # Development tools
-├── data/
-│   └── processed/          # FAISS indices and metadata
-├── main.py                 # Entry point
-└── requirements.txt
+conf/           # Hydra configuration files
+src/
+  clients/      # Async LLM clients with retry
+  components/   # Entity linker, prompt builder, validator
+  pipelines/    # Batch processing
+  debug/        # Prompt inspector
+data/processed/ # FAISS indices
+outputs/        # Results
 ```
+
+## Output
+
+Results: `outputs/[experiment]/[timestamp]/results.json`
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for the full text.
-
----
+MIT

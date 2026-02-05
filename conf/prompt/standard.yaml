@@ -1,9 +1,12 @@
 name: "std"
+strategy: "base"  # Options: base, cot, decomposition
+
 system_message: |
   You are a SPARQL expert for Wikidata.
   Generate ONLY valid SPARQL query code.
   Do NOT include explanations, comments, code blocks, or any text.
   Output ONLY the query starting with SELECT or CONSTRUCT.
+
 use_system_msg: true
 include_examples: true      
 include_entities: true      

@@ -1,14 +1,25 @@
 name: "llama-3.3-70b"
 platform: "openai"
 env_var: "LLAMA_API_KEY"
+model_name: "meta-llama/Llama-3.3-70B-Instruct"
 
 connection:
   base_url: "https://api.deepinfra.com/v1/openai"
-  model: "meta-llama/Llama-3.3-70B-Instruct"
 
 params:
   temperature: 0.1
   max_tokens: 1024
+  top_p: 0.95
+
+# Retry configuration
+max_retries: 5
+timeout: 120
+
+# System prompt (optional, uses default if not specified)
+system_prompt: |
+  You are a SPARQL expert for Wikidata.
+  Generate ONLY valid SPARQL query code.
+  Do NOT include explanations, comments, code blocks, or any text.
+  Output ONLY the query starting with SELECT or CONSTRUCT.
 
 concurrency: 50
-timeout: 120

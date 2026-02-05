@@ -10,6 +10,17 @@ connection:
 params:
   temperature: 0.0
   max_tokens: 2048
+  top_p: 1.0
+
+# Retry configuration
+max_retries: 5
+timeout: 60
+
+# System prompt (optional, uses default if not specified)
+system_prompt: |
+  You are a SPARQL expert for Wikidata.
+  Generate ONLY valid SPARQL query code.
+  Do NOT include explanations, comments, code blocks, or any text.
+  Output ONLY the query starting with SELECT or CONSTRUCT.
 
 concurrency: 30
-timeout: 30
