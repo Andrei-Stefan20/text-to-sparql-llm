@@ -3,7 +3,6 @@
 Testing roadmap for the thesis project. I'll use this to track what I've tried, what worked, and what didn't.
 
 **Started**: February 2026
-**Last updated**: 
 
 ---
 
