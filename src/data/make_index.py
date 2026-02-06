@@ -1,13 +1,12 @@
 import logging
 import os
+import json
 import pickle
 import ssl
 from pathlib import Path
 
-import certifi
 import faiss
 import numpy as np
-from datasets import load_dataset
 from sentence_transformers import SentenceTransformer
 
 try:
@@ -25,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 PROCESSED_DIR = Path("data/processed")
 MODEL_NAME = "all-MiniLM-L6-v2"
+TRAIN_JSON_PATH = Path("data/raw/QALD-10/data/qald_9_plus/qald_9_plus_train_wikidata.json")
+TARGET_LANGUAGE = "en"
 
 
 def ensure_directory(path: Path):
@@ -32,53 +33,69 @@ def ensure_directory(path: Path):
         path.mkdir(parents=True)
 
 
+def load_local_json(path: Path, language: str = "en"):
+    """Load training data from local QALD JSON file."""
+    with open(path, 'r', encoding='utf-8') as f:
+        raw_data = json.load(f)
+    
+    questions_list = raw_data.get("questions", [])
+    logger.info(f"Parsed JSON. Found {len(questions_list)} questions total.")
+    
+    data = []
+    for item in questions_list:
+        question_text = None
+        
+        q_translations = item.get("question", [])
+        if isinstance(q_translations, list):
+            for q_obj in q_translations:
+                if q_obj.get("language") == language:
+                    question_text = q_obj.get("string")
+                    break
+        elif isinstance(q_translations, str):
+            question_text = q_translations
+        
+        if not question_text:
+            continue
+            
+        query_obj = item.get("query", {})
+        sparql_query = None
+        
+        if isinstance(query_obj, dict):
+            sparql_query = query_obj.get("sparql")
+        elif isinstance(query_obj, str):
+            sparql_query = query_obj
+        
+        if question_text and sparql_query:
+            data.append({
+                "id": str(item.get("id")),
+                "question": question_text,
+                "sparql": sparql_query
+            })
+    
+    return data
+
+
 def build_index():
     ensure_directory(PROCESSED_DIR)
 
-    logger.info("Loading training dataset...")
-    try:
-        dataset = load_dataset("casey-martin/qald_9_plus", split="train")
-    except Exception as e:
-        logger.error(f"Failed to load dataset: {e}")
+    logger.info(f"Loading training dataset from {TRAIN_JSON_PATH}...")
+    
+    if not TRAIN_JSON_PATH.exists():
+        logger.error(f"Training file not found at {TRAIN_JSON_PATH}")
+        logger.error("Please download QALD-9-plus data to data/raw/QALD-10/")
         return
-
-    logger.info(f"Dataset loaded. Rows: {len(dataset)}")
+    
+    training_data = load_local_json(TRAIN_JSON_PATH, language=TARGET_LANGUAGE)
+    logger.info(f"Loaded {len(training_data)} English question-SPARQL pairs")
 
     logger.info(f"Loading encoder model: {MODEL_NAME}")
     encoder = SentenceTransformer(MODEL_NAME)
 
-    questions = []
-    metadata = []
-
-    logger.info("Processing data...")
-    for i, row in enumerate(dataset):
-        raw_qs = row.get("question")
-        question = None
-
-        if isinstance(raw_qs, str):
-            question = raw_qs
-        elif isinstance(raw_qs, list) and len(raw_qs) > 0:
-            question = raw_qs[0]
-
-        sparql = row.get("query.sparql")
-        if not sparql:
-            sparql = row.get("sparql")
-
-        if (
-            question
-            and sparql
-            and isinstance(question, str)
-            and isinstance(sparql, str)
-        ):
-            questions.append(question)
-            metadata.append(
-                {"id": str(row.get("id", i)), "question": question, "sparql": sparql}
-            )
+    questions = [item["question"] for item in training_data]
+    metadata = training_data
 
     if not questions:
-        logger.error("No valid data found to index. Check dataset structure.")
-        if len(dataset) > 0:
-            logger.info(f"Sample row: {dataset[0]}")
+        logger.error("No valid data found to index.")
         return
 
     logger.info(f"Encoding {len(questions)} items...")
@@ -87,7 +104,7 @@ def build_index():
 
     faiss.normalize_L2(embeddings)
 
-    logger.info(f"Building FAISS index {embeddings.shape[1]}...")
+    logger.info(f"Building FAISS index (dim={embeddings.shape[1]})...")
     dimension = embeddings.shape[1]
     index = faiss.IndexFlatIP(dimension)
     index.add(embeddings)
@@ -100,7 +117,7 @@ def build_index():
     with open(meta_path, "wb") as f:
         pickle.dump(metadata, f)
 
-    logger.info(f"Indexing completed successfully. Saved to {index_path}")
+    logger.info(f"Indexing completed. {len(questions)} examples saved to {index_path}")
 
 
 if __name__ == "__main__":

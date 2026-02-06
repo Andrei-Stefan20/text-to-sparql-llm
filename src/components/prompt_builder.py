@@ -313,7 +313,8 @@ SELECT ... WHERE {
                 if query:
                     # Clean extracted query
                     query = self._clean_sparql(query)
-                    
+                    # Replace '\n' with actual newlines
+                    query = query.replace("\\n", "\n")
                     # Optionally validate syntax
                     if validate_syntax and self._is_valid_sparql_syntax(query):
                         return query
@@ -324,7 +325,9 @@ SELECT ... WHERE {
                 continue
         
         # Final fallback: aggressive cleaning
-        return self._clean_sparql(response)
+        fallback_query = self._clean_sparql(response)
+        fallback_query = fallback_query.replace("\\n", "\n")
+        return fallback_query
     
     def _extract_from_code_blocks(self, response: str) -> Optional[str]:
         """Extracts SPARQL from markdown code blocks."""

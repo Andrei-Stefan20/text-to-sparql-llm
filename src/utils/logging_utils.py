@@ -58,7 +58,28 @@ class ExperimentLogger:
             OmegaConf.save(cfg, f)
 
     def save_results(self, results: dict):
+        # Clean all generated SPARQL queries in results before saving
+        def clean_query(query):
+            if isinstance(query, str):
+                return query.replace("\\n", "\n")
+            return query
+
+        # Recursively clean queries in results
+        def recursive_clean(obj):
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    if k in ("generated_sparql", "gold_sparql", "sparql", "query"):
+                        obj[k] = clean_query(v)
+                    else:
+                        obj[k] = recursive_clean(v)
+                return obj
+            elif isinstance(obj, list):
+                return [recursive_clean(item) for item in obj]
+            else:
+                return obj
+
+        cleaned_results = recursive_clean(results)
         results_path = self.log_dir / "results_full.json"
         with open(results_path, "w", encoding="utf-8") as f:
-            json.dump(results, f, indent=2)
+            json.dump(cleaned_results, f, indent=2)
         logger.info(f"Results saved to {results_path}")

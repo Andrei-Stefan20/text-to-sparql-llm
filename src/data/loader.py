@@ -3,6 +3,7 @@ import json
 import os
 import pandas as pd
 from datasets import load_dataset
+from huggingface_hub import hf_hub_download
 from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -13,7 +14,11 @@ class DatasetLoader:
         self.split = split
         self.language = language
         
-        self.local_path = f"data/raw/QALD-10/data/qald_9_plus/qald_9_plus_{split}_wikidata.json"
+        # Map split to local file paths
+        self.local_paths = {
+            "train": "data/raw/QALD-10/data/qald_9_plus/qald_9_plus_train_wikidata.json",
+            "test": "data/raw/QALD-10/data/qald_10/qald_10.json"
+        }
 
     def load(self) -> List[Dict[str, Any]]:
         """
@@ -21,36 +26,50 @@ class DatasetLoader:
         """
         logger.info(f"Loading dataset '{self.dataset_name}' (split: {self.split})...")
         
-        if os.path.exists(self.local_path):
-            logger.info(f"Found local file at '{self.local_path}'. Loading directly...")
+        local_path = self.local_paths.get(self.split)
+        
+        if local_path and os.path.exists(local_path):
+            logger.info(f"Found local file at '{local_path}'. Loading directly...")
             try:
-                return self._load_local_json(self.local_path)
+                return self._load_local_json(local_path)
             except Exception as e:
                 logger.error(f"Error loading local file: {e}. Falling back to standard download...")
         else:
-            logger.warning(f"Local file not found at '{self.local_path}'.")
+            logger.warning(f"Local file not found at '{local_path}'.")
             logger.warning("Please ensure you have unpacked the QALD data in 'data/raw/'.")
             logger.warning("Attempting standard Hugging Face download as fallback...")
 
         try:
-            ds = load_dataset(self.dataset_name, split=self.split)
+            # Download specific parquet file directly using huggingface_hub
+            # This avoids the datasets library's schema casting issues
+            parquet_file = f"data/wikidata_{self.language}_train.parquet"
+            logger.info(f"Downloading {parquet_file} from HuggingFace Hub...")
             
-            if self.language:
-                ds = ds.filter(lambda x: x.get('language', '') == self.language or x.get('lang', '') == self.language)
+            local_parquet = hf_hub_download(
+                repo_id=self.dataset_name,
+                filename=parquet_file,
+                repo_type="dataset"
+            )
+            
+            # Load with pandas
+            df = pd.read_parquet(local_parquet)
+            logger.info(f"Loaded {len(df)} rows from parquet file")
             
             data = []
-            for item in ds:
-                question = item.get('question')
-                sparql = item.get('sparql') or item.get('query') or item.get('query.sparql')
-                uid = item.get('id') or item.get('uid')
+            for _, row in df.iterrows():
+                question = row.get('question')
+                sparql = row.get('query.sparql') or row.get('sparql') or row.get('query')
+                uid = row.get('id')
                 
                 if question and sparql:
                     data.append({
                         "id": str(uid),
                         "question": question,
                         "gold_sparql": sparql,
-                        "language": item.get('language', 'en')
+                        "language": row.get('language', 'en')
                     })
+            
+            logger.info(f"Processed {len(data)} valid question-SPARQL pairs")
             return data
             
         except Exception as e:

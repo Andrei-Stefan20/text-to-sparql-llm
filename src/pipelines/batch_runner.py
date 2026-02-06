@@ -163,11 +163,17 @@ class BatchRunner:
                 else:
                     validation_info = None
 
+            # Clean '\n' escapes in generated_sparql and gold_sparql
+            def clean_query(q):
+                if isinstance(q, str):
+                    return q.replace("\\n", "\n")
+                return q
+
             return {
                 "id": item["id"],
                 "question": question,
-                "generated_sparql": sparql,
-                "gold_sparql": gold_sparql,
+                "generated_sparql": clean_query(sparql),
+                "gold_sparql": clean_query(gold_sparql),
                 "hints_used": schema_hints,
                 "entities_linked": [
                     {"text": e.text, "qid": e.qid, "score": e.score} 
