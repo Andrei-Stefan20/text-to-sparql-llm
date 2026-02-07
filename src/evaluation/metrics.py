@@ -203,6 +203,7 @@ class OfflineEvaluator:
         return metrics
 
     @staticmethod
+    @staticmethod
     def _execute_query(sparql_wrapper: SPARQLWrapper, query: str) -> Set[Tuple]:
         """
         Executes a SPARQL query and returns a set of canonical tuples.
@@ -219,12 +220,14 @@ class OfflineEvaluator:
                 row = []
                 for v in vars_list:
                     if v in binding:
-                        row.append((v, binding[v]["value"]))
-                results.add(tuple(sorted(row)))
+                        row.append(binding[v]["value"])
+                
+                results.add(tuple(row))
 
             return results
 
-        except Exception:
+        except Exception as e:
+            logger.error(f"SPARQL Execution Error: {e}")
             return None
 
     @staticmethod

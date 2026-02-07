@@ -74,7 +74,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
     
     def __init__(self, timeout: int = 10, validate_execution: bool = True):
         self.timeout = timeout
-        self.validate_execution = validate_execution
+        self.execution_enabled = validate_execution
         
         # Setup SPARQL wrapper
         self.sparql = SPARQLWrapper(self.WIKIDATA_ENDPOINT)
@@ -207,7 +207,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             return syntax_result
         
         # Optionally check execution
-        should_execute = check_execution if check_execution is not None else self.validate_execution
+        should_execute = check_execution if check_execution is not None else self.execution_enabled
         if should_execute:
             return self.validate_execution(query)
         
