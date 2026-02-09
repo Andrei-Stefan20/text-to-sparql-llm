@@ -1,0 +1,985 @@
+{
+  "meta": {
+    "run_id": "gpt4omini_3shot_rebel_EntsON_ExON_lim30",
+    "status": "completed",
+    "dataset_size": 30
+  },
+  "configuration": {
+    "model": {
+      "name": "gpt-4o-mini",
+      "platform": "azure",
+      "env_var": "AZURE_OPENAI_KEY",
+      "connection": {
+        "endpoint": "https://tuo-resource.openai.azure.com/",
+        "api_version": "2024-12-01-preview",
+        "deployment": "gpt-4o-mini"
+      },
+      "params": {
+        "temperature": 0.0,
+        "max_tokens": 2048,
+        "top_p": 1.0
+      },
+      "max_retries": 5,
+      "timeout": 60,
+      "system_prompt": "You are a SPARQL expert for Wikidata.\nGenerate ONLY valid SPARQL query code.\nDo NOT include explanations, comments, code blocks, or any text.\nOutput ONLY the query starting with SELECT or CONSTRUCT.\n",
+      "concurrency": 30
+    },
+    "linking": {
+      "method": "rebel",
+      "model_path": "Babelscape/rebel-large",
+      "device": -1,
+      "use_wikidata_fallback": true
+    },
+    "retrieval": {
+      "k": 3,
+      "index_path": "data/processed/train_index.faiss",
+      "metadata_path": "data/processed/train_metadata.pkl"
+    },
+    "prompt": {
+      "name": "decomposition",
+      "strategy": "decomposition",
+      "system_message": "You are a SPARQL expert for Wikidata specializing in complex queries.\n\nCRITICAL RULES FOR FINAL QUERY:\n1. Use `ASK { ... }` for boolean (Yes/No) questions.\n2. Use `?answer` as the main variable for SELECT queries.\n3. NEVER hardcode dates or values not present in the text; retrieve them dynamically via sub-queries.\n\nFor complex questions, you will:\n1. Analyze the question to determine its complexity.\n2. If complex (multiple conditions, aggregations, nested relationships):\n   - Break it into simpler sub-questions.\n   - Write a sub-query for each sub-question using Q-IDs and P-IDs.\n   - Combine sub-queries into the final SPARQL query.\n3. If simple: write the query directly.\n\nComplex patterns to look for:\n- Multiple conditions (AND, OR, UNION)\n- Aggregations (COUNT, MAX, MIN, AVG, SUM)\n- Nested relationships (friend of friend, etc.)\n- Temporal constraints (dates, periods) -> Retrieve comparison dates dynamically!\n- Comparisons between entities\n- OPTIONAL patterns\n- Subqueries and EXISTS/NOT EXISTS\n\nAlways output the FINAL query inside a ```sparql code block at the end.\n",
+      "use_system_msg": true,
+      "include_examples": true,
+      "include_entities": true,
+      "include_schema_hint": true,
+      "custom_instruction": ""
+    },
+    "system": {
+      "experiment_name": "exp1_decomp_gpt4mini",
+      "seed": 42,
+      "debug": false,
+      "cache_dir": "~/.cache/huggingface/hub"
+    },
+    "dataset": {
+      "name": "casey-martin/qald_9_plus",
+      "split": "test",
+      "language": "en",
+      "limit": 30
+    },
+    "rag": {
+      "index_path": "data/processed/train_index.faiss",
+      "metadata_path": "data/processed/train_metadata.pkl",
+      "encoder_model": "all-MiniLM-L6-v2"
+    },
+    "validation": {
+      "enable_validation": true,
+      "enable_correction": false,
+      "max_attempts": 3,
+      "validate_execution": false,
+      "self_consistency_samples": 1,
+      "consistency_temperature": 0.7
+    }
+  },
+  "metrics": {
+    "precision": 0.203,
+    "recall": 0.2333,
+    "f1": 0.2056,
+    "exact_match_rate": 0.2,
+    "syntax_error_rate": 0.0333,
+    "evaluated_count": 30,
+    "exact_matches": 6
+  },
+  "results": [
+    {
+      "id": "0",
+      "question": "After whom is the Riemannian geometry named?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?person WHERE { wd:Q761383 wdt:P138 ?person. }",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE { wd:Q761383 wdt:P138 ?result. }",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P166 (P166), http://www.wikidata.org/prop/direct/P27 (P27), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P39 (P39), http://www.wikidata.org/prop/direct/P69 (P69), http://www.wikidata.org/prop/direct/P106 (P106), http://www.wikidata.org/prop/direct/P108 (P108), http://www.wikidata.org/prop/direct/P244 (P244), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P646 (P646), http://www.wikidata.org/prop/direct/P5008 (P5008), http://www.wikidata.org/prop/direct/P1482 (P1482), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P19 (P19), http://www.wikidata.org/prop/direct/P20 (P20)\nOther Semantic Matches: P8362 (Regensburg Classification (works and editions)), P7900 (Monument Atlas Lower Saxony Objekt-ID), P2460 (Persons of Ancient Athens), P9664 (named place on map), P138 (named after)",
+      "entities_linked": [
+        {
+          "text": "After whom",
+          "qid": "Q56079931"
+        },
+        {
+          "text": "Riemannian geometry",
+          "qid": "Q761383"
+        },
+        {
+          "text": "named after",
+          "qid": "Q1791962"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?person WHERE { wd:Q761383 wdt:P138 ?person. }",
+      "evaluation": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "gold_count": 1,
+        "gen_count": 1
+      }
+    },
+    {
+      "id": "1",
+      "question": "Which animal participated in a military operation with the Australian Defence Force?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?animal WHERE {\n  ?operation wdt:P1963 wd:Q625657 .\n  ?operation wdt:P1343 ?animal .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {?result wdt:P31 wd:Q16521. ?mop wdt:P31 wd:Q645883; wdt:P710 ?result, wd:Q625657.}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P1963 (P1963), http://www.wikidata.org/prop/direct/P527 (P527), http://www.wikidata.org/prop/direct/P1343 (P1343), http://www.wikidata.org/prop/direct/P11738 (P11738), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P646 (P646), http://www.wikidata.org/prop/direct/P1889 (P1889), http://www.wikidata.org/prop/direct/P2581 (P2581), http://www.wikidata.org/prop/direct/P3417 (P3417), http://www.wikidata.org/prop/direct/P355 (P355), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P508 (P508)\nOther Semantic Matches: P7779 (military unit), P798 (military designation), P3156 (Australian Classification), P410 (military, police or special rank), P4624 (squadron embarked)",
+      "entities_linked": [
+        {
+          "text": "military operation",
+          "qid": "Q645883"
+        },
+        {
+          "text": "conflict",
+          "qid": "Q180684"
+        },
+        {
+          "text": "Australian Defence Force",
+          "qid": "Q625657"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?animal WHERE { \n  ?operation wdt:P1963 wd:Q625657 . \n  ?operation wdt:P1343 ?animal . \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "2",
+      "question": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?character WHERE {\n  ?character wdt:P451 wd:Q4205826 .\n  ?character wdt:P451 wd:Q4463198 .\n  FILTER NOT EXISTS { ?character wdt:P175 ?spouse . }\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q11835640 wdt:P674 ?result. ?result wdt:P451 ?p1, ?p2. FILTER(?p1 != ?p2 &&(?result IN (wd:Q4205826, wd:Q4463198)))}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P2521 (P2521), http://www.wikidata.org/prop/direct/P3321 (P3321), http://www.wikidata.org/prop/direct/P1441 (P1441), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P175 (P175), http://www.wikidata.org/prop/direct/P106 (P106), http://www.wikidata.org/prop/direct/P527 (P527), http://www.wikidata.org/prop/direct/P1296 (P1296), http://www.wikidata.org/prop/direct/P10757 (P10757), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P672 (P672), http://www.wikidata.org/prop/direct/P451 (P451), http://www.wikidata.org/prop/direct/P5008 (P5008), http://www.wikidata.org/prop/direct/P646 (P646)\nOther Semantic Matches: P2562 (married name), P451 (unmarried partner), P8416 (Dowker-Thistlethwaite name), P2962 (title of chess person), P26 (spouse)",
+      "entities_linked": [
+        {
+          "text": "spouse",
+          "qid": "Q1196129"
+        },
+        {
+          "text": "Triss Merigold",
+          "qid": "Q4463198"
+        },
+        {
+          "text": "Yennefer of Vengerberg",
+          "qid": "Q4205826"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?character WHERE { \n  ?character wdt:P451 wd:Q4205826 . \n  ?character wdt:P451 wd:Q4463198 . \n  FILTER NOT EXISTS { ?character wdt:P175 ?spouse . }\n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "3",
+      "question": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?founder WHERE {\n  ?founder wdt:P31 wd:Q33999 .\n  ?founder wdt:P102 wd:Q19211 .\n  wd:Q860580 wdt:P355 ?founder .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q860580 wdt:P112 ?result. ?result wdt:P39 wd:Q10891456.}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P355 (P355), http://www.wikidata.org/prop/direct/P1329 (P1329), http://www.wikidata.org/prop/direct/P1056 (P1056), http://www.wikidata.org/prop/direct/P1448 (P1448), http://www.wikidata.org/prop/direct/P1813 (P1813), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P112 (P112), http://www.wikidata.org/prop/direct/P1830 (P1830), http://www.wikidata.org/prop/direct/P127 (P127), http://www.wikidata.org/prop/direct/P3362 (P3362), http://www.wikidata.org/prop/direct/P856 (P856), http://www.wikidata.org/prop/direct/P159 (P159), http://www.wikidata.org/prop/direct/P214 (P214), http://www.wikidata.org/prop/direct/P361 (P361), http://www.wikidata.org/prop/direct/P527 (P527)\nOther Semantic Matches: P102 (member of political party), P199 (has organizational division), P10786 (date of incorporation), P210 (party chief representative), P1149 (Library of Congress Classification)",
+      "entities_linked": [
+        {
+          "text": "national people\u2019s congress",
+          "qid": "Q19211"
+        },
+        {
+          "text": "tencent",
+          "qid": "Q860580"
+        },
+        {
+          "text": "owned by",
+          "qid": "Q66758185"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?founder WHERE { \n  ?founder wdt:P31 wd:Q33999 . \n  ?founder wdt:P102 wd:Q19211 . \n  wd:Q860580 wdt:P355 ?founder . \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "4",
+      "question": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?work WHERE {\n  wd:Q696071 wdt:P50 ?author .\n  ?work wdt:P50 ?author .\n  ?work wdt:P136 wd:Q149566 .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q696071 wdt:P50 ?author. ?author wdt:P800 ?result. ?result wdt:P921 wd:Q16003532 FILTER(?result != wd:Q69071)}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P674 (P674), http://www.wikidata.org/prop/direct/P123 (P123), http://www.wikidata.org/prop/direct/P136 (P136), http://www.wikidata.org/prop/direct/P1889 (P1889), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P361 (P361), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P4969 (P4969), http://www.wikidata.org/prop/direct/P460 (P460), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P646 (P646), http://www.wikidata.org/prop/direct/P750 (P750), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P3417 (P3417), http://www.wikidata.org/prop/direct/P6839 (P6839)\nOther Semantic Matches: P9687 (author given names), P50 (author), P1433 (published in), P2679 (author of foreword), P835 (author citation (zoology))",
+      "entities_linked": [
+        {
+          "text": "middle school",
+          "qid": "Q149566"
+        },
+        {
+          "text": "main subject",
+          "qid": "Q26256810"
+        },
+        {
+          "text": "hunter x hunter",
+          "qid": "Q696071"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?work WHERE { \n  wd:Q696071 wdt:P50 ?author . \n  ?work wdt:P50 ?author . \n  ?work wdt:P136 wd:Q149566 . \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "5",
+      "question": "On which stock exchanges are Siemens AG shares traded?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?exchange WHERE { wd:Q81230 wdt:P414 ?exchange . }",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q81230 wdt:P414 ?result}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P463 (P463), http://www.wikidata.org/prop/direct/P355 (P355), http://www.wikidata.org/prop/direct/P4776 (P4776), http://www.wikidata.org/prop/direct/P452 (P452), http://www.wikidata.org/prop/direct/P361 (P361), http://www.wikidata.org/prop/direct/P6379 (P6379), http://www.wikidata.org/prop/direct/P127 (P127), http://www.wikidata.org/prop/direct/P1343 (P1343), http://www.wikidata.org/prop/direct/P1365 (P1365), http://www.wikidata.org/prop/direct/P1830 (P1830), http://www.wikidata.org/prop/direct/P3743 (P3743), http://www.wikidata.org/prop/direct/P3793 (P3793), http://www.wikidata.org/prop/direct/P5008 (P5008), http://www.wikidata.org/prop/direct/P13800 (P13800), http://www.wikidata.org/prop/direct/P155 (P155)\nOther Semantic Matches: P8247 (nominal share capital), P414 (stock exchange), P3679 (stock market index), P2226 (market capitalization), P2294 (balance of trade)",
+      "entities_linked": [
+        {
+          "text": "Siemens AG",
+          "qid": "Q81230"
+        },
+        {
+          "text": "stock exchange",
+          "qid": "Q11691"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?exchange WHERE { wd:Q81230 wdt:P414 ?exchange . }",
+      "evaluation": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "gold_count": 1,
+        "gen_count": 1
+      }
+    },
+    {
+      "id": "6",
+      "question": "Apart from the book series the witcher, name all of the author\u2019s notable work.",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?work WHERE {\n  ?work wdt:P50 wd:Q20011098 .\n  FILTER(?work != wd:Q51671721)\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q11835640 wdt:P50 ?author. ?author wdt:P800 ?result. FILTER(?result != wd:Q11835640)}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P6262 (P6262), http://www.wikidata.org/prop/direct/P2563 (P2563), http://www.wikidata.org/prop/direct/P1441 (P1441), http://www.wikidata.org/prop/direct/P520 (P520), http://www.wikidata.org/prop/direct/P3828 (P3828), http://www.wikidata.org/prop/direct/P658 (P658), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P437 (P437), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P138 (P138), http://www.wikidata.org/prop/direct/P170 (P170), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P1080 (P1080), http://www.wikidata.org/prop/direct/P1552 (P1552), http://www.wikidata.org/prop/direct/P1889 (P1889)\nOther Semantic Matches: P9687 (author given names), P9688 (author last names), P6333 (title of broader work), P50 (author), P957 (ISBN-10)",
+      "entities_linked": [
+        {
+          "text": "present in work",
+          "qid": "Q66220634"
+        },
+        {
+          "text": "characters",
+          "qid": "Q1620031"
+        },
+        {
+          "text": "the book series",
+          "qid": "Q51671721"
+        },
+        {
+          "text": "witcher",
+          "qid": "Q20011098"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?work WHERE { \n  ?work wdt:P50 wd:Q20011098 . \n  FILTER(?work != wd:Q51671721) \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 5,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "7",
+      "question": "are brooke raboutou and colin duffy from same state of the usa?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?state WHERE {\n  {\n    wd:Q2926117 wdt:P19 ?place1 .\n    ?place1 wdt:P625 ?coord1 .\n    ?place1 wdt:P27 wd:Q6476962 .\n  } UNION {\n    wd:Q87192979 wdt:P19 ?place2 .\n    ?place2 wdt:P625 ?coord2 .\n    ?place2 wdt:P27 wd:Q6476962 .\n  }\n  ?place1 wdt:P625 ?coord1 .\n  ?place2 wdt:P625 ?coord2 .\n  FILTER(?coord1 = ?coord2)\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK {wd:Q2926117 wdt:P19 ?b1. wd:Q87192979 wdt:P19 ?b2. ?b1 wdt:P131* ?state. ?b2 wdt:P131* ?state. ?state wdt:P31 wd:Q35657 .}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P1344 (P1344), http://www.wikidata.org/prop/direct/P641 (P641), http://www.wikidata.org/prop/direct/P974 (P974), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P27 (P27), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P106 (P106), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P625 (P625), http://www.wikidata.org/prop/direct/P19 (P19), http://www.wikidata.org/prop/direct/P21 (P21), http://www.wikidata.org/prop/direct/P69 (P69), http://www.wikidata.org/prop/direct/P569 (P569), http://www.wikidata.org/prop/direct/P734 (P734), http://www.wikidata.org/prop/direct/P735 (P735)\nOther Semantic Matches: P4997 (National Governors Association biography URL), P1950 (second family name in Spanish name), P5278 (surname for other gender), P2562 (married name), P3290 (biography at the Landtag of Mecklenburg-Vorpommern)",
+      "entities_linked": [
+        {
+          "text": "country of citizenship",
+          "qid": null
+        },
+        {
+          "text": "brooke raboutou",
+          "qid": "Q2926117"
+        },
+        {
+          "text": "colin duffy",
+          "qid": "Q87192979"
+        },
+        {
+          "text": "usa",
+          "qid": "Q6476962"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?state WHERE { \n  { \n    wd:Q2926117 wdt:P19 ?place1 . \n    ?place1 wdt:P625 ?coord1 . \n    ?place1 wdt:P27 wd:Q6476962 . \n  } UNION { \n    wd:Q87192979 wdt:P19 ?place2 . \n    ?place2 wdt:P625 ?coord2 . \n    ?place2 wdt:P27 wd:Q6476962 . \n  } \n  ?place1 wdt:P625 ?coord1 . \n  ?place2 wdt:P625 ?coord2 . \n  FILTER(?coord1 = ?coord2) \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "8",
+      "question": "What is the boiling point of water?",
+      "generated_sparql": "SELECT ?boilingPoint WHERE { wd:Q283 wdt:P2102 ?boilingPoint }",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE{wd:Q283 wdt:P2102 ?result}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P2877 (P2877), http://www.wikidata.org/prop/direct/P161 (P161), http://www.wikidata.org/prop/direct/P2054 (P2054), http://www.wikidata.org/prop/direct/P1343 (P1343), http://www.wikidata.org/prop/direct/P361 (P361), http://www.wikidata.org/prop/direct/P1482 (P1482), http://www.wikidata.org/prop/direct/P1552 (P1552), http://www.wikidata.org/prop/direct/P1889 (P1889), http://www.wikidata.org/prop/direct/P4223 (P4223), http://www.wikidata.org/prop/direct/P6104 (P6104), http://www.wikidata.org/prop/direct/P703 (P703), http://www.wikidata.org/prop/direct/P1109 (P1109), http://www.wikidata.org/prop/direct/P1963 (P1963), http://www.wikidata.org/prop/direct/P462 (P462), http://www.wikidata.org/prop/direct/P12800 (P12800)\nOther Semantic Matches: P2102 (boiling point), P2101 (melting point), P2076 (temperature), P873 (phase point), P206 (located in or next to body of water)",
+      "entities_linked": [
+        {
+          "text": "water",
+          "qid": "Q283"
+        },
+        {
+          "text": "boiling point",
+          "qid": "Q109284828"
+        },
+        {
+          "text": "facet of",
+          "qid": "Q17524420"
+        }
+      ],
+      "validation": null,
+      "raw_response": null,
+      "evaluation": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "gold_count": 1,
+        "gen_count": 1
+      }
+    },
+    {
+      "id": "9",
+      "question": "At which school was Yayoi Kusama educated at?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?school WHERE { wd:Q231121 wdt:P69 ?school . }",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result {wd:Q231121 wdt:P69 ?result}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P6379 (P6379), http://www.wikidata.org/prop/direct/P106 (P106), http://www.wikidata.org/prop/direct/P166 (P166), http://www.wikidata.org/prop/direct/P937 (P937), http://www.wikidata.org/prop/direct/P135 (P135), http://www.wikidata.org/prop/direct/P136 (P136), http://www.wikidata.org/prop/direct/P1875 (P1875), http://www.wikidata.org/prop/direct/P1343 (P1343), http://www.wikidata.org/prop/direct/P3219 (P3219), http://www.wikidata.org/prop/direct/P4927 (P4927), http://www.wikidata.org/prop/direct/P5008 (P5008), http://www.wikidata.org/prop/direct/P6275 (P6275), http://www.wikidata.org/prop/direct/P101 (P101), http://www.wikidata.org/prop/direct/P9493 (P9493), http://www.wikidata.org/prop/direct/P213 (P213)\nOther Semantic Matches: P9863 (Gujarati Vishwakosh entry), P4997 (National Governors Association biography URL), P9317 (Institute of Language in Education Scheme), P812 (academic major), P3428 (INCAA film rating)",
+      "entities_linked": [
+        {
+          "text": "Yayoi Kusama",
+          "qid": "Q231121"
+        },
+        {
+          "text": "educated at",
+          "qid": null
+        },
+        {
+          "text": "At which school",
+          "qid": null
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?school WHERE { wd:Q231121 wdt:P69 ?school . }",
+      "evaluation": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "gold_count": 1,
+        "gen_count": 1
+      }
+    },
+    {
+      "id": "10",
+      "question": "Which High School did Allen Ginsberg attend?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?highSchool WHERE {\n  wd:Q6711 wdt:P69 ?highSchool .\n  ?highSchool wdt:P31 wd:Q9826 .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result {wd:Q6711 wdt:P69 ?result. ?result wdt:P31 wd:Q9826}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P6104 (P6104), http://www.wikidata.org/prop/direct/P6379 (P6379), http://www.wikidata.org/prop/direct/P106 (P106), http://www.wikidata.org/prop/direct/P166 (P166), http://www.wikidata.org/prop/direct/P485 (P485), http://www.wikidata.org/prop/direct/P1963 (P1963), http://www.wikidata.org/prop/direct/P460 (P460), http://www.wikidata.org/prop/direct/P1343 (P1343), http://www.wikidata.org/prop/direct/P3417 (P3417), http://www.wikidata.org/prop/direct/P5008 (P5008), http://www.wikidata.org/prop/direct/P69 (P69), http://www.wikidata.org/prop/direct/P155 (P155), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P1315 (P1315), http://www.wikidata.org/prop/direct/P1411 (P1411)\nOther Semantic Matches: P1780 (school of), P3876 (category for alumni of educational institution), P803 (professorship), P2272 (Hederich encyclopedia article), P1713 (biography at the Bundestag of Germany URL)",
+      "entities_linked": [
+        {
+          "text": "Allen Ginsberg",
+          "qid": "Q6711"
+        },
+        {
+          "text": "High School",
+          "qid": "Q9826"
+        },
+        {
+          "text": "educated at",
+          "qid": null
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?highSchool WHERE { \n  wd:Q6711 wdt:P69 ?highSchool . \n  ?highSchool wdt:P31 wd:Q9826 . \n}",
+      "evaluation": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "gold_count": 1,
+        "gen_count": 1
+      }
+    },
+    {
+      "id": "11",
+      "question": "On which island is the Indonesian capital located?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?island WHERE {\n  wd:Q252 wdt:P150 ?city .\n  ?city wdt:P706 ?island .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result {wd:Q252 wdt:P36 ?capital. ?capital wdt:P706 ?result. ?result wdt:P31 wd:Q23442}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P2936 (P2936), http://www.wikidata.org/prop/direct/P530 (P530), http://www.wikidata.org/prop/direct/P1963 (P1963), http://www.wikidata.org/prop/direct/P150 (P150), http://www.wikidata.org/prop/direct/P1549 (P1549), http://www.wikidata.org/prop/direct/P706 (P706), http://www.wikidata.org/prop/direct/P463 (P463), http://www.wikidata.org/prop/direct/P47 (P47), http://www.wikidata.org/prop/direct/P832 (P832), http://www.wikidata.org/prop/direct/P1343 (P1343), http://www.wikidata.org/prop/direct/P1365 (P1365), http://www.wikidata.org/prop/direct/P1705 (P1705), http://www.wikidata.org/prop/direct/P4223 (P4223), http://www.wikidata.org/prop/direct/P8476 (P8476), http://www.wikidata.org/prop/direct/P8477 (P8477)\nOther Semantic Matches: P36 (capital), P1376 (capital of), P5607 (located in the religious territorial entity), P131 (located in the administrative territorial entity), P6916 (Heritage Gazetteer of Cyprus)",
+      "entities_linked": [
+        {
+          "text": "capital",
+          "qid": "Q193893"
+        },
+        {
+          "text": "country",
+          "qid": "Q6256"
+        },
+        {
+          "text": "Indonesia",
+          "qid": "Q252"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?island WHERE { \n  wd:Q252 wdt:P150 ?city . \n  ?city wdt:P706 ?island . \n}",
+      "evaluation": {
+        "precision": 0.09090909090909091,
+        "recall": 1.0,
+        "f1": 0.16666666666666669,
+        "gold_count": 1,
+        "gen_count": 11
+      }
+    },
+    {
+      "id": "12",
+      "question": "can i play don't starve on play station 4?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?game WHERE {\n  ?game wdt:P400 wd:Q3208174 .\n  ?game wdt:P750 wd:Q5014725 .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASk {wd:Q3208174 wdt:P400 wd:Q5014725.}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P400 (P400), http://www.wikidata.org/prop/direct/P6262 (P6262), http://www.wikidata.org/prop/direct/P750 (P750), http://www.wikidata.org/prop/direct/P13165 (P13165), http://www.wikidata.org/prop/direct/P2284 (P2284), http://www.wikidata.org/prop/direct/P3984 (P3984), http://www.wikidata.org/prop/direct/P306 (P306), http://www.wikidata.org/prop/direct/P136 (P136), http://www.wikidata.org/prop/direct/P479 (P479), http://www.wikidata.org/prop/direct/P7555 (P7555), http://www.wikidata.org/prop/direct/P11196 (P11196), http://www.wikidata.org/prop/direct/P12800 (P12800), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P437 (P437), http://www.wikidata.org/prop/direct/P852 (P852)\nOther Semantic Matches: P3195 (league points system), P404 (game mode), P6229 (Discord Store game SKU), P9140 (time played), P765 (surface played on)",
+      "entities_linked": [
+        {
+          "text": "don't starve",
+          "qid": "Q3208174"
+        },
+        {
+          "text": "play station 4",
+          "qid": "Q5014725"
+        },
+        {
+          "text": "platform",
+          "qid": "Q64896574"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?game WHERE { \n  ?game wdt:P400 wd:Q3208174 . \n  ?game wdt:P750 wd:Q5014725 . \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "13",
+      "question": "How many General Secretaries of the CPSU were there before Leonid Brezhnev?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT (COUNT(?secretary) AS ?count) WHERE {\n  ?secretary wdt:P31 wd:Q87004793 .\n  ?secretary wdt:P1344 wd:Q765165 .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT (COUNT(?gensec) as ?result) WHERE{wd:Q765165 p:P39 ?pos. ?pos ps:P39 wd:Q1048744; pq:P580 ?st. ?gensec p:P39 ?pos2. ?pos2 ps:P39 wd:Q1048744; pq:P580 ?st2. FILTER(?st2 < ?st)}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P166 (P166), http://www.wikidata.org/prop/direct/P1344 (P1344), http://www.wikidata.org/prop/direct/P13951 (P13951), http://www.wikidata.org/prop/direct/P607 (P607), http://www.wikidata.org/prop/direct/P1343 (P1343), http://www.wikidata.org/prop/direct/P106 (P106), http://www.wikidata.org/prop/direct/P39 (P39), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P40 (P40), http://www.wikidata.org/prop/direct/P598 (P598), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P3222 (P3222), http://www.wikidata.org/prop/direct/P3342 (P3342), http://www.wikidata.org/prop/direct/P6058 (P6058), http://www.wikidata.org/prop/direct/P6758 (P6758)\nOther Semantic Matches: P3975 (general secretary), P1789 (chief operating officer), P5054 (member of cabinet), P1906 (office held by head of state), P169 (chief executive officer)",
+      "entities_linked": [
+        {
+          "text": "position held",
+          "qid": "Q87004793"
+        },
+        {
+          "text": "Leonid Brezhnev",
+          "qid": "Q765165"
+        },
+        {
+          "text": "General Secretaries of the CPSU",
+          "qid": null
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT (COUNT(?secretary) AS ?count) WHERE { \n  ?secretary wdt:P31 wd:Q87004793 . \n  ?secretary wdt:P1344 wd:Q765165 . \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 1
+      }
+    },
+    {
+      "id": "14",
+      "question": "How many different presidents of Russia have there been that took the position after 1990?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT (COUNT(DISTINCT ?president) AS ?numberOfPresidents) WHERE {\n  ?president wdt:P31 wd:Q2064 .\n  ?president wdt:P527 wd:Q105824503 .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT (COUNT(DISTINCT ?president) AS ?result) WHERE{?president p:P39 ?pos. ?pos ps:P39 wd:Q218295. ?pos pq:P580 ?start. FILTER((YEAR(?start)> 1990))}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P527 (P527), http://www.wikidata.org/prop/direct/P1072 (P1072), http://www.wikidata.org/prop/direct/P1073 (P1073), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P361 (P361), http://www.wikidata.org/prop/direct/P460 (P460), http://www.wikidata.org/prop/direct/P155 (P155), http://www.wikidata.org/prop/direct/P156 (P156), http://www.wikidata.org/prop/direct/P244 (P244), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P8324 (P8324), http://www.wikidata.org/prop/direct/P11201 (P11201), http://www.wikidata.org/prop/direct/P178 (P178), http://www.wikidata.org/prop/direct/P195 (P195), http://www.wikidata.org/prop/direct/P275 (P275)\nOther Semantic Matches: P102 (member of political party), P5054 (member of cabinet), P1906 (office held by head of state), P10777 (candidate position), P3975 (general secretary)",
+      "entities_linked": [
+        {
+          "text": "presidents of Russia",
+          "qid": null
+        },
+        {
+          "text": "1990",
+          "qid": "Q2064"
+        },
+        {
+          "text": "inception",
+          "qid": "Q105824503"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT (COUNT(DISTINCT ?president) AS ?numberOfPresidents) WHERE { \n  ?president wdt:P31 wd:Q2064 . \n  ?president wdt:P527 wd:Q105824503 . \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 1
+      }
+    },
+    {
+      "id": "15",
+      "question": "Did adam ondra win a medal in the 2020 summer olympics?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?medal WHERE {\n  wd:Q181278 wdt:P527 ?event .\n  ?event wdt:P361 wd:Q186408 .\n  ?athlete wdt:P2002 \"adamondra\" .\n  ?athlete wdt:P2522 ?medal .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK{wd:Q350568 p:P1344 ?event. ?event ps:P1344 ?eventStatement. ?eventStatement wdt:P361* wd:Q181278. ?event pq:P1352 ?ranking. FILTER(?ranking <= 3)}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P3301 (P3301), http://www.wikidata.org/prop/direct/P527 (P527), http://www.wikidata.org/prop/direct/P361 (P361), http://www.wikidata.org/prop/direct/P543 (P543), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P1889 (P1889), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P1451 (P1451), http://www.wikidata.org/prop/direct/P2002 (P2002), http://www.wikidata.org/prop/direct/P2130 (P2130), http://www.wikidata.org/prop/direct/P3417 (P3417), http://www.wikidata.org/prop/direct/P12800 (P12800), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P580 (P580), http://www.wikidata.org/prop/direct/P582 (P582)\nOther Semantic Matches: P7069 (World Athletics competition category), P2522 (competition won), P1411 (nominated for), P2416 (sports discipline competed in), P6087 (coach of sports team)",
+      "entities_linked": [
+        {
+          "text": "point in time",
+          "qid": "Q186408"
+        },
+        {
+          "text": "2020 summer olympics",
+          "qid": "Q181278"
+        },
+        {
+          "text": "2020",
+          "qid": "Q25337"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?medal WHERE { \n  wd:Q181278 wdt:P527 ?event . \n  ?event wdt:P361 wd:Q186408 . \n  ?athlete wdt:P2002 \"adamondra\" . \n  ?athlete wdt:P2522 ?medal . \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "16",
+      "question": "Did the Chicago Bulls win at least two seasons of the NBA championship?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT (COUNT(?season) AS ?count) WHERE {\n  wd:Q128109 wdt:P2522 ?season .\n  ?season wdt:P31 wd:Q18156668 .\n} GROUP BY ?season HAVING (?count >= 2)",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK{{SELECT (COUNT (?season) AS ?count) WHERE {?season wdt:P3450 wd:Q155223. ?season wdt:P1346 wd:Q128109}} FILTER(?count >= 2)}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P460 (P460), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P1424 (P1424), http://www.wikidata.org/prop/direct/P8687 (P8687), http://www.wikidata.org/prop/direct/P17 (P17), http://www.wikidata.org/prop/direct/P127 (P127), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P641 (P641), http://www.wikidata.org/prop/direct/P646 (P646), http://www.wikidata.org/prop/direct/P859 (P859), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P1417 (P1417), http://www.wikidata.org/prop/direct/P1449 (P1449), http://www.wikidata.org/prop/direct/P2002 (P2002), http://www.wikidata.org/prop/direct/P2003 (P2003)\nOther Semantic Matches: P3450 (sports season of league or competition), P2105 (size of team at finish), P6087 (coach of sports team), P2522 (competition won), P5138 (season of club or team)",
+      "entities_linked": [
+        {
+          "text": "Chicago Bulls",
+          "qid": "Q128109"
+        },
+        {
+          "text": "NBA championship",
+          "qid": "Q18156668"
+        },
+        {
+          "text": "winner",
+          "qid": "Q11862752"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT (COUNT(?season) AS ?count) WHERE { \n  wd:Q128109 wdt:P2522 ?season . \n  ?season wdt:P31 wd:Q18156668 . \n} GROUP BY ?season HAVING (?count >= 2)",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "17",
+      "question": "Did Haruki Murakami receive the Nobel Prize in Literature?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?award WHERE { wd:Q134798 wdt:P166 ?award . FILTER(?award = wd:Q37922) }",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK {wd:Q37922 wdt:P1346 wd:Q134798}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P1346 (P1346), http://www.wikidata.org/prop/direct/P166 (P166), http://www.wikidata.org/prop/direct/P106 (P106), http://www.wikidata.org/prop/direct/P800 (P800), http://www.wikidata.org/prop/direct/P737 (P737), http://www.wikidata.org/prop/direct/P69 (P69), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P856 (P856), http://www.wikidata.org/prop/direct/P1417 (P1417), http://www.wikidata.org/prop/direct/P3417 (P3417), http://www.wikidata.org/prop/direct/P101 (P101), http://www.wikidata.org/prop/direct/P136 (P136), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P641 (P641), http://www.wikidata.org/prop/direct/P646 (P646)\nOther Semantic Matches: P2121 (prize money), P9687 (author given names), P166 (award received), P3919 (contributed to creative work), P767 (contributor to the creative work or subject)",
+      "entities_linked": [
+        {
+          "text": "Nobel Prize in Literature",
+          "qid": "Q37922"
+        },
+        {
+          "text": "award received",
+          "qid": "Q66796038"
+        },
+        {
+          "text": "Haruki Murakami",
+          "qid": "Q134798"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?award WHERE { wd:Q134798 wdt:P166 ?award . FILTER(?award = wd:Q37922) }",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "18",
+      "question": "Did Kobe Bryant leave the Lakers when LeBron James joined that team?",
+      "generated_sparql": "SELECT ?kobe ?lebron WHERE {\n  wd:Q25369 wdt:P54 wd:Q121783 .\n  wd:Q36159 wdt:P54 wd:Q121783 .\n  FILTER NOT EXISTS { wd:Q25369 wdt:P1411 wd:Q121783 . }\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK{wd:Q25369 p:P54 ?teamStatement. ?teamStatement ps:P54 wd:Q121783; pq:P582 ?leave. wd:Q36159 p:P54 ?teamStatement2. ?teamStatement2 ps:P54 wd:Q121783; pq:P580 ?join. FILTER(?leave = ?join)}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P166 (P166), http://www.wikidata.org/prop/direct/P1411 (P1411), http://www.wikidata.org/prop/direct/P1344 (P1344), http://www.wikidata.org/prop/direct/P413 (P413), http://www.wikidata.org/prop/direct/P551 (P551), http://www.wikidata.org/prop/direct/P40 (P40), http://www.wikidata.org/prop/direct/P106 (P106), http://www.wikidata.org/prop/direct/P1449 (P1449), http://www.wikidata.org/prop/direct/P691 (P691), http://www.wikidata.org/prop/direct/P1412 (P1412), http://www.wikidata.org/prop/direct/P1618 (P1618), http://www.wikidata.org/prop/direct/P54 (P54), http://www.wikidata.org/prop/direct/P69 (P69), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P641 (P641)\nOther Semantic Matches: P54 (member of sports team), P6087 (coach of sports team), P647 (drafted by), P5138 (season of club or team), P413 (position played on team / speciality)",
+      "entities_linked": [
+        {
+          "text": "member of sports team",
+          "qid": null
+        },
+        {
+          "text": "Kobe Bryant",
+          "qid": "Q25369"
+        },
+        {
+          "text": "LeBron James",
+          "qid": "Q36159"
+        },
+        {
+          "text": "Lakers",
+          "qid": "Q121783"
+        }
+      ],
+      "validation": null,
+      "raw_response": "SELECT ?kobe ?lebron WHERE { \n  wd:Q25369 wdt:P54 wd:Q121783 . \n  wd:Q36159 wdt:P54 wd:Q121783 . \n  FILTER NOT EXISTS { wd:Q25369 wdt:P1411 wd:Q121783 . }\n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 1
+      }
+    },
+    {
+      "id": "19",
+      "question": "Did Rawson Marshall Thurber, the director of Red Notice also direct Titanic?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\n\nSELECT ?uri WHERE {\n  {\n    SELECT ?film WHERE {\n      wd:Q2745616 wdt:P161 ?film .\n    }\n  }\n  UNION\n  {\n    SELECT ?film WHERE {\n      ?film wdt:P31 wd:Q11424 .\n      ?film wdt:P57 wd:Q3455803 .\n    }\n  }\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK {wd:Q58815001 wdt:P57 ?director. wd:Q44578 wdt:P57 ?director. FILTER(wd:Q2745616 = ?director)}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P2521 (P2521), http://www.wikidata.org/prop/direct/P3321 (P3321), http://www.wikidata.org/prop/direct/P106 (P106), http://www.wikidata.org/prop/direct/P161 (P161), http://www.wikidata.org/prop/direct/P527 (P527), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P162 (P162), http://www.wikidata.org/prop/direct/P69 (P69), http://www.wikidata.org/prop/direct/P227 (P227), http://www.wikidata.org/prop/direct/P691 (P691), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P425 (P425), http://www.wikidata.org/prop/direct/P101 (P101), http://www.wikidata.org/prop/direct/P136 (P136), http://www.wikidata.org/prop/direct/P345 (P345)\nOther Semantic Matches: P344 (director of photography), P3092 (film crew member), P58 (screenwriter), P57 (director), P1037 (director / manager)",
+      "entities_linked": [
+        {
+          "text": "director",
+          "qid": "Q3455803"
+        },
+        {
+          "text": "Red Notice",
+          "qid": "Q58815001"
+        },
+        {
+          "text": "Rawson Marshall Thurber",
+          "qid": "Q2745616"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \n\nSELECT ?uri WHERE { \n  { \n    SELECT ?film WHERE { \n      wd:Q2745616 wdt:P161 ?film . \n    } \n  } \n  UNION \n  { \n    SELECT ?film WHERE { \n      ?film wdt:P31 wd:Q11424 . \n      ?film wdt:P57 wd:Q3455803 . \n    } \n  } \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "20",
+      "question": "Did Venice at any point belong to the Austrian Empire?",
+      "generated_sparql": "SELECT ?entity WHERE { wd:Q773853 wdt:P47 wd:Q131964 . }",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK {wd:Q641 p:P17/ps:P17 wd:Q131964}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P47 (P47), http://www.wikidata.org/prop/direct/P1343 (P1343), http://www.wikidata.org/prop/direct/P2936 (P2936), http://www.wikidata.org/prop/direct/P155 (P155), http://www.wikidata.org/prop/direct/P1549 (P1549), http://www.wikidata.org/prop/direct/P268 (P268), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P646 (P646), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P214 (P214), http://www.wikidata.org/prop/direct/P242 (P242), http://www.wikidata.org/prop/direct/P463 (P463), http://www.wikidata.org/prop/direct/P571 (P571)\nOther Semantic Matches: P964 (Austrian municipality key), P2951 (Cultural heritage database in Austria ObjektID), P1336 (territory claimed by), P131 (located in the administrative territorial entity), P7903 (gained territory from)",
+      "entities_linked": [
+        {
+          "text": "Austrian Empire",
+          "qid": "Q131964"
+        },
+        {
+          "text": "capital",
+          "qid": "Q193893"
+        },
+        {
+          "text": "Venice",
+          "qid": "Q773853"
+        }
+      ],
+      "validation": null,
+      "raw_response": null,
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "21",
+      "question": "Were at least two of the founders of tencent educated at the same university?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?university WHERE {\n  ?founder wdt:P355 wd:Q860580;\n           wdt:P69 ?university.\n  ?founder2 wdt:P355 wd:Q860580;\n             wdt:P69 ?university.\n  FILTER(?founder != ?founder2)\n}\nLIMIT 1",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK {wd:Q860580 wdt:P112 ?founder. ?founder wdt:P69 ?uni. wd:Q860580 wdt:P112 ?founder2. ?founder2 wdt:P69 ?uni. FILTER(?founder != ?founder2)}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P355 (P355), http://www.wikidata.org/prop/direct/P1329 (P1329), http://www.wikidata.org/prop/direct/P1963 (P1963), http://www.wikidata.org/prop/direct/P1056 (P1056), http://www.wikidata.org/prop/direct/P1343 (P1343), http://www.wikidata.org/prop/direct/P5869 (P5869), http://www.wikidata.org/prop/direct/P112 (P112), http://www.wikidata.org/prop/direct/P127 (P127), http://www.wikidata.org/prop/direct/P1830 (P1830), http://www.wikidata.org/prop/direct/P3362 (P3362), http://www.wikidata.org/prop/direct/P1424 (P1424), http://www.wikidata.org/prop/direct/P1709 (P1709), http://www.wikidata.org/prop/direct/P1889 (P1889), http://www.wikidata.org/prop/direct/P3417 (P3417), http://www.wikidata.org/prop/direct/P3847 (P3847)\nOther Semantic Matches: P1066 (student of), P3876 (category for alumni of educational institution), P5049 (Harvard designation), P1075 (rector), P69 (educated at)",
+      "entities_linked": [
+        {
+          "text": "educated at",
+          "qid": null
+        },
+        {
+          "text": "tencent",
+          "qid": "Q860580"
+        },
+        {
+          "text": "university",
+          "qid": "Q3918"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?university WHERE { \n  ?founder wdt:P355 wd:Q860580; \n           wdt:P69 ?university. \n  ?founder2 wdt:P355 wd:Q860580; \n             wdt:P69 ?university. \n  FILTER(?founder != ?founder2) \n} \nLIMIT 1",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "22",
+      "question": "Do all of batman\u2019s partner speak english as native language?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?partner WHERE {\n  wd:Q159835 wdt:P421 ?partner .\n  ?partner wdt:P103 wd:Q1860 .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK{{SELECT (COUNT(DISTINCT ?partner) AS ?pnum) WHERE {wd:Q2695156 wdt:P451 ?partner. ?partner wdt:P103 ?lang. MINUS{?lang wdt:P279* wd:Q1860}}} FILTER(?pnum = 0)}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P6343 (P6343), http://www.wikidata.org/prop/direct/P6344 (P6344), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P421 (P421), http://www.wikidata.org/prop/direct/P17 (P17), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P131 (P131), http://www.wikidata.org/prop/direct/P214 (P214), http://www.wikidata.org/prop/direct/P242 (P242), http://www.wikidata.org/prop/direct/P244 (P244), http://www.wikidata.org/prop/direct/P281 (P281), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P402 (P402), http://www.wikidata.org/prop/direct/P625 (P625), http://www.wikidata.org/prop/direct/P646 (P646)\nOther Semantic Matches: P364 (original language of film or TV show), P3823 (Ethnologue language status), P1412 (languages spoken, written or signed), P103 (native language), P305 (IETF language tag)",
+      "entities_linked": [
+        {
+          "text": "english as native language",
+          "qid": null
+        },
+        {
+          "text": "batman",
+          "qid": "Q159835"
+        },
+        {
+          "text": "language used",
+          "qid": "Q44131550"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?partner WHERE { \n  wd:Q159835 wdt:P421 ?partner . \n  ?partner wdt:P103 wd:Q1860 . \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "23",
+      "question": "How many spouses do head of states have on average?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT (AVG(?spouseCount) AS ?averageSpouses) WHERE {\n  ?headOfState wdt:P31 wd:Q21514624 .\n  {\n    SELECT ?headOfState (COUNT(?spouse) AS ?spouseCount) WHERE {\n      ?headOfState wdt:P26 ?spouse .\n    } GROUP BY ?headOfState\n  }\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT (AVG(?spouseCount) AS ?result) WHERE {{SELECT (COUNT(DISTINCT ?spouse) AS ?spouseCount) WHERE{?country wdt:P31 wd:Q6256. ?country p:P35/ps:P35 ?hos. OPTIONAL {?hos wdt:P26 ?spouse}} GROUP BY ?hos }}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P2521 (P2521), http://www.wikidata.org/prop/direct/P3321 (P3321), http://www.wikidata.org/prop/direct/P1889 (P1889), http://www.wikidata.org/prop/direct/P527 (P527), http://www.wikidata.org/prop/direct/P1296 (P1296), http://www.wikidata.org/prop/direct/P672 (P672), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P1687 (P1687), http://www.wikidata.org/prop/direct/P3417 (P3417), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P227 (P227), http://www.wikidata.org/prop/direct/P244 (P244), http://www.wikidata.org/prop/direct/P361 (P361), http://www.wikidata.org/prop/direct/P373 (P373)\nOther Semantic Matches: P35 (head of state), P4997 (National Governors Association biography URL), P26 (spouse), P1906 (office held by head of state), P4841 (total fertility rate)",
+      "entities_linked": [
+        {
+          "text": "spouse",
+          "qid": "Q1196129"
+        },
+        {
+          "text": "head of states",
+          "qid": null
+        },
+        {
+          "text": "subclass of",
+          "qid": "Q21514624"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT (AVG(?spouseCount) AS ?averageSpouses) WHERE { \n  ?headOfState wdt:P31 wd:Q21514624 . \n  { \n    SELECT ?headOfState (COUNT(?spouse) AS ?spouseCount) WHERE { \n      ?headOfState wdt:P26 ?spouse . \n    } GROUP BY ?headOfState \n  } \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 1
+      }
+    },
+    {
+      "id": "24",
+      "question": "Was there at least one Formula 1 event on the AVUS?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?event WHERE {\n  ?event wdt:P31 wd:Q1656682 .\n  ?event wdt:P840 wd:Q208994 .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK{wd:Q155810 wdt:P793 ?event. ?event wdt:P31 wd:Q108886259}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P658 (P658), http://www.wikidata.org/prop/direct/P840 (P840), http://www.wikidata.org/prop/direct/P437 (P437), http://www.wikidata.org/prop/direct/P136 (P136), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P162 (P162), http://www.wikidata.org/prop/direct/P361 (P361), http://www.wikidata.org/prop/direct/P577 (P577), http://www.wikidata.org/prop/direct/P646 (P646), http://www.wikidata.org/prop/direct/P3192 (P3192), http://www.wikidata.org/prop/direct/P400 (P400), http://www.wikidata.org/prop/direct/P404 (P404), http://www.wikidata.org/prop/direct/P14020 (P14020), http://www.wikidata.org/prop/direct/P175 (P175), http://www.wikidata.org/prop/direct/P264 (P264)\nOther Semantic Matches: P793 (significant event), P3967 (final event), P3085 (qualifies for event), P10624 (official observer status in organization), P878 (avionics)",
+      "entities_linked": [
+        {
+          "text": "sports league level",
+          "qid": null
+        },
+        {
+          "text": "1",
+          "qid": "Q208994"
+        },
+        {
+          "text": "Formula 1",
+          "qid": "Q2418753"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?event WHERE { \n  ?event wdt:P31 wd:Q1656682 . \n  ?event wdt:P840 wd:Q208994 . \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "25",
+      "question": "Find all Turkish verbs ending with \u201cu\u015f\u201d with their lemma.",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?verb ?lemma WHERE {\n  ?verb wdt:P31 wd:Q17524420 .\n  FILTER(CONTAINS(STR(?verb), \"u\u015f\"))\n  ?verb wdt:P1963 ?lemma .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?result WHERE {?result wikibase:lexicalCategory wd:Q24905; dct:language/wdt:P218 'tr'; wikibase:lemma ?lemma. FILTER(regex(?lemma, \"u\u015f$\"))}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P1963 (P1963), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P105 (P105), http://www.wikidata.org/prop/direct/P171 (P171), http://www.wikidata.org/prop/direct/P225 (P225), http://www.wikidata.org/prop/direct/P846 (P846), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P960 (P960), http://www.wikidata.org/prop/direct/P961 (P961), http://www.wikidata.org/prop/direct/P1421 (P1421), http://www.wikidata.org/prop/direct/P3105 (P3105), http://www.wikidata.org/prop/direct/P5037 (P5037), http://www.wikidata.org/prop/direct/P5055 (P5055), http://www.wikidata.org/prop/direct/P7715 (P7715)\nOther Semantic Matches: P9313 (Yale romanization), P1942 (McCune\u2013Reischauer romanization), P9373 (Ukrainian national romanization), P8991 (ALA-LC romanization), P2001 (Revised Romanization)",
+      "entities_linked": [
+        {
+          "text": "lemma",
+          "qid": "Q17278755"
+        },
+        {
+          "text": "facet of",
+          "qid": "Q17524420"
+        },
+        {
+          "text": "Turkish verbs",
+          "qid": null
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?verb ?lemma WHERE { \n  ?verb wdt:P31 wd:Q17524420 . \n  FILTER(CONTAINS(STR(?verb), \"u\u015f\")) \n  ?verb wdt:P1963 ?lemma . \n}",
+      "evaluation": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "gold_count": 0,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "26",
+      "question": "From which country are the beagles originally from?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?country WHERE {\n  wd:Q131435 wdt:P495 ?country .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q21102 wdt:P495 ?result}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P1963 (P1963), http://www.wikidata.org/prop/direct/P1709 (P1709), http://www.wikidata.org/prop/direct/P1687 (P1687), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P1889 (P1889), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P1282 (P1282), http://www.wikidata.org/prop/direct/P1424 (P1424), http://www.wikidata.org/prop/direct/P2263 (P2263), http://www.wikidata.org/prop/direct/P138 (P138), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P461 (P461), http://www.wikidata.org/prop/direct/P2888 (P2888), http://www.wikidata.org/prop/direct/P8168 (P8168), http://www.wikidata.org/prop/direct/P12800 (P12800)\nOther Semantic Matches: P2743 (this zoological name is coordinate with), P4743 (animal breed), P495 (country of origin), P1429 (has pet), P835 (author citation (zoology))",
+      "entities_linked": [
+        {
+          "text": "originally from",
+          "qid": null
+        },
+        {
+          "text": "different from",
+          "qid": "Q66087861"
+        },
+        {
+          "text": "country",
+          "qid": "Q6256"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?country WHERE { \n  wd:Q131435 wdt:P495 ?country . \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "27",
+      "question": "From which country came the 2nd most winners of the Emmy Award ?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?country (COUNT(?winner) AS ?winnerCount) WHERE {\n  ?winner wdt:P166 wd:Q66716595.\n  ?winner wdt:P31 wd:Q5.\n  ?winner wdt:P495 ?country.\n} GROUP BY ?country ORDER BY DESC(?winnerCount) LIMIT 1 OFFSET 1.",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?result WHERE {?person wdt:P166 wd:Q123737; wdt:P27 ?result} GROUP BY ?result ORDER BY DESC(COUNT (?result)) OFFSET 1 LIMIT 1",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P31 (P31)\nOther Semantic Matches: P2517 (category for recipients of this award), P166 (award received), P1411 (nominated for), P2522 (competition won), P4353 (nominated by)",
+      "entities_linked": [
+        {
+          "text": "is a list of",
+          "qid": "Q66716595"
+        },
+        {
+          "text": "which country came the 2nd most winners of the Emmy Award",
+          "qid": null
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?country (COUNT(?winner) AS ?winnerCount) WHERE { \n  ?winner wdt:P166 wd:Q66716595. \n  ?winner wdt:P31 wd:Q5. \n  ?winner wdt:P495 ?country. \n} GROUP BY ?country ORDER BY DESC(?winnerCount) LIMIT 1 OFFSET 1.",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "28",
+      "question": "Does the music style of Helloween belong to rock music?",
+      "generated_sparql": "SELECT ?musicStyle WHERE { wd:Q158895 wdt:P136 ?musicStyle . FILTER(?musicStyle = wd:Q11399) }",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK {wd:Q158895 wdt:P136/wdt:P279* wd:Q11399}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P527 (P527), http://www.wikidata.org/prop/direct/P1889 (P1889), http://www.wikidata.org/prop/direct/P2888 (P2888), http://www.wikidata.org/prop/direct/P2354 (P2354), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P3095 (P3095), http://www.wikidata.org/prop/direct/P8687 (P8687), http://www.wikidata.org/prop/direct/P10151 (P10151), http://www.wikidata.org/prop/direct/P646 (P646), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P244 (P244), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P495 (P495), http://www.wikidata.org/prop/direct/P2924 (P2924)\nOther Semantic Matches: P9899 (music created for), P942 (theme music), P6686 (musical motif), P136 (genre), P10067 (train melody)",
+      "entities_linked": [
+        {
+          "text": "genre",
+          "qid": "Q483394"
+        },
+        {
+          "text": "rock music",
+          "qid": "Q11399"
+        },
+        {
+          "text": "Helloween",
+          "qid": "Q158895"
+        }
+      ],
+      "validation": null,
+      "raw_response": null,
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    },
+    {
+      "id": "29",
+      "question": "Does the postal code 32423 belong to Minden?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?postalCode WHERE {\n  wd:Q135534218 wdt:P31 wd:Q37447 .\n  ?postalCode wdt:P9100 wd:Q135534218 .\n  ?postalCode wdt:P155 wd:Q123456 .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK {wd:Q3846 wdt:P281 \"32423\"}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P9100 (P9100), http://www.wikidata.org/prop/direct/P155 (P155), http://www.wikidata.org/prop/direct/P156 (P156), http://www.wikidata.org/prop/direct/P1181 (P1181), http://www.wikidata.org/prop/direct/P5176 (P5176), http://www.wikidata.org/prop/direct/P5236 (P5236), http://www.wikidata.org/prop/direct/P6104 (P6104), http://www.wikidata.org/prop/direct/P7316 (P7316), http://www.wikidata.org/prop/direct/P13560 (P13560), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P227 (P227), http://www.wikidata.org/prop/direct/P244 (P244), http://www.wikidata.org/prop/direct/P268 (P268)\nOther Semantic Matches: P6375 (street address), P4793 (identifiers.org prefix), P1766 (place name sign), P2979 (maritime identification digits), P2378 (issued by)",
+      "entities_linked": [
+        {
+          "text": "postal code",
+          "qid": "Q37447"
+        },
+        {
+          "text": "32423",
+          "qid": "Q135534218"
+        }
+      ],
+      "validation": null,
+      "raw_response": "PREFIX wdt: <http://www.wikidata.org/prop/direct/> \nPREFIX wd: <http://www.wikidata.org/entity/> \nSELECT ?postalCode WHERE { \n  wd:Q135534218 wdt:P31 wd:Q37447 . \n  ?postalCode wdt:P9100 wd:Q135534218 . \n  ?postalCode wdt:P155 wd:Q123456 . \n}",
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    }
+  ]
+}

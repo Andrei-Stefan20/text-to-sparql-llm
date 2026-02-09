@@ -1,0 +1,7 @@
+Errore Yes/No: Uso errato di SELECT al posto di ASK.
+
+Abuso P527: Uso di "has part" come proprietà jolly.
+
+Date Hardcoded: Date fisse nel codice invece che dinamiche.
+
+Variabile Errata: Selezione della variabile sbagliata in output.

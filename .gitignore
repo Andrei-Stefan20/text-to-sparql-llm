@@ -2,8 +2,6 @@
 __pycache__/
 *.py[cod]
 /data/raw/
-outputs/
-
 # C extensions
 *.so
 

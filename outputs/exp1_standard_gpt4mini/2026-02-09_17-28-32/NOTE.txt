@@ -1,0 +1,9 @@
+Timeout su Query Annidate: (ID 23) Il modello usa sub-query complesse che mandano in crash Wikidata. Soluzione: Vietare sub-query non necessarie.
+
+Persistenza Errore Yes/No: (ID 28) Continua a usare SELECT invece di ASK. Soluzione: Prompt draconiano ("Se inizia con Is/Are -> ASK").
+
+Allucinazioni Ontologiche: (ID 12) Inventa percorsi transitivi (wdt:P279) invece di usare proprietà dirette (wdt:P400). Soluzione: Schema Retrieval Dinamico.
+
+Sintassi Date Errata: (ID 14) Confronta date con interi (> 1990). Soluzione: Usare YEAR(?date) o formato xsd:dateTime.
+
+Variabili Non Standard: (ID 10) Penalità per nomi variabili diversi (?highSchool vs ?school).
