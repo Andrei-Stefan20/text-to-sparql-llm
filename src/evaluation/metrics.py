@@ -204,16 +204,21 @@ class OfflineEvaluator:
 
     @staticmethod
     @staticmethod
+    @staticmethod
     def _execute_query(sparql_wrapper: SPARQLWrapper, query: str) -> Set[Tuple]:
         """
         Executes a SPARQL query and returns a set of canonical tuples.
-        Returns None if execution fails (syntax error/timeout).
+        
         """
         try:
             sparql_wrapper.setQuery(query)
             ret = sparql_wrapper.query().convert()
 
             results = set()
+            
+            if not ret.get("results", {}).get("bindings"):
+                return set()
+
             vars_list = ret["head"]["vars"]
 
             for binding in ret["results"]["bindings"]:
@@ -221,13 +226,19 @@ class OfflineEvaluator:
                 for v in vars_list:
                     if v in binding:
                         row.append(binding[v]["value"])
+                    else:
+                        row.append(None)
                 
-                results.add(tuple(row))
+                if len(row) == 1:
+                    results.add(row[0])
+                else:
+                    results.add(tuple(row))
 
             return results
 
         except Exception as e:
-            logger.error(f"SPARQL Execution Error: {e}")
+            if "Time-out" not in str(e):
+                logger.warning(f"SPARQL Execution Error: {e}")
             return None
 
     @staticmethod

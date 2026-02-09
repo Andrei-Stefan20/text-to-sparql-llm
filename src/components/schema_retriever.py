@@ -7,6 +7,9 @@ import numpy as np
 from omegaconf import DictConfig
 from sentence_transformers import SentenceTransformer
 
+import ssl
+from SPARQLWrapper import SPARQLWrapper, JSON
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,3 +61,64 @@ class SchemaRetriever:
                 hints.append(f"{item['id']} ({item['label']})")
 
         return ", ".join(hints)
+
+    def retrieve_dynamic_props(self, entities: list, limit: int = 15) -> str:
+        """
+        Retrieves valid properties explicitly connected to the identified entities via live SPARQL.
+        
+        This reduces hallucinations by providing the LLM with a list of properties that 
+        actually exist for the specific entities in the question.
+        
+        Args:
+            entities: List of LinkedEntity objects.
+            limit: Maximum number of properties to retrieve.
+            
+        Returns:
+            A string containing a comma-separated list of properties and their labels.
+        """
+        if not entities:
+            return ""
+
+        # Extract QIDs (e.g., ['Q76', 'Q30'])
+        qids = [e.qid for e in entities if hasattr(e, 'qid') and e.qid]
+        if not qids:
+            return ""
+
+        # Format for SPARQL VALUES clause
+        values_str = " ".join([f"wd:{qid}" for qid in qids])
+        
+        sparql_query = f"""
+        SELECT DISTINCT ?p ?pLabel (COUNT(?o) AS ?usage) WHERE {{
+          VALUES ?s {{ {values_str} }}
+          ?s ?p ?o .
+          ?prop wikibase:directClaim ?p .
+          SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
+        }} GROUP BY ?p ?pLabel ORDER BY DESC(?usage) LIMIT {limit}
+        """
+
+        try:
+            # Setup a dedicated wrapper for schema retrieval
+            sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
+            sparql.setReturnFormat(JSON)
+            sparql.setQuery(sparql_query)
+            sparql.addCustomHttpHeader("User-Agent", "TextToSparqlSchema/1.0")
+            sparql.setTimeout(5)  # Short timeout to ensure pipeline speed
+            
+            # Handle SSL context if necessary
+            if hasattr(ssl, "_create_unverified_context"):
+                ssl._create_default_https_context = ssl._create_unverified_context
+
+            results = sparql.query().convert()
+            bindings = results.get("results", {}).get("bindings", [])
+            
+            props = []
+            for b in bindings:
+                p_id = b.get("p", {}).get("value", "").split("/")[-1]
+                p_label = b.get("pLabel", {}).get("value", "")
+                props.append(f"{p_label} ({p_id})")
+            
+            return ", ".join(props)
+
+        except Exception as e:
+            logger.warning(f"Dynamic schema retrieval failed: {e}")
+            return ""

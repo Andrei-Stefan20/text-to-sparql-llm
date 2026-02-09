@@ -99,7 +99,7 @@ class BatchRunner:
             question = item["question"]
             gold_sparql = item.get("gold_sparql")
 
-            # 1. Entity Extraction with QIDs
+            # 1. Entity Extraction
             entities = linker.extract(question)
             
             # Combine with second linker if provided
@@ -107,17 +107,25 @@ class BatchRunner:
                 try:
                     entities2 = self.linker2.extract(question)
                     entities = self._merge_entities(entities, entities2)
-                    logger.debug(f"Combined entities from both linkers: {[str(e) for e in entities]}")
-                except Exception as e:
-                    logger.warning(f"Second linker failed: {e}, using primary only")
+                except Exception:
+                    pass  
             
-            # 2. Retrieval
+            # 2. Retrieval (Dynamic Schema + Static Examples)
             context = retriever.retrieve(question)
-            schema_hints = self.schema_retriever.retrieve_recommendations(question)
+            
+            # Retrieve static recommendations (FAISS based)
+            static_hints = self.schema_retriever.retrieve_recommendations(question)
+            
+            # Retrieve dynamic recommendations (Live SPARQL based)
+            dynamic_hints = ""
+            if hasattr(self.schema_retriever, 'retrieve_dynamic_props'):
+                dynamic_hints = self.schema_retriever.retrieve_dynamic_props(entities)
+            
+            # Combine hints: prioritize verified dynamic properties
+            schema_hints = f"Verified Properties for entities: {dynamic_hints}\nOther Semantic Matches: {static_hints}"
 
-            # 3. Generation with optional correction
+            # 3. Generation (with optional Self-Correction)
             if self.correction_loop:
-                # Use self-correction loop
                 correction_result = await self.correction_loop.generate_with_correction(
                     question=question,
                     entities=entities,
@@ -125,60 +133,33 @@ class BatchRunner:
                     schema_hints=schema_hints,
                     system_prompt=self.prompt_builder.build_system_prompt(),
                 )
-                
                 sparql = correction_result.final_query
                 validation_info = {
                     "is_valid": correction_result.is_valid,
                     "total_attempts": correction_result.total_attempts,
                     "correction_method": correction_result.correction_method,
-                    "attempts": [
-                        {
-                            "attempt": a.attempt_number,
-                            "valid": a.validation.is_valid,
-                            "error_type": a.validation.error_type,
-                            "error_msg": a.validation.error_message[:100] if a.validation.error_message else None,
-                        }
-                        for a in correction_result.attempts
-                    ]
+                    "attempts": [{"valid": a.validation.is_valid, "error": a.validation.error_type} for a in correction_result.attempts]
                 }
-                raw_response = None  # Already extracted
-                
+                raw_response = None
             else:
-                # Simple generation without correction
                 user_prompt = self.prompt_builder.build_user_prompt(
                     question, entities, context, schema_hints
                 )
                 raw_response = await self.client.generate(user_prompt)
                 sparql = self.prompt_builder.extract_sparql_from_response(raw_response, validate_syntax=True)
-                
-                # Optional validation only (no correction)
-                if self.validator and self.enable_validation:
-                    validation = self.validator.validate(sparql)
-                    validation_info = {
-                        "is_valid": validation.is_valid,
-                        "error_type": validation.error_type,
-                        "error_message": validation.error_message,
-                        "results_count": validation.results_count,
-                    }
-                else:
-                    validation_info = None
+                validation_info = None
 
-            # Clean '\n' escapes in generated_sparql and gold_sparql
-            def clean_query(q):
-                if isinstance(q, str):
-                    return q.replace("\\n", "\n")
-                return q
+            # Clean output format
+            generated_sparql = sparql.replace("\\n", "\n") if sparql else ""
+            gold_sparql_clean = gold_sparql.replace("\\n", "\n") if gold_sparql else ""
 
             return {
                 "id": item["id"],
                 "question": question,
-                "generated_sparql": clean_query(sparql),
-                "gold_sparql": clean_query(gold_sparql),
+                "generated_sparql": generated_sparql,
+                "gold_sparql": gold_sparql_clean,
                 "hints_used": schema_hints,
-                "entities_linked": [
-                    {"text": e.text, "qid": e.qid, "score": e.score} 
-                    for e in entities
-                ],
+                "entities_linked": [{"text": e.text, "qid": e.qid} for e in entities],
                 "validation": validation_info,
                 "raw_response": raw_response if raw_response and raw_response != sparql else None,
             }

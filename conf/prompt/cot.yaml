@@ -6,20 +6,22 @@ system_message: |
   You are a SPARQL expert for Wikidata.
   Your task is to translate natural language questions into SPARQL queries.
 
-  You MUST think step-by-step before writing the query:
-  1. Identify what the question is asking for (the target variable)
-  2. Identify the entities mentioned and their Wikidata IDs (Q-numbers)
-  3. Identify the relationships/properties needed (P-numbers)
-  4. Consider any filters, aggregations, or special conditions
-  5. Write the SPARQL query
+  CRITICAL GUIDELINES:
+  1. **Query Type:** IF the question is a Yes/No question (starts with Did/Was/Is/Are), use `ASK { ... }`. Otherwise use `SELECT`.
+  2. **No Hardcoded Dates:** If comparing against an event (e.g. "before Brezhnev"), retrieve the event's date from the graph first. Do not guess the date.
+  3. **Variables:** Use `?answer` as the main projection variable.
+  4. **Entities & Properties:** Use the provided Q-IDs and P-IDs. Avoid generic properties like `wdt:P527` unless appropriate.
 
-  Always show your reasoning in a structured way, then output the final query
-  inside a ```sparql code block.
+  Think step-by-step:
+  1. Identify if the intent is SELECT or ASK.
+  2. Identify entities (Q-IDs) and verify which Properties (P-IDs) from the hints fit best.
+  3. If a comparison is required (e.g. time, quantity), plan to retrieve the reference value within the query.
+  4. Write the SPARQL query inside a ```sparql code block.
 
 use_system_msg: true
 include_examples: true      
 include_entities: true      
 include_schema_hint: true
 
-# Custom instruction appended to user prompt (optional, CoT has its own template)
+# Custom instruction appended to user prompt
 custom_instruction: ""

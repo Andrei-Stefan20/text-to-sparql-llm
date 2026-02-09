@@ -54,12 +54,15 @@ class WikidataResolver:
         """
         Resolves an entity text to a Wikidata QID using the search API.
         
+        This implementation fetches multiple candidates to prioritize exact label matches,
+        improving disambiguation accuracy over a simple top-1 strategy.
+        
         Args:
-            entity_text: The entity mention to resolve
-            language: Language for search (default: English)
+            entity_text: The entity mention to resolve.
+            language: Language for search (default: English).
             
         Returns:
-            The QID (e.g., "Q76") or None if not found
+            The QID (e.g., "Q76") or None if not found.
         """
         try:
             params = {
@@ -67,7 +70,7 @@ class WikidataResolver:
                 "search": entity_text,
                 "language": language,
                 "format": "json",
-                "limit": 1,
+                "limit": 5, 
             }
             url = f"{WikidataResolver.SEARCH_URL}?{urllib.parse.urlencode(params)}"
             
@@ -80,32 +83,23 @@ class WikidataResolver:
                 data = json.loads(response.read().decode())
                 
             if data.get("search"):
-                result = data["search"][0]
+                candidates = data["search"]
+                
+                for candidate in candidates:
+                    if candidate.get("label", "").lower() == entity_text.lower():
+                        qid = candidate.get("id")
+                        logger.debug(f"Resolved '{entity_text}' -> {qid} (Exact Match)")
+                        return qid
+                
+                result = candidates[0]
                 qid = result.get("id")
-                logger.debug(f"Resolved '{entity_text}' -> {qid}")
+                logger.debug(f"Resolved '{entity_text}' -> {qid} (Best Guess)")
                 return qid
                 
         except Exception as e:
             logger.warning(f"Wikidata resolution failed for '{entity_text}': {e}")
         
         return None
-    
-    @staticmethod
-    def resolve_batch(
-        entities: List[str], language: str = "en"
-    ) -> List[Tuple[str, Optional[str]]]:
-        """
-        Resolves multiple entity texts to QIDs.
-        
-        Returns:
-            List of (entity_text, qid) tuples
-        """
-        results = []
-        for entity in entities:
-            qid = WikidataResolver.resolve(entity, language)
-            results.append((entity, qid))
-        return results
-
 
 class BaseLinker(ABC):
     """Abstract base class for Entity Linking strategies."""
