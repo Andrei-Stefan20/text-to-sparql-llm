@@ -3,7 +3,7 @@ platform: "azure"
 env_var: "AZURE_OPENAI_KEY"
 
 connection:
-  endpoint: "https://tuo-resource.openai.azure.com/"
+  endpoint: "AZURE_OPENAI_ENDPOINT"
   api_version: "2024-12-01-preview"
   deployment: "gpt-4o"
 

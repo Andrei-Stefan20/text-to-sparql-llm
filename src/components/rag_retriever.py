@@ -67,7 +67,6 @@ class RagRetriever:
                 if idx != -1 and idx < len(self.metadata):
                     item = self.metadata[idx]
 
-                    # Gestione robusta per diversi formati di metadati
                     q_text = item.get("question", "")
                     if isinstance(q_text, dict):
                         q_text = q_text.get("en", str(q_text))

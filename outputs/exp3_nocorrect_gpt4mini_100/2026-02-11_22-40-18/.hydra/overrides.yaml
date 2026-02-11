@@ -1,0 +1,4 @@
+- dataset.limit=100
+- model=azure_gpt4_mini
+- validation.enable_correction=false
+- system.experiment_name=exp3_nocorrect_gpt4mini_100

@@ -98,6 +98,7 @@ class OpenAIClient(BaseClient):
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
                 top_p=self.top_p,
+                timeout=self.timeout
             )
             return completion.choices[0].message.content or ""
 

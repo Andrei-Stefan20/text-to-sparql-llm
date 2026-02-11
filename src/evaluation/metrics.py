@@ -4,6 +4,7 @@ import ssl
 import time
 import urllib.error
 from typing import Any, Dict, List, Set, Tuple
+import os
 
 from SPARQLWrapper import JSON, SPARQLWrapper
 
@@ -16,7 +17,7 @@ class OfflineEvaluator:
     Includes robust handling for retries, variable naming, and URI normalization.
     """
 
-    ENDPOINT_URL = "https://query.wikidata.org/sparql"
+    ENDPOINT_URL = os.getenv("SPARQL_ENDPOINT_URL", "https://query.wikidata.org/sparql")
 
     @staticmethod
     def compute_metrics(results: List[Dict[str, Any]]) -> Dict[str, float]:
@@ -41,7 +42,7 @@ class OfflineEvaluator:
         if hasattr(ssl, "_create_unverified_context"):
             ssl._create_default_https_context = ssl._create_unverified_context
 
-        logger.info(f"Starting Robust Evaluation on {len(results)} items...")
+        logger.info(f"Starting Evaluation on {len(results)} items...")
 
         for item in results:
             gold_query = item.get("gold_sparql")
