@@ -1,0 +1,5 @@
+- dataset.limit=100
+- model=azure_gpt4_mini
+- validation.enable_correction=true
+- validation.max_attempts=3
+- system.experiment_name=exp3_3attempts_gpt4mini_100

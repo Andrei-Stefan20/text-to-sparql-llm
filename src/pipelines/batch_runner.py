@@ -156,6 +156,7 @@ class BatchRunner:
             return {
                 "id": item["id"],
                 "question": question,
+                "prompt": user_prompt,
                 "generated_sparql": generated_sparql,
                 "gold_sparql": gold_sparql_clean,
                 "hints_used": schema_hints,

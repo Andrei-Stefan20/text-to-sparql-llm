@@ -1,0 +1,5 @@
+- dataset.limit=100
+- model=llama_33
+- validation.enable_correction=true
+- validation.max_attempts=5
+- system.experiment_name=exp3_5attempts_llama_100
