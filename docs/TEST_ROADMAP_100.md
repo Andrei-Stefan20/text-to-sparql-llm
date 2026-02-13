@@ -277,7 +277,7 @@ python main.py dataset.limit=100 model=llama_33 validation.self_consistency_samp
 
 ---
 
-## Experiment 7: Ablation Study (Internal Knowledge vs. Tools)
+## Experiment 6: Ablation Study (Internal Knowledge vs. Tools)
 
 **Question**: Do the models work better with *NO* external tools? Are the tools actually introducing noise (wrong QIDs)?
 
@@ -331,7 +331,7 @@ python main.py dataset.limit=100 model=azure_gpt4 linking=none retrieval=3shot s
 
 ---
 
-## Experiment 6: Best Configuration (per model)
+## Best Configuration (per model)
 
 **Question**: What's the optimal config for each model?
 

@@ -1,0 +1,4 @@
+- dataset.limit=100
+- model=llama_33
+- validation.self_consistency_samples=1
+- system.experiment_name=exp5_1sample_llama_100

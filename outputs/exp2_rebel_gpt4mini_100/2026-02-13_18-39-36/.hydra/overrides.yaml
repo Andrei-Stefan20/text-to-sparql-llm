@@ -1,0 +1,4 @@
+- dataset.limit=100
+- model=azure_gpt4_mini
+- linking=rebel
+- system.experiment_name=exp2_rebel_gpt4mini_100
