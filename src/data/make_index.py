@@ -1,124 +1,81 @@
-import logging
 import os
-import json
+import platform
 import pickle
-import ssl
+import logging
 from pathlib import Path
 
+# Fix per crash su macOS
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+import hydra
 import faiss
 import numpy as np
+from omegaconf import DictConfig
 from sentence_transformers import SentenceTransformer
+from src.data.loader import DatasetLoader
 
-try:
-    _create_unverified_https_context = ssl._create_unverified_context
-except AttributeError:
-    pass
-else:
-    ssl._create_default_https_context = _create_unverified_https_context
-
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-PROCESSED_DIR = Path("data/processed")
-MODEL_NAME = "all-MiniLM-L6-v2"
-TRAIN_JSON_PATH = Path("data/raw/QALD-10/data/qald_9_plus/qald_9_plus_train_wikidata.json")
-TARGET_LANGUAGE = "en"
-
-
-def ensure_directory(path: Path):
-    if not path.exists():
-        path.mkdir(parents=True)
-
-
-def load_local_json(path: Path, language: str = "en"):
-    """Load training data from local QALD JSON file."""
-    with open(path, 'r', encoding='utf-8') as f:
-        raw_data = json.load(f)
+@hydra.main(config_path="../../conf", config_name="config", version_base=None)
+def make_index(cfg: DictConfig):
+    output_path = Path("data/processed")
+    output_path.mkdir(parents=True, exist_ok=True)
     
-    questions_list = raw_data.get("questions", [])
-    logger.info(f"Parsed JSON. Found {len(questions_list)} questions total.")
+    index_file = output_path / "train_index.faiss"
+    metadata_file = output_path / "train_metadata.pkl"
+
+    logger.info(f"Loading dataset: {cfg.dataset.name}")
+    loader = DatasetLoader(cfg.dataset)
+    raw_data = loader.load() # Carica lo split di train
     
-    data = []
-    for item in questions_list:
-        question_text = None
-        
-        q_translations = item.get("question", [])
-        if isinstance(q_translations, list):
-            for q_obj in q_translations:
-                if q_obj.get("language") == language:
-                    question_text = q_obj.get("string")
-                    break
-        elif isinstance(q_translations, str):
-            question_text = q_translations
-        
-        if not question_text:
+    logger.info("Filtering data (English only, no DBpedia)...")
+    clean_data = []
+    questions_text = []
+
+    for item in raw_data:
+        # 1. Filtro SPARQL (solo Wikidata)
+        sparql = item.get('query', {}).get('sparql', '')
+        if "dbpedia" in sparql or "dbo:" in sparql:
             continue
-            
-        query_obj = item.get("query", {})
-        sparql_query = None
-        
-        if isinstance(query_obj, dict):
-            sparql_query = query_obj.get("sparql")
-        elif isinstance(query_obj, str):
-            sparql_query = query_obj
-        
-        if question_text and sparql_query:
-            data.append({
-                "id": str(item.get("id")),
-                "question": question_text,
-                "sparql": sparql_query
-            })
+
+        # 2. Estrazione domanda inglese
+        raw_q = item.get('question', [])
+        en_q = ""
+        if isinstance(raw_q, list):
+            en_q = next((q['string'] for q in raw_q if q.get('language') == 'en'), "")
+        elif isinstance(raw_q, str):
+            en_q = raw_q
+
+        # 3. Filtro Lingua (Russo/Cinese hanno caratteri Unicode > 1000)
+        if not en_q or any(ord(c) >= 1000 for c in en_q):
+            continue
+
+        clean_data.append(item)
+        questions_text.append(en_q)
+
+    logger.info(f"Filtered: {len(raw_data)} -> {len(clean_data)} items")
+
+    # 4. Generazione Embedding (Forza CPU su Mac per stabilità)
+    device = "cpu" if platform.system() == "Darwin" else "cuda"
+    model = SentenceTransformer(cfg.rag.encoder_model, device=device)
     
-    return data
-
-
-def build_index():
-    ensure_directory(PROCESSED_DIR)
-
-    logger.info(f"Loading training dataset from {TRAIN_JSON_PATH}...")
-    
-    if not TRAIN_JSON_PATH.exists():
-        logger.error(f"Training file not found at {TRAIN_JSON_PATH}")
-        logger.error("Please download QALD-9-plus data to data/raw/QALD-10/")
-        return
-    
-    training_data = load_local_json(TRAIN_JSON_PATH, language=TARGET_LANGUAGE)
-    logger.info(f"Loaded {len(training_data)} English question-SPARQL pairs")
-
-    logger.info(f"Loading encoder model: {MODEL_NAME}")
-    encoder = SentenceTransformer(MODEL_NAME)
-
-    questions = [item["question"] for item in training_data]
-    metadata = training_data
-
-    if not questions:
-        logger.error("No valid data found to index.")
-        return
-
-    logger.info(f"Encoding {len(questions)} items...")
-    embeddings = encoder.encode(questions, show_progress_bar=True)
+    logger.info("Generating embeddings...")
+    embeddings = model.encode(questions_text, show_progress_bar=True)
     embeddings = np.array(embeddings).astype("float32")
-
     faiss.normalize_L2(embeddings)
 
-    logger.info(f"Building FAISS index (dim={embeddings.shape[1]})...")
-    dimension = embeddings.shape[1]
-    index = faiss.IndexFlatIP(dimension)
+    # 5. Creazione e salvataggio indice
+    index = faiss.IndexFlatIP(embeddings.shape[1])
     index.add(embeddings)
 
-    index_path = PROCESSED_DIR / "train_index.faiss"
-    meta_path = PROCESSED_DIR / "train_metadata.pkl"
+    logger.info(f"Saving index to {index_file}")
+    faiss.write_index(index, str(index_file))
+    with open(metadata_file, "wb") as f:
+        pickle.dump(clean_data, f)
 
-    logger.info("Saving artifacts...")
-    faiss.write_index(index, str(index_path))
-    with open(meta_path, "wb") as f:
-        pickle.dump(metadata, f)
-
-    logger.info(f"Indexing completed. {len(questions)} examples saved to {index_path}")
-
+    logger.info("Index generation completed successfully!")
 
 if __name__ == "__main__":
-    build_index()
+    make_index()

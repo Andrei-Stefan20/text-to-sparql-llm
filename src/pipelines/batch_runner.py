@@ -124,6 +124,10 @@ class BatchRunner:
             # Combine hints: prioritize verified dynamic properties
             schema_hints = f"Verified Properties for entities: {dynamic_hints}\nOther Semantic Matches: {static_hints}"
 
+            user_prompt = self.prompt_builder.build_user_prompt(
+                question, entities, context, schema_hints
+            )
+
             # 3. Generation (with optional Self-Correction)
             if self.correction_loop:
                 correction_result = await self.correction_loop.generate_with_correction(
@@ -142,9 +146,6 @@ class BatchRunner:
                 }
                 raw_response = None
             else:
-                user_prompt = self.prompt_builder.build_user_prompt(
-                    question, entities, context, schema_hints
-                )
                 raw_response = await self.client.generate(user_prompt)
                 sparql = self.prompt_builder.extract_sparql_from_response(raw_response, validate_syntax=True)
                 validation_info = None

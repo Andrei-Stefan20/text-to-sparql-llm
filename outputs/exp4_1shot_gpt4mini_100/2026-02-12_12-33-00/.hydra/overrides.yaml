@@ -1,0 +1,4 @@
+- dataset.limit=1
+- model=azure_gpt4_mini
+- retrieval=1shot
+- system.experiment_name=exp4_1shot_gpt4mini_100
