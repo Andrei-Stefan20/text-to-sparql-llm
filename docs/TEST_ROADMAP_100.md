@@ -313,6 +313,17 @@ python main.py dataset.limit=100 model=azure_gpt4 linking=rebel retrieval=none s
 # 3. Retrieval Only
 python main.py dataset.limit=100 model=azure_gpt4 linking=none retrieval=3shot system.experiment_name=exp7_rag_only_gpt4_100
 
+# === Llama 33 (Ablation Study) ===
+
+# 1. Pure LLM (Blind)
+python main.py dataset.limit=100 model=llama_33 linking=none retrieval=none system.experiment_name=exp7_pure_llama_100
+
+# 2. Linker Only (No schema/examples)
+python main.py dataset.limit=100 model=llama_33 linking=rebel retrieval=none system.experiment_name=exp7_linker_only_llama_100
+
+# 3. Retrieval Only (Context but no Linker)
+python main.py dataset.limit=100 model=llama_33 linking=none retrieval=3shot system.experiment_name=exp7_rag_only_llama_100
+
 ```
 
 ### Results Matrix:

@@ -1,0 +1,5 @@
+- dataset.limit=100
+- model=azure_gpt4
+- linking=none
+- retrieval=none
+- system.experiment_name=exp7_pure_gpt4_100

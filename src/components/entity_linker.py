@@ -359,6 +359,15 @@ class AllLinkersCombo(BaseLinker):
         logger.info(f"[COMBINED] {[str(e) for e in combined]}")
         
         return combined
+    
+class NoOpLinker(BaseLinker):
+    """
+    Dummy linker that returns no entities.
+    Used when linking=none.
+    """
+    def extract(self, text: str) -> List[LinkedEntity]:
+        logger.info("Entity linking disabled (NoOpLinker).")
+        return []
 
 
 def get_linker(config: DictConfig, cache_dir: str = None) -> BaseLinker:
@@ -374,5 +383,7 @@ def get_linker(config: DictConfig, cache_dir: str = None) -> BaseLinker:
         return RelikLinker(config)
     elif method == "all":
         return AllLinkersCombo(config)
+    elif method == "none":
+        return NoOpLinker()
     else:
         raise ValueError(f"Unknown entity linking method: {method}")
