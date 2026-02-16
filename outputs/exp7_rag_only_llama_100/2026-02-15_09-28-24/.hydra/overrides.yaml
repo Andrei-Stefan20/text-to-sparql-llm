@@ -1,0 +1,5 @@
+- dataset.limit=100
+- model=llama_33
+- linking=none
+- retrieval=3shot
+- system.experiment_name=exp7_rag_only_llama_100

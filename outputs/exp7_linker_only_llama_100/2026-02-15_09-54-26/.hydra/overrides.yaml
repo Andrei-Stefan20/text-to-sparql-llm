@@ -1,0 +1,5 @@
+- dataset.limit=100
+- model=llama_33
+- linking=rebel
+- retrieval=none
+- system.experiment_name=exp7_linker_only_llama_100
