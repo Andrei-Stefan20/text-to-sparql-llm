@@ -1,0 +1,801 @@
+{
+  "questions": [
+    {
+      "id": "0",
+      "question": [
+        {
+          "string": "After whom is the Riemannian geometry named?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?name WHERE { wd:Q761383 wdt:P138 ?name . }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "name"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "name": {
+                  "type": "uri",
+                  "value": "http://www.wikidata.org/entity/Q42299"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "question": [
+        {
+          "string": "Which animal participated in a military operation with the Australian Defence Force?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?animal WHERE {\n  ?operation wdt:P31 wd:Q645883 .\n  ?operation wdt:P1963 wd:Q625657 .\n  ?animal wdt:P527 ?operation .\n  ?animal wdt:P31 wd:Q729 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "animal"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "question": [
+        {
+          "string": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?character WHERE {\n  ?character wdt:P451 wd:Q4205826 .\n  ?character wdt:P451 wd:Q4463198 .\n  FILTER NOT EXISTS { ?character wdt:P21 ?spouse }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "character"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "question": [
+        {
+          "string": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?founder WHERE {\n  wd:Q860580 wdt:P527 ?founder .\n  ?founder wdt:P102 wd:Q19211 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "founder"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "question": [
+        {
+          "string": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?work WHERE {\n  ?work wdt:P50 wd:Q696071 .\n  ?work wdt:P136 wd:Q149566 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "work"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "question": [
+        {
+          "string": "On which stock exchanges are Siemens AG shares traded?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?exchange WHERE { wd:Q81230 wdt:P414 ?exchange }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "exchange"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "exchange": {
+                  "type": "uri",
+                  "value": "http://www.wikidata.org/entity/Q151139"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "question": [
+        {
+          "string": "Apart from the book series the witcher, name all of the author\u2019s notable work.",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?work WHERE {\n  wd:Q20011098 wdt:P138 ?author .\n  ?work wdt:P50 ?author .\n  ?work wdt:P31 wd:Q571 .\n  FILTER(?work != wd:Q51671721)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "work"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "question": [
+        {
+          "string": "are brooke raboutou and colin duffy from same state of the usa?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?state WHERE {\n  { wd:Q2926117 wdt:P19 ?place1 .\n    ?place1 wdt:P625 ?coord1 .\n    ?place1 wdt:P17 wd:Q30 .\n    ?place1 wdt:P31 wd:Q515 .\n    ?place1 wdt:P131 ?state . }\n  UNION\n  { wd:Q87192979 wdt:P19 ?place2 .\n    ?place2 wdt:P625 ?coord2 .\n    ?place2 wdt:P17 wd:Q30 .\n    ?place2 wdt:P31 wd:Q515 .\n    ?place2 wdt:P131 ?state . }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "state"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "question": [
+        {
+          "string": "What is the boiling point of water?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?boilingPoint WHERE { wd:Q283 wdt:P2102 ?boilingPoint }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "boilingPoint"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "boilingPoint": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+                  "type": "literal",
+                  "value": "99.9839"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "question": [
+        {
+          "string": "At which school was Yayoi Kusama educated at?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?school WHERE { wd:Q231121 wdt:P69 ?school . }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "school"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "school": {
+                  "type": "uri",
+                  "value": "http://www.wikidata.org/entity/Q749884"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "question": [
+        {
+          "string": "Which High School did Allen Ginsberg attend?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?school WHERE { wd:Q6711 wdt:P69 ?school . }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "school"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "school": {
+                  "type": "uri",
+                  "value": "http://www.wikidata.org/entity/Q49088"
+                }
+              },
+              {
+                "school": {
+                  "type": "uri",
+                  "value": "http://www.wikidata.org/entity/Q5018694"
+                }
+              },
+              {
+                "school": {
+                  "type": "uri",
+                  "value": "http://www.wikidata.org/entity/Q14705485"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "question": [
+        {
+          "string": "On which island is the Indonesian capital located?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?island WHERE { wd:Q193893 wdt:P706 ?island . }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "island"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "question": [
+        {
+          "string": "can i play don't starve on play station 4?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?game WHERE {\n  wd:Q3208174 wdt:P750 wd:Q5014725 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "game"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "question": [
+        {
+          "string": "How many General Secretaries of the CPSU were there before Leonid Brezhnev?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT (COUNT(?secretary) AS ?count) WHERE {\n  ?secretary wdt:P39 wd:Q87004793 .\n  ?secretary wdt:P1344 ?position .\n  ?position wdt:P580 ?startTime .\n  FILTER(?startTime < \"1964-01-01T00:00:00Z\"^^xsd:dateTime)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "count"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "count": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "question": [
+        {
+          "string": "How many different presidents of Russia have there been that took the position after 1990?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT (COUNT(DISTINCT ?president) AS ?count) WHERE {\n  ?president wdt:P31 wd:Q5;\n             wdt:P1072 wd:Q2064.\n  ?president wdt:P155 wd:Q105824503.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "count"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "count": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "question": [
+        {
+          "string": "Did adam ondra win a medal in the 2020 summer olympics?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?medal WHERE {\n  wd:Q181278 wdt:P527 ?event .\n  ?event wdt:P2522 wd:Q2021 .\n  ?event wdt:P361 wd:Q25337 .\n  ?event wdt:P580 ?start_time .\n  FILTER(?start_time >= \"2020-07-23T00:00:00Z\"^^xsd:dateTime && ?start_time <= \"2020-08-08T23:59:59Z\"^^xsd:dateTime)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "medal"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "question": [
+        {
+          "string": "Did the Chicago Bulls win at least two seasons of the NBA championship?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT (COUNT(?season) AS ?count) WHERE {\n  wd:Q128109 wdt:P2522 wd:Q18156668 .\n  ?season wdt:P31 wd:Q18156668 .\n} GROUP BY ?season HAVING (?count >= 2)"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "count"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "question": [
+        {
+          "string": "Did Haruki Murakami receive the Nobel Prize in Literature?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?uri WHERE { wd:Q134798 wdt:P166 wd:Q37922 . }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "uri"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "question": [
+        {
+          "string": "Did Kobe Bryant leave the Lakers when LeBron James joined that team?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?kobe ?lakers ?lebron WHERE {\n  wd:Q25369 wdt:P54 wd:Q121783 .\n  wd:Q36159 wdt:P54 wd:Q121783 .\n  FILTER NOT EXISTS { wd:Q25369 wdt:P1411 wd:Q36159 }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "kobe",
+              "lakers",
+              "lebron"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "question": [
+        {
+          "string": "Did Rawson Marshall Thurber, the director of Red Notice also direct Titanic?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?titanic WHERE {\n  wd:Q2745616 wdt:P161 wd:Q58815001 .\n  wd:Q58815001 wdt:P161 ?titanic .\n  ?titanic wdt:P31 wd:Q11424 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "titanic"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "20",
+      "question": [
+        {
+          "string": "Did Venice at any point belong to the Austrian Empire?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?uri WHERE { wd:Q773853 wdt:P47 wd:Q131964 . }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "uri"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "21",
+      "question": [
+        {
+          "string": "Were at least two of the founders of tencent educated at the same university?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?university (COUNT(DISTINCT ?founder) AS ?founderCount) WHERE {\n  ?founder wdt:P112 wd:Q860580;\n            wdt:P69 ?university.\n}\nGROUP BY ?university\nHAVING (?founderCount >= 2)"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "university",
+              "founderCount"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "22",
+      "question": [
+        {
+          "string": "Do all of batman\u2019s partner speak english as native language?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?partner WHERE {\n  wd:Q159835 wdt:P1349 ?partner .\n  ?partner wdt:P103 wd:Q1860 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "partner"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "23",
+      "question": [
+        {
+          "string": "How many spouses do head of states have on average?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT (AVG(?spouseCount) AS ?averageSpouses) WHERE {\n  ?headOfState wdt:P31 wd:Q21514624.\n  OPTIONAL {\n    ?headOfState wdt:P26 ?spouse.\n    BIND(COUNT(?spouse) AS ?spouseCount)\n  }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "averageSpouses"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "averageSpouses": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#int",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "24",
+      "question": [
+        {
+          "string": "Was there at least one Formula 1 event on the AVUS?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?event WHERE {\n  ?event wdt:P31 wd:Q202202 .\n  ?event wdt:P840 wd:Q208994 .\n  ?event wdt:P361 wd:Q2418753 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "event"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "25",
+      "question": [
+        {
+          "string": "Find all Turkish verbs ending with \u201cu\u015f\u201d with their lemma.",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?verb ?lemma WHERE {\n  ?verb wdt:P31 wd:Q17524420 .\n  ?verb wdt:P1963 ?lemma .\n  FILTER(CONTAINS(STR(?lemma), \"u\u015f\"))\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "verb",
+              "lemma"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "26",
+      "question": [
+        {
+          "string": "From which country are the beagles originally from?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?beagle WHERE {\n  ?beagle wdt:P279 wd:Q144 .\n  ?beagle wdt:P495 wd:Q6256 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "27",
+      "question": [
+        {
+          "string": "From which country came the 2nd most winners of the Emmy Award ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?country (COUNT(?winner) AS ?winnerCount) WHERE {\n  ?winner wdt:P166 wd:Q66716595.\n  ?winner wdt:P27 ?country.\n}\nGROUP BY ?country\nORDER BY DESC(?winnerCount)\nLIMIT 1 OFFSET 1"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "country",
+              "winnerCount"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "28",
+      "question": [
+        {
+          "string": "Does the music style of Helloween belong to rock music?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?style WHERE { wd:Q158895 wdt:P136 ?style . FILTER(?style = wd:Q11399) }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "style"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "29",
+      "question": [
+        {
+          "string": "Does the postal code 32423 belong to Minden?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nSELECT ?uri WHERE {\n  ?uri wdt:P31 wd:Q37447 .\n  ?uri wdt:P9100 wd:Q135534218 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "uri"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    }
+  ]
+}

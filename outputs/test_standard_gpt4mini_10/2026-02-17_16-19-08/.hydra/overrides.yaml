@@ -1,0 +1,4 @@
+- dataset.limit=10
+- model=azure_gpt4_mini
+- prompt=standard
+- system.experiment_name=test_standard_gpt4mini_10

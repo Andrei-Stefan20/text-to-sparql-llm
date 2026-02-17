@@ -1,0 +1,35 @@
+{
+  "questions": [
+    {
+      "id": "0",
+      "question": [
+        {
+          "string": "After whom is the Riemannian geometry named?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?person WHERE { wd:Q761383 wdt:P138 ?person. }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "person"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "person": {
+                  "type": "uri",
+                  "value": "http://www.wikidata.org/entity/Q42299"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

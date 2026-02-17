@@ -1,0 +1,2482 @@
+{
+  "questions": [
+    {
+      "id": "0",
+      "question": [
+        {
+          "string": "After whom is the Riemannian geometry named?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q761383 wdt:P138 wd:Q56079931.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "question": [
+        {
+          "string": "Which animal participated in a military operation with the Australian Defence Force?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q625657 wdt:P1343 ?animal .\n  ?animal wdt:P31 wd:Q729 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "question": [
+        {
+          "string": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?character wdt:P451 ?partner1.\n  ?character wdt:P451 ?partner2.\n  FILTER(?partner1 IN (wd:Q4205826, wd:Q4463198) && ?partner2 IN (wd:Q4205826, wd:Q4463198) && ?partner1 != ?partner2)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "question": [
+        {
+          "string": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q860580 wdt:P527 ?founder.\n  ?founder wdt:P102 wd:Q19211.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "question": [
+        {
+          "string": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q696071 wdt:P50 ?author .\n  ?work wdt:P50 ?author ;\n        wdt:P136 wd:Q149566 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "question": [
+        {
+          "string": "On which stock exchanges are Siemens AG shares traded?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?stock_exchange WHERE {\n  wd:Q81230 wdt:P414 ?stock_exchange.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "stock_exchange"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "stock_exchange": {
+                  "type": "uri",
+                  "value": "http://www.wikidata.org/entity/Q151139"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "question": [
+        {
+          "string": "Apart from the book series the witcher, name all of the author\u2019s notable work.",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q20011098 wdt:P50 ?author.\n  ?author wdt:P1441 ?notableWork.\n  FILTER(?notableWork != wd:Q51671721)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "question": [
+        {
+          "string": "are brooke raboutou and colin duffy from same state of the usa?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  VALUES ?person { wd:Q87192979 wd:Q2926117 }\n  ?person wdt:P19 ?place .\n  ?place wdt:P31 wd:Q22788 .\n  ?place wdt:P625 ?coord .\n  ?state wdt:P31 wd:Q356 .\n  ?state wdt:P625 ?coord .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "question": [
+        {
+          "string": "What is the boiling point of water?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?boilingPoint WHERE {\n  wd:Q283 wdt:P2102 ?boilingPoint.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "boilingPoint"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "boilingPoint": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
+                  "type": "literal",
+                  "value": "99.9839"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "question": [
+        {
+          "string": "At which school was Yayoi Kusama educated at?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?school WHERE { wd:Q231121 wdt:P69 ?school. }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "school"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "school": {
+                  "type": "uri",
+                  "value": "http://www.wikidata.org/entity/Q749884"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "question": [
+        {
+          "string": "Which High School did Allen Ginsberg attend?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?school WHERE {\n  wd:Q6711 wdt:P69 ?school .\n  ?school wdt:P31 wd:Q9826 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "school"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "school": {
+                  "type": "uri",
+                  "value": "http://www.wikidata.org/entity/Q14705485"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "question": [
+        {
+          "string": "On which island is the Indonesian capital located?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q252 wdt:P150 ?island .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "question": [
+        {
+          "string": "can i play don't starve on play station 4?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q3208174 wdt:P750 wd:Q5014725.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "question": [
+        {
+          "string": "How many General Secretaries of the CPSU were there before Leonid Brezhnev?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?x wdt:P39 wd:Q87004793.\n  ?x wdt:P31 wd:Q5.\n  ?x wdt:P580 ?date.\n  FILTER(YEAR(?date) < 1964)  # Leonid Brezhnev became General Secretary in 1964\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "question": [
+        {
+          "string": "How many different presidents of Russia have there been that took the position after 1990?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?president wdt:P31 wd:Q5;\n             wdt:P102 wd:Q15176;\n             wdt:P1906 wd:Q15176;\n             wdt:P527 wd:Q105824503.\n  ?president wdt:P195 ?inception.\n  FILTER(YEAR(?inception) > 1990)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "question": [
+        {
+          "string": "Did adam ondra win a medal in the 2020 summer olympics?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q181278 wdt:P2522 wd:Q1002020; # where wd:Q1002020 is the medal won by Adam Ondra\n  wdt:P527 ?medal.\n  ?medal wdt:P31 wd:Q146; # checking if the medal is of type 'medal'\n  wdt:P580 ?date.\n  FILTER(YEAR(?date) = 2021) # 2020 Summer Olympics took place in 2021 due to COVID-19\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "question": [
+        {
+          "string": "Did the Chicago Bulls win at least two seasons of the NBA championship?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q128109 wdt:P2522 wd:Q18156668 .\n  FILTER(?seasonCount >= 2)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "question": [
+        {
+          "string": "Did Haruki Murakami receive the Nobel Prize in Literature?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q134798 wdt:P166 wd:Q37922.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "question": [
+        {
+          "string": "Did Kobe Bryant leave the Lakers when LeBron James joined that team?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q25369 wdt:P551 wd:Q121783 .\n  wd:Q36159 wdt:P551 wd:Q121783 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "question": [
+        {
+          "string": "Did Rawson Marshall Thurber, the director of Red Notice also direct Titanic?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q2745616 wdt:P57 wd:Q58815001 .\n  FILTER NOT EXISTS { wd:Q2745616 wdt:P57 wd:Q11912 }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "20",
+      "question": [
+        {
+          "string": "Did Venice at any point belong to the Austrian Empire?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q773853 wdt:P1343 wd:Q131964.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "21",
+      "question": [
+        {
+          "string": "Were at least two of the founders of tencent educated at the same university?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?founder wdt:P355 wd:Q860580; wdt:P69 ?university.\n  ?founder2 wdt:P355 wd:Q860580; wdt:P69 ?university.\n  FILTER(?founder != ?founder2)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "22",
+      "question": [
+        {
+          "string": "Do all of batman\u2019s partner speak english as native language?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q159835 wdt:P421 ?partner .\n  ?partner wdt:P103 wd:Q1860 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "23",
+      "question": [
+        {
+          "string": "How many spouses do head of states have on average?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (AVG(?spouseCount) AS ?averageSpouses) WHERE {\n  ?headOfState wdt:P31 wd:Q21514624.\n  {\n    SELECT ?headOfState (COUNT(?spouse) AS ?spouseCount) WHERE {\n      ?headOfState wdt:P26 ?spouse.\n    } GROUP BY ?headOfState\n  }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "24",
+      "question": [
+        {
+          "string": "Was there at least one Formula 1 event on the AVUS?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?event wdt:P840 wd:Q2418753.\n  ?event wdt:P31 wd:Q208994.\n  ?event wdt:P577 ?date.\n  ?event wdt:P400 wd:Q188833.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "25",
+      "question": [
+        {
+          "string": "Find all Turkish verbs ending with \u201cu\u015f\u201d with their lemma.",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?verb wdt:P1963 ?lemma.\n  FILTER(CONTAINS(LCASE(?verb), \"u\u015f\"))\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "26",
+      "question": [
+        {
+          "string": "From which country are the beagles originally from?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?beagle wdt:P31 wd:Q12800;  # instance of beagle\n          wdt:P495 wd:Q6256.  # country of origin\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "27",
+      "question": [
+        {
+          "string": "From which country came the 2nd most winners of the Emmy Award ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?country (COUNT(?winner) AS ?winnerCount) WHERE {\n  ?winner wdt:P166 wd:Q66716595.\n  ?winner wdt:P495 ?country.\n} GROUP BY ?country ORDER BY DESC(?winnerCount) LIMIT 1 OFFSET 1"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "country",
+              "winnerCount"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "28",
+      "question": [
+        {
+          "string": "Does the music style of Helloween belong to rock music?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q158895 wdt:P136 wd:Q11399.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "29",
+      "question": [
+        {
+          "string": "Does the postal code 32423 belong to Minden?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q37447 wdt:P31 wd:Q135534218 .\n  wd:Q37447 wdt:P155 ?x .\n  ?x wdt:P31 wd:Q135534218 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "30",
+      "question": [
+        {
+          "string": "has adam ondra been a winner of IFSC climbing world cup?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q350568 wdt:P166 wd:Q1774251.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "31",
+      "question": [
+        {
+          "string": "has life expectancy in iran grown in any year after 1999?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?lifeExpectancy wdt:P527 wd:Q2091.\n  ?lifeExpectancy wdt:P585 ?date.\n  FILTER(YEAR(?date) > 1999)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "32",
+      "question": [
+        {
+          "string": "has population of Isfahan increased at any point after 2006?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q2021 wdt:P1082 ?population .\n  ?pointInTime wdt:P580 ?date .\n  FILTER(YEAR(?date) > 2006)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "33",
+      "question": [
+        {
+          "string": "Did Joe Cocker play at the Woodstock festival?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q190076 wdt:P175 wd:Q991162.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "34",
+      "question": [
+        {
+          "string": "Did Udo B\u00f6lts participate in the Tour de France?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q66432 wdt:P1344 wd:Q33881.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "35",
+      "question": [
+        {
+          "string": "How many of Reinhold Messner's brothers still live?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q189307 wdt:P40 ?brother .\n  FILTER NOT EXISTS {\n    ?brother wdt:P570 ?date .\n    FILTER(YEAR(?date) < 2023)\n  }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "36",
+      "question": [
+        {
+          "string": "In which manner did Hemingway die?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q16870685 wdt:P1196 ?manner .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "37",
+      "question": [
+        {
+          "string": "In which industry does the House of Medici own a business?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q170022 wdt:P361 ?industry.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "38",
+      "question": [
+        {
+          "string": "How do people from Turkey call the official name of the united states of america?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?name WHERE {\n  wd:Q43 wdt:P1559 ?name .\n  wd:Q105870683 wdt:P1549 ?official_name .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "name"
+            ]
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "39",
+      "question": [
+        {
+          "string": "How high is the Cologne Cathedral ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q4176 wdt:P10 ?height .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "40",
+      "question": [
+        {
+          "string": "How is the Harz called in Mandarin Chinese?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q4186 wdt:P1705 wd:Q727694.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "41",
+      "question": [
+        {
+          "string": "How many international airports are located within the city of Hamburg ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?airport) AS ?count) WHERE {\n  ?airport wdt:P31 wd:Q114549142.\n  ?airport wdt:P150 wd:Q1055.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "count"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "count": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "42",
+      "question": [
+        {
+          "string": "On how many albums does Madonna perform?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(DISTINCT ?album) AS ?albumCount) WHERE {\n  ?album wdt:P431 ?song .\n  ?song wdt:P175 wd:Q1744 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "albumCount"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "albumCount": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "43",
+      "question": [
+        {
+          "string": "On how many albums does Mariah Carey perform?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?album) AS ?albumCount) WHERE {\n  wd:Q41076 wdt:P75 ?album.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "albumCount"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "albumCount": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "44",
+      "question": [
+        {
+          "string": "How many studio albums has Lana Del Rey have?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q37150 wdt:P136 wd:Q134968300.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "45",
+      "question": [
+        {
+          "string": "How many ancient civilizations are there?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?civilization wdt:P31 wd:Q15749146.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "46",
+      "question": [
+        {
+          "string": "In how many years did Kobe Bryant receive an NBA All-Defensive Team award?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q25369 wdt:P166 wd:Q1465181 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "47",
+      "question": [
+        {
+          "string": "How many All-NBA Team awards have Shaquille O'Neal and Kobe Bryant received in the same year?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?player1 wdt:P166 wd:Q674359 ;\n           wdt:P569 ?date1 .\n  ?player2 wdt:P166 wd:Q674359 ;\n           wdt:P569 ?date2 .\n  FILTER(YEAR(?date1) = YEAR(?date2) && ?player1 = wd:Q169452 && ?player2 = wd:Q25369)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "48",
+      "question": [
+        {
+          "string": "How many literary works did Richard Bachman write?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?work) AS ?numberOfWorks) WHERE {\n  wd:Q3495759 wdt:P50 ?work.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "numberOfWorks"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "numberOfWorks": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "49",
+      "question": [
+        {
+          "string": "How many notable works does Sarah J. Maas have?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?work) AS ?notableWorksCount) WHERE {\n  wd:Q20640708 wdt:P800 ?work.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "notableWorksCount"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "notableWorksCount": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "3"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "50",
+      "question": [
+        {
+          "string": "Did Bryan Evenson work for at least one university where he was educated at?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q3918 wdt:P69 wd:Q1047212.\n  wd:Q1047212 wdt:P108 wd:Q3918.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "51",
+      "question": [
+        {
+          "string": "How many children (including apopted ones) does Jeff Bezos have with his ex-wife?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q312556 wdt:P40 ?children.\n  ?children wdt:P26 wd:Q1196129.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "52",
+      "question": [
+        {
+          "string": "How many children had Paul McCartney together with his ex-wife Linda McCartney?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q2599 wdt:P26 wd:Q228899.\n  wd:Q228899 wdt:P40 ?children.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "53",
+      "question": [
+        {
+          "string": "How many Chinese zodiac animals are there in total?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?animal) AS ?total) WHERE {\n  ?animal wdt:P31 wd:Q27725748.\n  ?animal wdt:P527 wd:Q1976204.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "total"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "total": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "54",
+      "question": [
+        {
+          "string": "How many cities are part of the Pearl River Delta?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?city) AS ?cityCount) WHERE {\n  ?city wdt:P31 wd:Q15735494.\n  ?city wdt:P527 wd:Q1144286.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "cityCount"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "cityCount": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "55",
+      "question": [
+        {
+          "string": "How many city-states are currently in the world?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?cityState) AS ?count) WHERE {\n  ?cityState wdt:P31 wd:Q133442.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "count"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "count": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "104"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "56",
+      "question": [
+        {
+          "string": "How many businesses did Steve Jobs found?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(DISTINCT ?business) AS ?numberOfBusinesses) WHERE {\n  wd:Q19837 wdt:P800 ?business.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "numberOfBusinesses"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "numberOfBusinesses": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "12"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "57",
+      "question": [
+        {
+          "string": "How many countries have a democracy index higher than 7 and drive on the left side ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(DISTINCT ?country) AS ?count) WHERE {\n  ?country wdt:P31 wd:Q6256.\n  ?country wdt:P8328 ?democracyIndex.\n  ?country wdt:P279 wd:Q66716595.\n  FILTER(?democracyIndex > 7)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "count"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "count": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "58",
+      "question": [
+        {
+          "string": "How many countries have never been members of the UN?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?country wdt:P17 wd:Q1260524 .\n  FILTER NOT EXISTS { ?country wdt:P2013 wd:Q1065 }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "59",
+      "question": [
+        {
+          "string": "How many countries are on the continent of South America ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(DISTINCT ?country) AS ?countryCount) WHERE {\n  ?country wdt:P31 wd:Q3624078;  # instance of country\n           wdt:P30 wd:Q18.        # located on continent South America\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "countryCount"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "countryCount": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "12"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "60",
+      "question": [
+        {
+          "string": "How many countries have mountains whose peaks are higher than 2000m above sea level?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?mountain wdt:P31 wd:Q8502.\n  ?mountain wdt:P2044 ?elevation.\n  FILTER(?elevation > 2000).\n  ?mountain wdt:P361 ?country.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "61",
+      "question": [
+        {
+          "string": "How many fictional dragons are present in Game of Thrones?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?dragon wdt:P31 wd:Q37493975.\n  ?dragon wdt:P674 wd:Q23572.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "62",
+      "question": [
+        {
+          "string": "how many emmy awards has the tv series game of thrones won?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q23572 wdt:P166 ?award .\n  FILTER(?award = wd:Q1860)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "63",
+      "question": [
+        {
+          "string": "How many films are derived from the original Ghost in the Shell Manga?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?film) AS ?filmCount) WHERE {\n  ?film wdt:P725 wd:Q1066948.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "filmCount"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "filmCount": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "64",
+      "question": [
+        {
+          "string": "How many French kings didn't die of natural causes?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?king wdt:P31 wd:Q1052020;  # instance of French king\n        wdt:P509 ?cause_of_death.  # cause of death\n  FILTER(?cause_of_death != wd:Q3739104)  # not died of natural causes\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "65",
+      "question": [
+        {
+          "string": "How many given names has Queen Elizabeth II ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q21771 wdt:P735 ?givenName .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "66",
+      "question": [
+        {
+          "string": "How many different female mayors did Hamburg have?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?mayor wdt:P31 wd:Q747279;\n         wdt:P150 wd:Q1055;\n         wdt:P1539 ?femalePopulation.\n  FILTER(?femalePopulation > 0)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "67",
+      "question": [
+        {
+          "string": "how many head of the state does iran have?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?head_of_state wdt:P35 wd:Q794.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "68",
+      "question": [
+        {
+          "string": "How many scholary articles have ImageNet as a subject?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?article wdt:P921 wd:Q24901201.\n  ?article wdt:P31 wd:Q96727888.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "69",
+      "question": [
+        {
+          "string": "How many inhabitants does the birthplace of Cristiano Ronaldo have?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q11780161 wdt:P1082 ?population .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "70",
+      "question": [
+        {
+          "string": "How many Japanese writers received the Nobel Prize?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?writer wdt:P31 wd:Q32996;\n          wdt:P166 wd:Q7191;\n          wdt:P17 wd:Q17.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "71",
+      "question": [
+        {
+          "string": "How many languages are widely used in India?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(DISTINCT ?language) AS ?count) WHERE {\n  wd:Q668 wdt:P37 ?language.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "count"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "count": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "2"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "72",
+      "question": [
+        {
+          "string": "How many different colors can water take?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(DISTINCT ?color) AS ?differentColors) WHERE {\n  wd:Q283 wdt:P462 ?color.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "differentColors"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "differentColors": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "5"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "73",
+      "question": [
+        {
+          "string": "How many locations has Georges Braque worked at (work location)?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(DISTINCT ?location) AS ?locationCount) WHERE {\n  wd:Q153793 wdt:P937 ?location.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "locationCount"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "locationCount": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "12"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "74",
+      "question": [
+        {
+          "string": "How many months does winter consist of in Germany?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?month) AS ?numberOfMonths) WHERE {\n  wd:Q1485942 wdt:P2922 ?month .\n  FILTER(?month >= 1 && ?month <= 3)  # January to March are winter months in Germany\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "numberOfMonths"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "numberOfMonths": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "75",
+      "question": [
+        {
+          "string": "How many movies does the Scream franchise have?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q116867588 wdt:P527 ?movie.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "76",
+      "question": [
+        {
+          "string": "How many movies has James Cameron directed prior to the year 2010?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?movie wdt:P31 wd:Q11424;  # instance of film\n         wdt:P57 wd:Q32908;  # directed by James Cameron\n         wdt:P580 ?date.     # point in time\n  FILTER(YEAR(?date) < 2010)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "77",
+      "question": [
+        {
+          "string": "How many movies were directed by Akira Kurosawa ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?movie) AS ?count) WHERE {\n  ?movie wdt:P31 wd:Q11424;  # instance of film\n         wdt:P58 wd:Q8006.   # screenwriter is Akira Kurosawa\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "count"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "count": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "44"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "78",
+      "question": [
+        {
+          "string": "How many musical scales are there?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?scale) AS ?count) WHERE {\n  ?scale wdt:P31 wd:Q21498652.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "count"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "count": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "79",
+      "question": [
+        {
+          "string": "How many public holidays does the state Bavaria have in a year?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q980 wdt:P832 ?holiday.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "80",
+      "question": [
+        {
+          "string": "How many literary works besides The Picture of Dorian Gray did its author write?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?work wdt:P50 wd:Q482980.\n  FILTER(?work != wd:Q82464)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "81",
+      "question": [
+        {
+          "string": "How many literary works did Mark Twain write in his lifetime?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q7245 wdt:P50 wd:Q482980.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "82",
+      "question": [
+        {
+          "string": "How many occupations did Mark Twain have?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(DISTINCT ?occupation) AS ?num_occupations) WHERE {\n  wd:Q7245 wdt:P106 ?occupation.\n  FILTER(?occupation = wd:Q17524420)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "num_occupations"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "num_occupations": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "83",
+      "question": [
+        {
+          "string": "how many of spiderman perfomers are citizens of the united kingdom?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?performer wdt:P31 wd:Q15984941.\n  ?performer wdt:P17 wd:Q145.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "84",
+      "question": [
+        {
+          "string": "how many official languages does the united states of america have?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q105870683 wdt:P37 ?language.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "85",
+      "question": [
+        {
+          "string": "How many official languages has Pakistan ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?language) AS ?numberOfLanguages) WHERE {\n  wd:Q843 wdt:P37 ?language.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "numberOfLanguages"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "numberOfLanguages": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "2"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "86",
+      "question": [
+        {
+          "string": "How many Oscars did all the movies directed by Hayao Miyazaki combined win?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (SUM(?count) AS ?totalOscars) WHERE {\n  ?movie wdt:P106 wd:Q2526255;  # instance of film\n         wdt:P57 wd:Q55400;      # directed by Hayao Miyazaki\n         wdt:P166 wd:Q19020.     # award received is Oscar\n  {\n    SELECT (COUNT(?movie) AS ?count) WHERE {\n      ?movie wdt:P106 wd:Q2526255;\n             wdt:P57 wd:Q55400;\n             wdt:P166 wd:Q19020.\n    }\n  }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "totalOscars"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "totalOscars": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#int",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "87",
+      "question": [
+        {
+          "string": "How many paintings of Pablo Picasso were ever in a museum?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?painting wdt:P170 wd:Q5593.\n  ?painting wdt:P937 ?museum.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "88",
+      "question": [
+        {
+          "string": "How many people can play \"Mensch \u00e4rgere dich nicht\" at most?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q126186091 wdt:P527 ?x .\n  ?x wdt:P31 wd:Q7366 .\n  FILTER(?x = wd:Q126186091)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "89",
+      "question": [
+        {
+          "string": "How many people did Oscar Pistorius kill?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q201377 wdt:P157 ?victim.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "90",
+      "question": [
+        {
+          "string": "How many people died due to the Great Leap Forward according to the highest estimate?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q58715 wdt:P10091 ?deathRate .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "91",
+      "question": [
+        {
+          "string": "How many people have won the Nobel Prize in Literature since its inception?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?winner wdt:P1346 wd:Q37922.\n  ?winner wdt:P31 wd:Q5.\n  ?inception wdt:P1072 wd:Q37922.\n  FILTER(YEAR(?inception) > 1901)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "92",
+      "question": [
+        {
+          "string": "How many people live in cities in the vicinity of the Nile ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (SUM(?population) AS ?totalPopulation) WHERE {\n  ?city wdt:P31 wd:Q15735494;  # instance of city\n        wdt:P527 wd:Q660835.   # located in or next to the Nile\n  OPTIONAL { ?city wdt:P1082 ?population. }  # population property\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "totalPopulation"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "totalPopulation": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#int",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "93",
+      "question": [
+        {
+          "string": "How many pitch classes are part of the chromatic scale?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q202021 wdt:P527 ?pitchClass.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "94",
+      "question": [
+        {
+          "string": "how many plays has William Shakespeare written in the 16th century.",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(DISTINCT ?play) AS ?numberOfPlays) WHERE {\n  ?play wdt:P31 wd:Q3305213;   # instance of play\n        wdt:P577 ?date.        # publication date\n  FILTER(YEAR(?date) >= 1500 && YEAR(?date) < 1600)  # 16th century\n  ?play wdt:P50 wd:Q692.       # authored by William Shakespeare\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "numberOfPlays"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "numberOfPlays": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "0"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "95",
+      "question": [
+        {
+          "string": "How many poems did Allen Ginsberg published?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q6711 wdt:P800 ?work .\n  ?work wdt:P106 wd:Q22686 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "96",
+      "question": [
+        {
+          "string": "How many political parties have ever had seats in the German Bundestag ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  SELECT (COUNT(DISTINCT ?party) AS ?count) WHERE {\n    ?party wdt:P102 wd:Q154797.\n  }\n}"
+      },
+      "answers": [
+        {
+          "head": {},
+          "boolean": true
+        }
+      ]
+    },
+    {
+      "id": "97",
+      "question": [
+        {
+          "string": "How many positions did Kobe Bryant play in his team?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q25369 wdt:P413 ?position .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "98",
+      "question": [
+        {
+          "string": "How many prizes are there established by Alfred Nobel ?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?prize) AS ?count) WHERE {\n  wd:Q23810 wdt:P1343 ?prize.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": [
+              "count"
+            ]
+          },
+          "results": {
+            "bindings": [
+              {
+                "count": {
+                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                  "type": "literal",
+                  "value": "13"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "99",
+      "question": [
+        {
+          "string": "Did SpaceX ever operate a space mission that was a failed launch?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?mission wdt:P31 wd:Q2133344;\n           wdt:P1079 wd:Q193701;\n           wdt:P450 ?launch_status.\n  FILTER(?launch_status = wd:Q20195799)  # Assuming Q20195799 represents failed launch\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+model:
+  name: gpt-4o-mini
+  platform: azure
+  env_var: AZURE_OPENAI_KEY
+  connection:
+    endpoint: AZURE_OPENAI_ENDPOINT
+    api_version: 2024-12-01-preview
+    deployment: gpt-4o-mini
+  params:
+    temperature: 0.0
+    max_tokens: 2048
+    top_p: 1.0
+  max_retries: 5
+  timeout: 60
+  system_prompt: 'You are a SPARQL expert for Wikidata.
+
+    Generate ONLY valid SPARQL query code.
+
+    Do NOT include explanations, comments, code blocks, or any text.
+
+    Output ONLY the query starting with SELECT or CONSTRUCT.
+
+    '
+  concurrency: 30
+linking:
+  method: rebel
+  model_path: Babelscape/rebel-large
+  device: -1
+  use_wikidata_fallback: true
+retrieval:
+  k: 3
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+prompt:
+  name: std
+  strategy: base
+  system_message: 'You are a SPARQL expert for Wikidata.
+
+
+    CRITICAL RULES (FOLLOW OR FAIL):
+
+    1. **BOOLEAN QUESTIONS = ASK**: If the question starts with "Is", "Are", "Was",
+    "Did", "Does", you MUST start your query with `ASK {`. Do NOT use SELECT.
+
+    2. **DATES**: When filtering by year (e.g. "after 1990"), use `FILTER(YEAR(?date)
+    > 1990)`. Do NOT compare dates directly with integers.
+
+    3. **NO SUBQUERIES**: Do NOT use nested `SELECT` queries inside `WHERE`. Use simple
+    property paths.
+
+    4. **DIRECT PROPERTIES**: Do not invent transitive paths like `?x wdt:P279 ?y`
+    unless asked. Use direct connections.
+
+
+    Output ONLY the SPARQL code.
+
+    '
+  use_system_msg: true
+  include_examples: true
+  include_entities: true
+  include_schema_hint: true
+  custom_instruction: 'Output ONLY the SPARQL query (no markdown, no explanation):'
+system:
+  experiment_name: param_test
+  seed: 42
+  debug: false
+  cache_dir: ~/.cache/huggingface/hub
+dataset:
+  name: casey-martin/qald_9_plus
+  split: test
+  language: en
+  limit: 2
+rag:
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+  encoder_model: all-MiniLM-L6-v2
+validation:
+  enable_validation: true
+  enable_correction: false
+  max_attempts: 3
+  validate_execution: false
+  self_consistency_samples: 1
+  consistency_temperature: 0.7

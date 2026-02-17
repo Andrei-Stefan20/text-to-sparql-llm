@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "run_id": "gpt4omini_0shot_rebel_EntsON_ExON_lim2",
+    "status": "completed",
+    "dataset_size": 2
+  },
+  "configuration": {
+    "model": {
+      "name": "gpt-4o-mini",
+      "platform": "azure",
+      "env_var": "AZURE_OPENAI_KEY",
+      "connection": {
+        "endpoint": "AZURE_OPENAI_ENDPOINT",
+        "api_version": "2024-12-01-preview",
+        "deployment": "gpt-4o-mini"
+      },
+      "params": {
+        "temperature": 0.0,
+        "max_tokens": 2048,
+        "top_p": 1.0
+      },
+      "max_retries": 5,
+      "timeout": 60,
+      "system_prompt": "You are a SPARQL expert for Wikidata.\nGenerate ONLY valid SPARQL query code.\nDo NOT include explanations, comments, code blocks, or any text.\nOutput ONLY the query starting with SELECT or CONSTRUCT.\n",
+      "concurrency": 30
+    },
+    "linking": {
+      "method": "rebel",
+      "model_path": "Babelscape/rebel-large",
+      "device": -1,
+      "use_wikidata_fallback": true
+    },
+    "retrieval": {
+      "k": 0,
+      "index_path": null
+    },
+    "prompt": {
+      "name": "std",
+      "strategy": "base",
+      "system_message": "You are a SPARQL expert for Wikidata.\n\nCRITICAL RULES (FOLLOW OR FAIL):\n1. **BOOLEAN QUESTIONS = ASK**: If the question starts with \"Is\", \"Are\", \"Was\", \"Did\", \"Does\", you MUST start your query with `ASK {`. Do NOT use SELECT.\n2. **DATES**: When filtering by year (e.g. \"after 1990\"), use `FILTER(YEAR(?date) > 1990)`. Do NOT compare dates directly with integers.\n3. **NO SUBQUERIES**: Do NOT use nested `SELECT` queries inside `WHERE`. Use simple property paths.\n4. **DIRECT PROPERTIES**: Do not invent transitive paths like `?x wdt:P279 ?y` unless asked. Use direct connections.\n\nOutput ONLY the SPARQL code.\n",
+      "use_system_msg": true,
+      "include_examples": true,
+      "include_entities": true,
+      "include_schema_hint": true,
+      "custom_instruction": "Output ONLY the SPARQL query (no markdown, no explanation):"
+    },
+    "system": {
+      "experiment_name": "param_test",
+      "seed": 42,
+      "debug": false,
+      "cache_dir": "~/.cache/huggingface/hub"
+    },
+    "dataset": {
+      "name": "casey-martin/qald_9_plus",
+      "split": "test",
+      "language": "en",
+      "limit": 2
+    },
+    "rag": {
+      "index_path": "data/processed/train_index.faiss",
+      "metadata_path": "data/processed/train_metadata.pkl",
+      "encoder_model": "all-MiniLM-L6-v2"
+    },
+    "validation": {
+      "enable_validation": true,
+      "enable_correction": false,
+      "max_attempts": 3,
+      "validate_execution": false,
+      "self_consistency_samples": 1,
+      "consistency_temperature": 0.7
+    }
+  },
+  "metrics": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "exact_match_rate": 0.0,
+    "syntax_error_rate": 0.0,
+    "evaluated_count": 2,
+    "exact_matches": 0
+  },
+  "results": [
+    {
+      "id": "0",
+      "question": "After whom is the Riemannian geometry named?",
+      "prompt": "Relevant Properties: Verified Properties for entities: http://www.wikidata.org/prop/direct/P166 (P166), http://www.wikidata.org/prop/direct/P27 (P27), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P39 (P39), http://www.wikidata.org/prop/direct/P69 (P69), http://www.wikidata.org/prop/direct/P106 (P106), http://www.wikidata.org/prop/direct/P108 (P108), http://www.wikidata.org/prop/direct/P244 (P244), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P646 (P646), http://www.wikidata.org/prop/direct/P5008 (P5008), http://www.wikidata.org/prop/direct/P1482 (P1482), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P19 (P19), http://www.wikidata.org/prop/direct/P20 (P20)\nOther Semantic Matches: P8362 (Regensburg Classification (works and editions)), P7900 (Monument Atlas Lower Saxony Objekt-ID), P2460 (Persons of Ancient Athens), P9664 (named place on map), P138 (named after)\nEntities: Riemannian geometry (wd:Q761383), named after (wd:Q1791962), After whom (wd:Q56079931)\nQuestion: After whom is the Riemannian geometry named?\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?person ?personLabel WHERE {\n  wd:Q761383 wdt:P138 ?person.\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE { wd:Q761383 wdt:P138 ?result. }",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P166 (P166), http://www.wikidata.org/prop/direct/P27 (P27), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P39 (P39), http://www.wikidata.org/prop/direct/P69 (P69), http://www.wikidata.org/prop/direct/P106 (P106), http://www.wikidata.org/prop/direct/P108 (P108), http://www.wikidata.org/prop/direct/P244 (P244), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P646 (P646), http://www.wikidata.org/prop/direct/P5008 (P5008), http://www.wikidata.org/prop/direct/P1482 (P1482), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P19 (P19), http://www.wikidata.org/prop/direct/P20 (P20)\nOther Semantic Matches: P8362 (Regensburg Classification (works and editions)), P7900 (Monument Atlas Lower Saxony Objekt-ID), P2460 (Persons of Ancient Athens), P9664 (named place on map), P138 (named after)",
+      "entities_linked": [
+        {
+          "text": "Riemannian geometry",
+          "qid": "Q761383"
+        },
+        {
+          "text": "named after",
+          "qid": "Q1791962"
+        },
+        {
+          "text": "After whom",
+          "qid": "Q56079931"
+        }
+      ],
+      "validation": null,
+      "raw_response": null,
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 1
+      }
+    },
+    {
+      "id": "1",
+      "question": "Which animal participated in a military operation with the Australian Defence Force?",
+      "prompt": "Relevant Properties: Verified Properties for entities: http://www.wikidata.org/prop/direct/P1963 (P1963), http://www.wikidata.org/prop/direct/P527 (P527), http://www.wikidata.org/prop/direct/P1343 (P1343), http://www.wikidata.org/prop/direct/P11738 (P11738), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P646 (P646), http://www.wikidata.org/prop/direct/P1889 (P1889), http://www.wikidata.org/prop/direct/P2581 (P2581), http://www.wikidata.org/prop/direct/P3417 (P3417), http://www.wikidata.org/prop/direct/P355 (P355), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P508 (P508)\nOther Semantic Matches: P7779 (military unit), P798 (military designation), P3156 (Australian Classification), P410 (military, police or special rank), P4624 (squadron embarked)\nEntities: Australian Defence Force (wd:Q625657), military operation (wd:Q645883), conflict (wd:Q180684)\nQuestion: Which animal participated in a military operation with the Australian Defence Force?\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?animal ?animalLabel WHERE {\n  wd:Q625657 wdt:P1963 ?operation .\n  ?operation wdt:P1343 ?animal .\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {?result wdt:P31 wd:Q16521. ?mop wdt:P31 wd:Q645883; wdt:P710 ?result, wd:Q625657.}",
+      "hints_used": "Verified Properties for entities: http://www.wikidata.org/prop/direct/P1963 (P1963), http://www.wikidata.org/prop/direct/P527 (P527), http://www.wikidata.org/prop/direct/P1343 (P1343), http://www.wikidata.org/prop/direct/P11738 (P11738), http://www.wikidata.org/prop/direct/P279 (P279), http://www.wikidata.org/prop/direct/P910 (P910), http://www.wikidata.org/prop/direct/P31 (P31), http://www.wikidata.org/prop/direct/P373 (P373), http://www.wikidata.org/prop/direct/P646 (P646), http://www.wikidata.org/prop/direct/P1889 (P1889), http://www.wikidata.org/prop/direct/P2581 (P2581), http://www.wikidata.org/prop/direct/P3417 (P3417), http://www.wikidata.org/prop/direct/P355 (P355), http://www.wikidata.org/prop/direct/P18 (P18), http://www.wikidata.org/prop/direct/P508 (P508)\nOther Semantic Matches: P7779 (military unit), P798 (military designation), P3156 (Australian Classification), P410 (military, police or special rank), P4624 (squadron embarked)",
+      "entities_linked": [
+        {
+          "text": "Australian Defence Force",
+          "qid": "Q625657"
+        },
+        {
+          "text": "military operation",
+          "qid": "Q645883"
+        },
+        {
+          "text": "conflict",
+          "qid": "Q180684"
+        }
+      ],
+      "validation": null,
+      "raw_response": null,
+      "evaluation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "gold_count": 1,
+        "gen_count": 0
+      }
+    }
+  ]
+}
