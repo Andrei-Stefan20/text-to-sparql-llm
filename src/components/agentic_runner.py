@@ -233,6 +233,18 @@ class AgentResponseParser:
 class AgenticSPARQLRunner:
     """
     Orchestrates the ReAct loop for SPARQL generation.
+
+    The system prompt supports two runtime placeholders resolved before the
+    first LLM call so the model always knows its budget:
+
+      {max_steps}           → total steps allowed          (e.g. "5")
+      {max_steps_minus_one} → max exploratory steps allowed (e.g. "4")
+
+    At runtime the loop also:
+      - Appends how many steps remain after each EXECUTE_SPARQL observation.
+      - Injects a hard reminder on the last step so the model cannot emit
+        another EXECUTE_SPARQL instead of FINAL_ANSWER.
+      - Salvages the query if the model ignores the last-step reminder.
     """
 
     def __init__(
@@ -250,6 +262,31 @@ class AgenticSPARQLRunner:
         self.step_delay = step_delay
         self.parser = AgentResponseParser()
 
+    # ------------------------------------------------------------------
+    # System prompt — inject runtime values once per run
+    # ------------------------------------------------------------------
+
+    def _resolve_system_prompt(self) -> str:
+        """
+        Replaces {max_steps} and {max_steps_minus_one} placeholders with the
+        actual values for this run.
+
+        Example with max_steps=5:
+          "You have at most {max_steps} steps."
+          → "You have at most 5 steps."
+          "Use at most {max_steps_minus_one} exploratory steps."
+          → "Use at most 4 exploratory steps."
+        """
+        return (
+            self.system_prompt
+            .replace("{max_steps}", str(self.max_steps))
+            .replace("{max_steps_minus_one}", str(self.max_steps - 1))
+        )
+
+    # ------------------------------------------------------------------
+    # Main loop
+    # ------------------------------------------------------------------
+
     async def run(
         self,
         question: str,
@@ -261,17 +298,37 @@ class AgenticSPARQLRunner:
         steps: List[AgentStep] = []
         conversation: List[str] = []
 
-        # Opening prompt — clean, just question + context, no meta-instructions
+        # Resolve {max_steps} placeholders once — reused for every LLM call
+        resolved_system_prompt = self._resolve_system_prompt()
+
+        # Opening prompt: clean context only, no instruction-like text
+        # (avoids Azure jailbreak filter)
         opening = self._build_initial_prompt(
             question, entities, context_examples, schema_hints
         )
         conversation.append(opening)
 
         for step_num in range(1, self.max_steps + 1):
-            logger.info(f"[Agent] Step {step_num}/{self.max_steps}")
+            is_last_step = step_num == self.max_steps
+            logger.info(
+                f"[Agent] Step {step_num}/{self.max_steps}"
+                + (" ← LAST STEP, must emit FINAL_ANSWER" if is_last_step else "")
+            )
+
+            # Inject a hard reminder on the last step so the model cannot
+            # "forget" and waste it on another exploratory query.
+            if is_last_step:
+                conversation.append(
+                    f"[Step budget exhausted: {step_num}/{self.max_steps}] "
+                    "You have used all your exploratory steps. "
+                    "You MUST now respond with FINAL_ANSWER using the best query "
+                    "you have built so far. Do NOT use EXECUTE_SPARQL."
+                )
 
             full_prompt = "\n\n".join(conversation)
-            raw_response = await self.client.generate(full_prompt, self.system_prompt)
+            raw_response = await self.client.generate(
+                full_prompt, resolved_system_prompt
+            )
 
             thought, action, query = self.parser.parse(raw_response)
 
@@ -280,7 +337,9 @@ class AgenticSPARQLRunner:
             if query:
                 logger.debug(f"[Agent] Query  : {query[:200]}")
 
+            # ----------------------------------------------------------
             # FINAL_ANSWER branch
+            # ----------------------------------------------------------
             if action == "FINAL_ANSWER":
                 step = AgentStep(
                     step_number=step_num,
@@ -302,8 +361,38 @@ class AgenticSPARQLRunner:
                     validation_error=error,
                 )
 
+            # ----------------------------------------------------------
             # EXECUTE_SPARQL branch
+            # ----------------------------------------------------------
             if action == "EXECUTE_SPARQL" and query:
+
+                # Model ignored the last-step reminder — salvage the query
+                if is_last_step:
+                    logger.warning(
+                        "[Agent] Model emitted EXECUTE_SPARQL on last step — "
+                        "salvaging query as FINAL_ANSWER."
+                    )
+                    step = AgentStep(
+                        step_number=step_num,
+                        thought=thought,
+                        action="FINAL_ANSWER",  # override
+                        query=query,
+                        observation=None,
+                        raw_llm_response=raw_response,
+                    )
+                    steps.append(step)
+
+                    valid, error = self._validate_final_query(query)
+                    return AgentResult(
+                        final_query=query,
+                        is_valid=valid,
+                        steps=steps,
+                        total_steps=step_num,
+                        termination_reason="max_steps",
+                        validation_error=error,
+                    )
+
+                # Normal exploratory step
                 if self.step_delay > 0:
                     await asyncio.sleep(self.step_delay)
 
@@ -321,12 +410,24 @@ class AgenticSPARQLRunner:
                 )
                 steps.append(step)
 
+                # Tell the model how many steps remain so it can plan ahead
+                steps_remaining = self.max_steps - step_num
+                remaining_note = (
+                    f" ({steps_remaining} step{'s' if steps_remaining != 1 else ''} remaining"
+                    + (", next MUST be FINAL_ANSWER" if steps_remaining == 1 else "")
+                    + ")"
+                )
+
                 conversation.append(
-                    self._format_exchange(step_num, thought, action, query, observation)
+                    self._format_exchange(
+                        step_num, thought, query, observation, remaining_note
+                    )
                 )
                 continue
 
-            # UNKNOWN / malformed
+            # ----------------------------------------------------------
+            # UNKNOWN / malformed response
+            # ----------------------------------------------------------
             logger.warning(f"[Agent] Step {step_num}: could not parse action.")
             step = AgentStep(
                 step_number=step_num,
@@ -338,14 +439,20 @@ class AgenticSPARQLRunner:
             )
             steps.append(step)
 
+            steps_remaining = self.max_steps - step_num
             conversation.append(
-                f"Step {step_num} result: format not recognized.\n"
-                "Please respond with THOUGHT followed by either ACTION: EXECUTE_SPARQL "
-                "with a sparql_start/sparql_end block, or FINAL_ANSWER: with a sparql_start/sparql_end block."
+                f"Step {step_num}: format not recognized "
+                f"({steps_remaining} step{'s' if steps_remaining != 1 else ''} remaining). "
+                "Respond with THOUGHT followed by either "
+                "ACTION: EXECUTE_SPARQL with a sparql_start/sparql_end block, "
+                "or FINAL_ANSWER: with a sparql_start/sparql_end block."
             )
 
-        # Max steps reached
-        logger.warning("[Agent] Max steps reached. Returning best available query.")
+   
+        logger.warning(
+            "[Agent] Max steps reached without FINAL_ANSWER. "
+            "Returning best available query."
+        )
         last_query = next((s.query for s in reversed(steps) if s.query), "")
         valid, error = (
             self._validate_final_query(last_query)
@@ -379,11 +486,9 @@ class AgenticSPARQLRunner:
         """
         parts = []
 
-        # Schema hints
         if schema_hints and schema_hints.strip():
             parts.append(f"Relevant properties: {schema_hints}")
 
-        # Entities
         if entities:
             ent_str = ", ".join(
                 e.to_sparql_format() if hasattr(e, "to_sparql_format") else str(e)
@@ -391,11 +496,10 @@ class AgenticSPARQLRunner:
             )
             parts.append(f"Identified entities: {ent_str}")
 
-        # Few-shot examples
         if context_examples and context_examples.strip():
             parts.append(f"Similar examples:\n{context_examples}")
 
-        # The question — always last
+        # Question always last
         parts.append(f"Question: {question}")
 
         return "\n\n".join(parts)
@@ -404,15 +508,15 @@ class AgenticSPARQLRunner:
         self,
         step: int,
         thought: str,
-        action: str,
         query: str,
         observation: str,
+        remaining_note: str = "",
     ) -> str:
-        """Formats a completed step for conversation history."""
+        """Formats a completed exploratory step for the conversation history."""
         return (
             f"Step {step} thought: {thought}\n"
             f"Ran query:\n{query}\n"
-            f"Result:\n{observation}"
+            f"Result{remaining_note}:\n{observation}"
         )
 
     # ------------------------------------------------------------------

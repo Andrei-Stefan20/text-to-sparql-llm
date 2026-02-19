@@ -52,7 +52,7 @@
       "cache_dir": "~/.cache/huggingface/hub"
     },
     "dataset": {
-      "name": "casey-martin/qald_9_plus",
+      "name": "local",
       "split": "test",
       "language": "en",
       "limit": 30

@@ -1,17 +1,14 @@
 """
 Evaluation Metrics Module.
 
-This module computes evaluation metrics for SPARQL query generation tasks, focusing on QALD metrics.
+Computes Precision, Recall, and F1 for SPARQL query generation (QALD standard).
+Executes queries against the live Wikidata endpoint with robust rate-limit handling.
 
-Features:
-- Calculates Precision, Recall, and F1 scores for generated queries.
-- Executes queries against the live Wikidata endpoint.
-- Handles errors and retries for evaluation.
-
-Implementation:
-- Uses `OfflineEvaluator` to process results and compute metrics.
-- Supports variable-agnostic result matching and URI normalization.
-- Provides detailed logging for debugging and analysis.
+Key fixes vs. original:
+- Separate 429 retry logic with exponential backoff (up to 60s per retry, 6 attempts)
+- Inter-item throttling: small sleep between evaluations to avoid hammering Wikidata
+- Rate-limit errors tracked separately (not counted as syntax errors)
+- Cleaner progress logging with rate-limit stats
 """
 
 import json
@@ -32,24 +29,44 @@ class OfflineEvaluator:
     Computes standard QALD metrics (Precision, Recall, F1) by executing
     generated SPARQL queries against the live Wikidata endpoint.
 
-    Includes robust handling for:
-    - None / error items in the results list (from failed _process_item calls)
-    - Retries on timeout
+    Robust handling for:
+    - None / error items in the results list
+    - 429 Too Many Requests: exponential backoff, up to RATE_LIMIT_MAX_RETRIES attempts
+    - Timeout retries
     - Variable-agnostic result matching
     - URI normalisation
+    - Inter-item throttling to prevent rate-limit cascades
     """
 
     ENDPOINT_URL = os.getenv("SPARQL_ENDPOINT_URL", "https://query.wikidata.org/sparql")
 
+    # Rate-limit
+    # Delay between consecutive item evaluations (2 SPARQL calls per item).
+    INTER_ITEM_DELAY: float = 0.5
+
+    RATE_LIMIT_MAX_RETRIES: int = 6
+
+    RATE_LIMIT_BASE: float = 2.0
+    RATE_LIMIT_MAX_SLEEP: float = 60.0
+
     @staticmethod
-    def compute_metrics(results: List[Optional[Dict[str, Any]]]) -> Dict[str, float]:
+    def compute_metrics(
+        results: List[Optional[Dict[str, Any]]],
+        inter_item_delay: float = None,
+    ) -> Dict[str, float]:
         """
         Iterates over generated results, executes both Gold and Generated queries,
         and calculates the Macro F1 score.
 
-        Handles None items and items with an "error" key gracefully — they are
-        counted as failures (F1=0) rather than crashing the evaluation.
+        Args:
+            results:          List of result dicts (may contain None or items with "error").
+            inter_item_delay: Seconds to sleep between items. Defaults to
+                              OfflineEvaluator.INTER_ITEM_DELAY (0.5s).
+                              Set to 0 to disable (not recommended for large batches).
         """
+        # Allow caller to override the default throttle
+        delay = inter_item_delay if inter_item_delay is not None else OfflineEvaluator.INTER_ITEM_DELAY
+
         raw_count = len(results)
         valid_results = [r for r in results if r is not None]
 
@@ -64,9 +81,10 @@ class OfflineEvaluator:
             logger.error("No valid results to evaluate.")
             return {"error": "No valid results to evaluate"}
 
-        logger.info(f"Starting Evaluation on {len(valid_results)} items...")
+        logger.info(f"Starting Evaluation on {len(valid_results)} items "
+                    f"(inter-item delay: {delay}s)...")
 
-        # --- Setup SPARQL wrapper ---
+        #  SPARQL wrapper
         sparql = SPARQLWrapper(OfflineEvaluator.ENDPOINT_URL)
         sparql.setReturnFormat(JSON)
         sparql.addCustomHttpHeader("User-Agent", "TextToSparqlEvaluator/1.0")
@@ -75,16 +93,24 @@ class OfflineEvaluator:
         if hasattr(ssl, "_create_unverified_context"):
             ssl._create_default_https_context = ssl._create_unverified_context
 
+        #  Counters 
         total_precision = 0.0
         total_recall = 0.0
         total_f1 = 0.0
-        syntax_errors = 0
-        pipeline_errors = 0
+        syntax_errors = 0      # Generated query failed 
+        pipeline_errors = 0    # Item failed in _process_item before evaluation
+        rate_limit_skips = 0   # Items skipped because Wikidata kept returning 429
         count = 0
         exact_matches = 0
 
-        for item in valid_results:
-            # Items that failed in _process_item have an "error" key set
+        for idx, item in enumerate(valid_results):
+
+            # Throttle: sleep between items to respect Wikidata rate limits.
+            # Skip the very first item.
+            if delay > 0 and idx > 0:
+                time.sleep(delay)
+
+            #  Pipeline errors (failed before we got a query) 
             if item.get("error"):
                 logger.debug(
                     f"ID {item.get('id')}: Pipeline error — {item['error']}. "
@@ -102,15 +128,31 @@ class OfflineEvaluator:
                 count += 1
                 continue
 
-            # Execute Gold
-            gold_results = OfflineEvaluator._execute_query_with_retry(
+            #  Execute gold 
+            gold_results, gold_rate_limited = OfflineEvaluator._execute_query_with_retry(
                 sparql, gold_query
             )
 
-            # Execute Generated
-            gen_results = OfflineEvaluator._execute_query_with_retry(sparql, gen_query)
+            #  Execute generated 
+            gen_results, gen_rate_limited = OfflineEvaluator._execute_query_with_retry(
+                sparql, gen_query
+            )
 
-            # Track syntax/execution errors on the generated query
+            #  Handle rate-limit failures 
+            # If either query was rate-limited beyond all retries, we cannot
+            # evaluate this item fairly. Skip it and track separately.
+            if gold_rate_limited or gen_rate_limited:
+                rate_limit_skips += 1
+                logger.warning(
+                    f"ID {item.get('id')}: Skipped evaluation — "
+                    f"persistent rate-limit (gold_limited={gold_rate_limited}, "
+                    f"gen_limited={gen_rate_limited}). "
+                    "Consider increasing INTER_ITEM_DELAY."
+                )
+                count += 1
+                continue
+
+            #  Track syntax/execution errors on generated query 
             if gen_results is None:
                 syntax_errors += 1
                 gen_results = set()
@@ -123,9 +165,8 @@ class OfflineEvaluator:
                 count += 1
                 continue
 
-            p, r, f1 = OfflineEvaluator._calculate_set_metrics(
-                gold_results, gen_results
-            )
+            #  Compute metrics 
+            p, r, f1 = OfflineEvaluator._calculate_set_metrics(gold_results, gen_results)
 
             total_precision += p
             total_recall += r
@@ -143,35 +184,57 @@ class OfflineEvaluator:
                 "gen_count": len(gen_results),
             }
 
+            # Progress log every 10 items
             if count % 10 == 0:
+                evaluated_so_far = count - pipeline_errors - rate_limit_skips
+                current_f1 = total_f1 / evaluated_so_far if evaluated_so_far > 0 else 0.0
                 logger.info(
-                    f"Evaluated {count}/{len(valid_results)} queries. "
-                    f"Current Macro F1: {total_f1 / count:.4f}"
+                    f"Evaluated {count}/{len(valid_results)} | "
+                    f"Macro F1: {current_f1:.4f} | "
+                    f"SyntaxErr: {syntax_errors} | "
+                    f"RateLimit skips: {rate_limit_skips}"
                 )
 
         if count == 0:
             return {"error": "No items evaluated"}
 
+        # Denominator for averages: items where we actually computed a score
+        scored_count = count - pipeline_errors - rate_limit_skips
+        if scored_count == 0:
+            return {"error": "All items were either pipeline errors or rate-limited"}
+
         metrics = {
-            "precision": round(total_precision / count, 4),
-            "recall": round(total_recall / count, 4),
-            "f1": round(total_f1 / count, 4),
-            "exact_match_rate": round(exact_matches / count, 4),
-            "syntax_error_rate": round(syntax_errors / len(valid_results), 4),
-            "pipeline_error_rate": round(pipeline_errors / len(valid_results), 4),
-            "evaluated_count": count,
-            "exact_matches": exact_matches,
-            "skipped_none": skipped_none,
-            "pipeline_errors": pipeline_errors,
+            "precision":            round(total_precision / scored_count, 4),
+            "recall":               round(total_recall    / scored_count, 4),
+            "f1":                   round(total_f1        / scored_count, 4),
+            "exact_match_rate":     round(exact_matches   / scored_count, 4),
+            "syntax_error_rate":    round(syntax_errors   / len(valid_results), 4),
+            "pipeline_error_rate":  round(pipeline_errors / len(valid_results), 4),
+            "rate_limit_skip_rate": round(rate_limit_skips / len(valid_results), 4),
+            "evaluated_count":      scored_count,
+            "exact_matches":        exact_matches,
+            "skipped_none":         skipped_none,
+            "pipeline_errors":      pipeline_errors,
+            "syntax_errors":        syntax_errors,
+            "rate_limit_skips":     rate_limit_skips,
         }
 
         logger.info("=== Evaluation Summary ===")
-        logger.info(f"Macro F1:       {metrics['f1']}")
-        logger.info(f"Exact Matches:  {exact_matches}/{count}")
-        logger.info(f"Syntax Errors:  {syntax_errors}")
-        logger.info(f"Pipeline Errors:{pipeline_errors}")
+        logger.info(f"Macro F1:           {metrics['f1']}")
+        logger.info(f"Precision:          {metrics['precision']}")
+        logger.info(f"Recall:             {metrics['recall']}")
+        logger.info(f"Exact Matches:      {exact_matches}/{scored_count}")
+        logger.info(f"Syntax Errors:      {syntax_errors}")
+        logger.info(f"Pipeline Errors:    {pipeline_errors}")
+        logger.info(f"Rate-Limit Skips:   {rate_limit_skips}")
         if skipped_none:
             logger.warning(f"None items skipped: {skipped_none}")
+        if rate_limit_skips > 0:
+            logger.warning(
+                f"{rate_limit_skips} items skipped due to persistent 429. "
+                f"Try increasing INTER_ITEM_DELAY (currently {delay}s) "
+                f"or run during off-peak hours."
+            )
 
         return metrics
 
@@ -180,56 +243,94 @@ class OfflineEvaluator:
         sparql_wrapper: SPARQLWrapper,
         query: str,
         max_retries: int = 3,
-    ) -> Optional[Set[Tuple]]:
+    ) -> Tuple[Optional[Set[Tuple]], bool]:
         """
-        Executes a SPARQL query with retry logic for transient errors.
-        Returns None on unrecoverable failure (syntax error, persistent timeout).
+        Executes a SPARQL query with separate retry logic for:
+          - 429 Too Many Requests: exponential backoff, up to RATE_LIMIT_MAX_RETRIES attempts
+          - Timeout: fixed 2s sleep, up to max_retries attempts
+          - Other HTTP errors (400, 500…): immediate None (not retryable)
+
+        Returns:
+            (results_set_or_None, was_rate_limited)
+
+            was_rate_limited=True means we exhausted all 429 retries — the
+            caller should skip this item rather than counting it as a syntax error.
         """
         if not query or not query.strip():
-            return None
+            return None, False
+
+        #  429 handling (exponential backoff, independent retry counter) 
+        rate_limit_attempts = 0
 
         for attempt in range(max_retries):
             try:
                 sparql_wrapper.setQuery(query)
                 ret = sparql_wrapper.query().convert()
-                return OfflineEvaluator._parse_results(ret)
+                return OfflineEvaluator._parse_results(ret), False
 
             except urllib.error.HTTPError as e:
-                if e.code == 429:  # Too Many Requests
-                    time.sleep(2 * (attempt + 1))
+                if e.code == 429:
+                    rate_limit_attempts += 1
+                    if rate_limit_attempts > OfflineEvaluator.RATE_LIMIT_MAX_RETRIES:
+                        logger.error(
+                            f"429 rate limit persists after "
+                            f"{OfflineEvaluator.RATE_LIMIT_MAX_RETRIES} retries. "
+                            "Giving up on this query."
+                        )
+                        return None, True  # Signal: rate-limited, not a real error
+
+                    sleep_time = min(
+                        OfflineEvaluator.RATE_LIMIT_BASE * (2 ** (rate_limit_attempts - 1)),
+                        OfflineEvaluator.RATE_LIMIT_MAX_SLEEP,
+                    )
+                    logger.warning(
+                        f"429 Too Many Requests (attempt {rate_limit_attempts}/"
+                        f"{OfflineEvaluator.RATE_LIMIT_MAX_RETRIES}). "
+                        f"Sleeping {sleep_time:.0f}s before retry..."
+                    )
+                    time.sleep(sleep_time)
+                    # Do NOT increment attempt — 429s don't count against max_retries
+                    # We achieve this by not breaking and looping back
                     continue
-                return None  # e.g. 400 Bad Request = syntax error
+
+                # Other HTTP errors (400 Bad Request = syntax error, 500, etc.)
+                logger.debug(f"HTTP {e.code} error on query: {str(e)[:100]}")
+                return None, False
 
             except Exception as e:
                 error_msg = str(e).lower()
                 if "time-out" in error_msg or "timed out" in error_msg:
                     if attempt < max_retries - 1:
-                        logger.warning(f"Timeout on attempt {attempt + 1}. Retrying...")
+                        logger.warning(
+                            f"Timeout on attempt {attempt + 1}/{max_retries}. "
+                            "Retrying in 2s..."
+                        )
                         time.sleep(2)
                         continue
                     else:
                         logger.error(f"Query timed out after {max_retries} retries.")
-                        return None
-                # Non-timeout error — likely a logic/syntax issue
-                return None
+                        return None, False
 
-        return None
+                # Non-timeout, non-HTTP error (parse error, network issue, etc.)
+                logger.debug(f"Query execution error: {str(e)[:100]}")
+                return None, False
+
+        # Exhausted max_retries (only reached on repeated timeouts)
+        return None, False
 
     @staticmethod
     def _parse_results(ret: Dict) -> Set[Any]:
         """
         Parses JSON SPARQLWrapper results into a canonical set of values.
 
-        - ASK queries → {"true"} or {"false"}
-        - SELECT queries with 1 variable → flat set of values
-        - SELECT queries with N variables → set of tuples
-        - URIs are normalised by stripping the Wikidata entity prefix
+        - ASK queries  → {"true"} or {"false"}
+        - SELECT 1 var → flat set of values
+        - SELECT N var → set of tuples
+        - URIs normalised by stripping the Wikidata entity prefix
         """
-        # ASK queries
         if "boolean" in ret:
             return {str(ret["boolean"]).lower()}
 
-        # SELECT queries
         if "results" not in ret or "bindings" not in ret["results"]:
             return set()
 
@@ -241,7 +342,6 @@ class OfflineEvaluator:
             for v in vars_list:
                 if v in binding:
                     val = binding[v]["value"]
-                    # Normalise Wikidata entity URIs
                     val = val.replace("http://www.wikidata.org/entity/", "")
                     row.append(val)
                 else:
@@ -271,18 +371,16 @@ class OfflineEvaluator:
         if not gold and not gen:
             return 1.0, 1.0, 1.0
 
-        # One side empty → zero score
+        # One side empty → zero
         if not gold or not gen:
             return 0.0, 0.0, 0.0
 
         intersection = len(gold & gen)
-
         precision = intersection / len(gen)
         recall = intersection / len(gold)
 
-        if (precision + recall) == 0:
-            f1 = 0.0
-        else:
+        f1 = 0.0
+        if (precision + recall) > 0:
             f1 = (2 * precision * recall) / (precision + recall)
 
         return precision, recall, f1

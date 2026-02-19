@@ -180,7 +180,7 @@ python main.py dataset.limit=394 model=azure_gpt4_mini linking=all system.experi
 
 # === Llama 33 ===
 (ok) python main.py dataset.limit=394 model=llama_33 linking=rebel system.experiment_name=exp2_rebel_llama_394
-(ok) python main.py dataset.limit=394 model=llama_33 linking=none system.experiment_name=exp2_nolink_llama_394)
+(ok) python main.py dataset.limit=394 model=llama_33 linking=none system.experiment_name=exp2_nolink_llama_394
 ```
 
 ### Results Matrix:
@@ -324,14 +324,29 @@ python main.py dataset.limit=394 model=llama_33 validation.enable_correction=tru
 **Question**: 
 
 ```bash
-# Default (gpt-4o-mini, rebel, 3shot, 394 domande)
-python main_agentic.py prompt=agentic dataset.limit=50 system.experiment_name=exp_agentic_mini
+# M1 — GPT-4-mini (150: economico e statisticamente più robusto)
+python main_agentic.py \
+  prompt=agentic model=azure_gpt4_mini \
+  linking=rebel retrieval=3shot \
+  dataset.limit=5 \
+  prompt.max_steps=5 \
+  system.experiment_name=exp6_agentic_gpt4mini_5
 
-# GPT-4o, max 8 step per domanda
-python main_agentic.py prompt=agentic model=azure_gpt4 prompt.max_steps=8 dataset.limit=50
+# M2 — GPT-4 (100: più costoso, teniamo contenuto)
+python main_agentic.py \
+  prompt=agentic model=azure_gpt4 \
+  linking=rebel retrieval=3shot \
+  dataset.limit=100 \
+  prompt.max_steps=5 \
+  system.experiment_name=exp6_agentic_gpt4_100
 
-# Llama
-python main_agentic.py prompt=agentic model=llama_33 dataset.limit=50
+# M3 — Llama 3.3 (150: gratuito, concorrenza bassa quindi ci vuole tempo)
+python main_agentic.py \
+  prompt=agentic model=llama_33 \
+  linking=rebel retrieval=3shot \
+  dataset.limit=150 \
+  prompt.max_steps=5 \
+  system.experiment_name=exp6_agentic_llama_100
 ```
 
 ### Results Matrix:
