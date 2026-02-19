@@ -87,9 +87,8 @@ Text-to-SQL has mature benchmarks (Spider, WikiSQL). SPARQL is harder because:
 
 | Dataset | Size | Notes |
 |---------|------|-------|
-| QALD-9 | 558 | Using this now |
-| QALD-10 | 412 | Harder, more recent |
-| LC-QuAD 2.0 | 30K | Much bigger, could use for fine-tuning |
+| QALD-10 | 412 | Using this|
+| LC-QuAD 2.0 | 30K | Much bigger, fine-tuning |
 | SimpleQuestions | 100K | Easy, single-hop only |
 
 Links:
