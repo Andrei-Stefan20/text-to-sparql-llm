@@ -1,82 +1,57 @@
 """
 Agentic SPARQL Generation using ReAct (Reason + Act) pattern.
 
-The agent loop:
-  1. Receives: question + entities + context examples + schema hints
-  2. Generates: THOUGHT + ACTION (exploratory SPARQL) OR FINAL_ANSWER
-  3. If ACTION: executes query on Wikidata → OBSERVATION → continues
-  4. If FINAL_ANSWER: validates + returns
+System prompt placeholders resolved before the first LLM call:
+  {max_steps}           → total step budget (e.g. "8")
+  {max_steps_minus_one} → max exploratory steps (e.g. "7")
 
-Response format the LLM must follow:
-─────────────────────────────────────────
-THOUGHT: <reasoning>
-ACTION: EXECUTE_SPARQL
-sparql_start
-<exploratory query>
-sparql_end
-─────────────────────────────────────────
-OR:
-─────────────────────────────────────────
-THOUGHT: <reasoning>
-FINAL_ANSWER:
-sparql_start
-<complete answer query>
-sparql_end
-─────────────────────────────────────────
+Runtime enforcement:
+  - Steps remaining shown after every EXECUTE_SPARQL observation.
+  - Hard reminder injected on the last step.
+  - Last-step salvage: if model still emits EXECUTE_SPARQL, the query is
+    returned as FINAL_ANSWER instead of being discarded.
+
 """
 
 import asyncio
 import logging
 import re
 import ssl
-import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from SPARQLWrapper import JSON, SPARQLWrapper
 
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
 # Data classes
-# ---------------------------------------------------------------------------
 
 
 @dataclass
 class AgentStep:
-    """Records a single reasoning + action step."""
-
     step_number: int
     thought: str
-    action: str  # "EXECUTE_SPARQL" | "FINAL_ANSWER"
-    query: str  # The SPARQL issued in this step
-    observation: Optional[str]  # Result returned by Wikidata (None for FINAL_ANSWER)
+    action: str
+    query: str
+    observation: Optional[str]
     raw_llm_response: str
 
 
 @dataclass
 class AgentResult:
-    """Final result of the agentic run."""
-
     final_query: str
     is_valid: bool
     steps: List[AgentStep] = field(default_factory=list)
     total_steps: int = 0
-    termination_reason: str = ""  # "final_answer" | "max_steps" | "error"
+    termination_reason: str = ""
     validation_error: Optional[str] = None
 
 
-# ---------------------------------------------------------------------------
 # Wikidata tool executor
-# ---------------------------------------------------------------------------
 
 
 class WikidataTool:
-    """
-    Executes exploratory SPARQL queries against Wikidata.
-    """
-
     ENDPOINT = "https://query.wikidata.org/sparql"
     STANDARD_PREFIXES = (
         "PREFIX wd: <http://www.wikidata.org/entity/>\n"
@@ -113,7 +88,6 @@ class WikidataTool:
             self.sparql.setQuery(full_query)
             raw = self.sparql.query().convert()
             return self._format_results(raw)
-
         except Exception as exc:
             err = str(exc).split("\n")[0][:200]
             return f"Error executing query: {err}"
@@ -151,50 +125,30 @@ class WikidataTool:
         return "\n".join([header, col_labels, separator] + data_lines)
 
 
-# ---------------------------------------------------------------------------
 # Response parser
-# ---------------------------------------------------------------------------
 
 
 class AgentResponseParser:
-    """
-    Parses LLM responses that follow the ReAct format.
-    Supports both sparql_start/sparql_end markers and backtick blocks.
-    """
-
     _THOUGHT_RE = re.compile(
         r"THOUGHT\s*[:]\s*(.*?)(?=\nACTION|\nFINAL_ANSWER|$)", re.IGNORECASE | re.DOTALL
     )
     _ACTION_RE = re.compile(r"ACTION\s*[:]\s*EXECUTE_SPARQL", re.IGNORECASE)
     _FINAL_RE = re.compile(r"FINAL_ANSWER\s*[:]?", re.IGNORECASE)
-
-    # Supports sparql_start/sparql_end (primary) and backtick blocks (fallback)
-    _SPARQL_MARKER_RE = re.compile(
+    _SPARQL_MARK_RE = re.compile(
         r"sparql_start\s*([\s\S]*?)\s*sparql_end", re.IGNORECASE
     )
-    _SPARQL_BLOCK_RE = re.compile(r"```(?:sparql)?\s*([\s\S]*?)```", re.IGNORECASE)
+    _SPARQL_BLCK_RE = re.compile(r"```(?:sparql)?\s*([\s\S]*?)```", re.IGNORECASE)
 
     def parse(self, response: str) -> Tuple[str, str, str]:
-        """
-        Returns (thought, action, query).
-        action = "EXECUTE_SPARQL" | "FINAL_ANSWER" | "UNKNOWN"
-        """
         thought = self._extract_thought(response)
         query = self._extract_sparql(response)
 
         if self._FINAL_RE.search(response):
             return thought, "FINAL_ANSWER", query
-
         if self._ACTION_RE.search(response):
             return thought, "EXECUTE_SPARQL", query
-
-        # Fallback: bare SPARQL block with no explicit marker
         if query:
-            logger.debug(
-                "No explicit action found; treating SPARQL block as FINAL_ANSWER."
-            )
             return thought, "FINAL_ANSWER", query
-
         return thought, "UNKNOWN", ""
 
     def _extract_thought(self, text: str) -> str:
@@ -202,18 +156,14 @@ class AgentResponseParser:
         return m.group(1).strip() if m else ""
 
     def _extract_sparql(self, text: str) -> str:
-        """Try sparql_start/end first, then backtick blocks, then bare SELECT/ASK."""
-        # 1. sparql_start / sparql_end markers
-        matches = self._SPARQL_MARKER_RE.findall(text)
+        matches = self._SPARQL_MARK_RE.findall(text)
         if matches:
             return matches[-1].strip()
 
-        # 2. Backtick fenced blocks
-        matches = self._SPARQL_BLOCK_RE.findall(text)
+        matches = self._SPARQL_BLCK_RE.findall(text)
         if matches:
             return matches[-1].strip()
 
-        # 3. Bare SELECT/ASK/CONSTRUCT
         bare = re.search(
             r"((?:PREFIX[^\n]+\n)*\s*(?:SELECT|ASK|CONSTRUCT|DESCRIBE)\s+[\s\S]+)",
             text,
@@ -225,26 +175,15 @@ class AgentResponseParser:
         return ""
 
 
-# ---------------------------------------------------------------------------
 # Core agent loop
-# ---------------------------------------------------------------------------
 
 
 class AgenticSPARQLRunner:
     """
     Orchestrates the ReAct loop for SPARQL generation.
 
-    The system prompt supports two runtime placeholders resolved before the
-    first LLM call so the model always knows its budget:
-
-      {max_steps}           → total steps allowed          (e.g. "5")
-      {max_steps_minus_one} → max exploratory steps allowed (e.g. "4")
-
-    At runtime the loop also:
-      - Appends how many steps remain after each EXECUTE_SPARQL observation.
-      - Injects a hard reminder on the last step so the model cannot emit
-        another EXECUTE_SPARQL instead of FINAL_ANSWER.
-      - Salvages the query if the model ignores the last-step reminder.
+    NOTE: The executor is always self.tool (WikidataTool).
+          There is no self.executor — that attribute never existed.
     """
 
     def __init__(
@@ -257,61 +196,64 @@ class AgenticSPARQLRunner:
     ):
         self.client = client
         self.system_prompt = system_prompt
-        self.tool = wikidata_tool or WikidataTool(timeout=8)
+        self.tool = wikidata_tool or WikidataTool(timeout=8)  # ← self.tool, always
         self.max_steps = max_steps
         self.step_delay = step_delay
         self.parser = AgentResponseParser()
 
-    # ------------------------------------------------------------------
     # System prompt — inject runtime values once per run
-    # ------------------------------------------------------------------
 
     def _resolve_system_prompt(self) -> str:
-        """
-        Replaces {max_steps} and {max_steps_minus_one} placeholders with the
-        actual values for this run.
-
-        Example with max_steps=5:
-          "You have at most {max_steps} steps."
-          → "You have at most 5 steps."
-          "Use at most {max_steps_minus_one} exploratory steps."
-          → "Use at most 4 exploratory steps."
-        """
-        return (
-            self.system_prompt
-            .replace("{max_steps}", str(self.max_steps))
-            .replace("{max_steps_minus_one}", str(self.max_steps - 1))
+        return self.system_prompt.replace("{max_steps}", str(self.max_steps)).replace(
+            "{max_steps_minus_one}", str(self.max_steps - 1)
         )
 
-    # ------------------------------------------------------------------
-    # Main loop
-    # ------------------------------------------------------------------
+    # Optional semantic dry-run (uses self.tool, not self.executor)
 
-    async def _check_semantic_correctness(self, generated_query: str, gold_query: str) -> bool:
-        """ Executes both generated and gold queries on Wikidata and compares results."""
+    async def _check_semantic_correctness(
+        self, generated_query: str, gold_query: str
+    ) -> bool:
+        """
+        Executes both queries via self.tool and compares result sets.
+        Returns True if both return the same values (F1 == 1.0).
+        Only triggered when gold_sparql is explicitly passed to run().
+        """
         try:
-            gen_res_raw = self.executor.execute(generated_query)
-            gold_res_raw = self.executor.execute(gold_query)
-            
-            def get_val_set(res):
-                if not res or 'results' not in res: return set()
-                return {str(row[v]['value']) for row in res['results']['bindings'] for v in row}
+            loop = asyncio.get_event_loop()
+            gen_obs = await loop.run_in_executor(
+                None, self.tool.execute, generated_query
+            )
+            gold_obs = await loop.run_in_executor(None, self.tool.execute, gold_query)
 
-            gen_set = get_val_set(gen_res_raw)
-            gold_set = get_val_set(gold_res_raw)
+            def _parse(obs: str) -> set:
+                vals = set()
+                for line in obs.splitlines():
+                    if "Results (" in line or "---" in line or not line.strip():
+                        continue
+                    for part in line.split("|"):
+                        part = part.strip()
+                        if part:
+                            vals.add(part)
+                return vals
 
-            if not gold_set and not gen_set: return True
-            
-            intersection = gen_set.intersection(gold_set)
-            if not gold_set: return not gen_set
-            
+            gen_set = _parse(gen_obs)
+            gold_set = _parse(gold_obs)
+
+            if not gold_set and not gen_set:
+                return True
+            if not gold_set or not gen_set:
+                return False
+
+            intersection = gen_set & gold_set
             recall = len(intersection) / len(gold_set)
-            precision = len(intersection) / len(gen_set) if gen_set else 0
-            
+            precision = len(intersection) / len(gen_set)
             return recall == 1.0 and precision == 1.0
-        except Exception as e:
-            logger.error(f"Error in semantic check: {e}")
+
+        except Exception as exc:
+            logger.debug(f"[Agent] Semantic check error: {exc}")
             return False
+
+    # Main loop
 
     async def run(
         self,
@@ -321,19 +263,16 @@ class AgenticSPARQLRunner:
         schema_hints: str,
         gold_sparql: Optional[str] = None,
     ) -> AgentResult:
-        """Runs the full ReAct loop for a single question."""
         steps: List[AgentStep] = []
         conversation: List[str] = []
 
-        # Resolve {max_steps} placeholders once — reused for every LLM call
         resolved_system_prompt = self._resolve_system_prompt()
 
-        # Opening prompt: clean context only, no instruction-like text
-        # (avoids Azure jailbreak filter)
-        opening = self._build_initial_prompt(
-            question, entities, context_examples, schema_hints
+        conversation.append(
+            self._build_initial_prompt(
+                question, entities, context_examples, schema_hints
+            )
         )
-        conversation.append(opening)
 
         for step_num in range(1, self.max_steps + 1):
             is_last_step = step_num == self.max_steps
@@ -342,21 +281,17 @@ class AgenticSPARQLRunner:
                 + (" ← LAST STEP, must emit FINAL_ANSWER" if is_last_step else "")
             )
 
-            # Inject a hard reminder on the last step so the model cannot
-            # "forget" and waste it on another exploratory query.
             if is_last_step:
                 conversation.append(
                     f"[Step budget exhausted: {step_num}/{self.max_steps}] "
                     "You have used all your exploratory steps. "
-                    "You MUST now respond with FINAL_ANSWER using the best query "
-                    "you have built so far. Do NOT use EXECUTE_SPARQL."
+                    "You MUST now respond with FINAL_ANSWER. Do NOT use EXECUTE_SPARQL."
                 )
 
             full_prompt = "\n\n".join(conversation)
             raw_response = await self.client.generate(
                 full_prompt, resolved_system_prompt
             )
-
             thought, action, query = self.parser.parse(raw_response)
 
             logger.info(f"[Agent] Thought: {thought[:120]}")
@@ -364,37 +299,34 @@ class AgenticSPARQLRunner:
             if query:
                 logger.debug(f"[Agent] Query  : {query[:200]}")
 
-            # ----------------------------------------------------------
-            # FINAL_ANSWER branch
-            # ----------------------------------------------------------
+            # FINAL_ANSWER
+
             if action == "FINAL_ANSWER":
                 step = AgentStep(
-                    step_number=step_num,
-                    thought=thought,
-                    action="FINAL_ANSWER",
-                    query=query,
-                    observation=None,
-                    raw_llm_response=raw_response,
+                    step_num, thought, "FINAL_ANSWER", query, None, raw_response
                 )
                 steps.append(step)
 
                 is_valid, error = self._validate_final_query(query)
 
-                if is_valid and gold_sparql and step < self.max_steps:
-                    is_correct = await self._check_semantic_correctness(query, gold_sparql)
-                    
-                    if not is_correct:
-                        # Feedback all'agente: non uscire, correggi la query!
-                        observation = (
-                            "OBSERVATION: Pre-check failed. Your query is syntactically correct, "
-                            "but the results DO NOT match the expected answer. "
-                            f"You have {self.max_steps - step} steps left. "
-                            "Please use FORMAT A to test alternative properties (P-IDs) or filters."
-                        )
+                # Optional semantic dry-run (only when gold_sparql supplied AND steps left)
+                if is_valid and gold_sparql and step_num < self.max_steps:
+                    correct = await self._check_semantic_correctness(query, gold_sparql)
+                    if not correct:
+                        steps_left = self.max_steps - step_num
                         conversation.append(
-                            self._format_exchange(step, thought, query, observation)
+                            self._format_exchange(
+                                step_num,
+                                thought,
+                                query,
+                                f"OBSERVATION: Pre-check failed. Results don't match. "
+                                f"{steps_left} step(s) remaining — try a different property.",
+                            )
                         )
-                        logger.info(f"[Agent] Step {step}: Semantic check failed, retrying...")
+                        logger.info(
+                            f"[Agent] Step {step_num}: semantic check failed, retrying."
+                        )
+                        steps.pop()
                         continue
 
                 return AgentResult(
@@ -406,38 +338,24 @@ class AgenticSPARQLRunner:
                     validation_error=error,
                 )
 
-            # ----------------------------------------------------------
-            # EXECUTE_SPARQL branch
-            # ----------------------------------------------------------
+            # EXECUTE_SPARQL
+
             if action == "EXECUTE_SPARQL" and query:
 
-                # Model ignored the last-step reminder — salvage the query
+                # Salvage on last step
                 if is_last_step:
                     logger.warning(
-                        "[Agent] Model emitted EXECUTE_SPARQL on last step — "
-                        "salvaging query as FINAL_ANSWER."
+                        "[Agent] EXECUTE_SPARQL on last step — salvaging as FINAL_ANSWER."
                     )
                     step = AgentStep(
-                        step_number=step_num,
-                        thought=thought,
-                        action="FINAL_ANSWER",  # override
-                        query=query,
-                        observation=None,
-                        raw_llm_response=raw_response,
+                        step_num, thought, "FINAL_ANSWER", query, None, raw_response
                     )
                     steps.append(step)
-
                     valid, error = self._validate_final_query(query)
                     return AgentResult(
-                        final_query=query,
-                        is_valid=valid,
-                        steps=steps,
-                        total_steps=step_num,
-                        termination_reason="max_steps",
-                        validation_error=error,
+                        query, valid, steps, step_num, "max_steps", error
                     )
 
-                # Normal exploratory step
                 if self.step_delay > 0:
                     await asyncio.sleep(self.step_delay)
 
@@ -446,23 +364,21 @@ class AgenticSPARQLRunner:
                 logger.info(f"[Agent] Observation: {observation[:200]}")
 
                 step = AgentStep(
-                    step_number=step_num,
-                    thought=thought,
-                    action="EXECUTE_SPARQL",
-                    query=query,
-                    observation=observation,
-                    raw_llm_response=raw_response,
+                    step_num,
+                    thought,
+                    "EXECUTE_SPARQL",
+                    query,
+                    observation,
+                    raw_response,
                 )
                 steps.append(step)
 
-                # Tell the model how many steps remain so it can plan ahead
                 steps_remaining = self.max_steps - step_num
                 remaining_note = (
                     f" ({steps_remaining} step{'s' if steps_remaining != 1 else ''} remaining"
                     + (", next MUST be FINAL_ANSWER" if steps_remaining == 1 else "")
                     + ")"
                 )
-
                 conversation.append(
                     self._format_exchange(
                         step_num, thought, query, observation, remaining_note
@@ -470,83 +386,46 @@ class AgenticSPARQLRunner:
                 )
                 continue
 
-            # ----------------------------------------------------------
-            # UNKNOWN / malformed response
-            # ----------------------------------------------------------
+            # UNKNOWN
+
             logger.warning(f"[Agent] Step {step_num}: could not parse action.")
-            step = AgentStep(
-                step_number=step_num,
-                thought=thought,
-                action="UNKNOWN",
-                query=query,
-                observation=None,
-                raw_llm_response=raw_response,
-            )
+            step = AgentStep(step_num, thought, "UNKNOWN", query, None, raw_response)
             steps.append(step)
 
             steps_remaining = self.max_steps - step_num
             conversation.append(
                 f"Step {step_num}: format not recognized "
                 f"({steps_remaining} step{'s' if steps_remaining != 1 else ''} remaining). "
-                "Respond with THOUGHT followed by either "
-                "ACTION: EXECUTE_SPARQL with a sparql_start/sparql_end block, "
-                "or FINAL_ANSWER: with a sparql_start/sparql_end block."
+                "Use ACTION: EXECUTE_SPARQL or FINAL_ANSWER: with sparql_start/sparql_end."
             )
 
-   
-        logger.warning(
-            "[Agent] Max steps reached without FINAL_ANSWER. "
-            "Returning best available query."
-        )
+        # Safety net
+        logger.warning("[Agent] Max steps reached. Returning best available query.")
         last_query = next((s.query for s in reversed(steps) if s.query), "")
         valid, error = (
             self._validate_final_query(last_query)
             if last_query
             else (False, "No query generated")
         )
+        return AgentResult(last_query, valid, steps, self.max_steps, "max_steps", error)
 
-        return AgentResult(
-            final_query=last_query,
-            is_valid=valid,
-            steps=steps,
-            total_steps=self.max_steps,
-            termination_reason="max_steps",
-            validation_error=error,
-        )
-
-    # ------------------------------------------------------------------
-    # Prompt builders — CLEAN user turns to avoid Azure content filter
-    # ------------------------------------------------------------------
+    # Prompt builders
 
     def _build_initial_prompt(
-        self,
-        question: str,
-        entities: List,
-        context_examples: str,
-        schema_hints: str,
+        self, question: str, entities: List, context_examples: str, schema_hints: str
     ) -> str:
-        """
-        Builds a CLEAN user prompt with just question + context.
-        No instruction-like meta-text that could trigger Azure jailbreak filter.
-        """
         parts = []
-
         if schema_hints and schema_hints.strip():
             parts.append(f"Relevant properties: {schema_hints}")
-
         if entities:
             ent_str = ", ".join(
                 e.to_sparql_format() if hasattr(e, "to_sparql_format") else str(e)
                 for e in entities
             )
             parts.append(f"Identified entities: {ent_str}")
-
         if context_examples and context_examples.strip():
             parts.append(f"Similar examples:\n{context_examples}")
-
-        # Question always last
         parts.append(f"Question: {question}")
-
         return "\n\n".join(parts)
 
     def _format_exchange(
@@ -557,16 +436,13 @@ class AgenticSPARQLRunner:
         observation: str,
         remaining_note: str = "",
     ) -> str:
-        """Formats a completed exploratory step for the conversation history."""
         return (
             f"Step {step} thought: {thought}\n"
             f"Ran query:\n{query}\n"
             f"Result{remaining_note}:\n{observation}"
         )
 
-    # ------------------------------------------------------------------
     # Validation
-    # ------------------------------------------------------------------
 
     def _validate_final_query(self, query: str) -> Tuple[bool, Optional[str]]:
         if not query or not query.strip():

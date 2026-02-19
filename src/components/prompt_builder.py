@@ -273,8 +273,7 @@ class PromptBuilder:
 
         # 4. Decomposition Template
         parts.append("\n=== DECOMPOSITION ANALYSIS ===")
-        parts.append(
-            """
+        parts.append("""
 Analyze the question complexity:
 - Is this a SIMPLE query (single relationship)? → Write directly
 - Is this a COMPLEX query? → Decompose first
@@ -300,8 +299,7 @@ SELECT ... WHERE {
   # Integration of sub-patterns
 }
 ```
-"""
-        )
+""")
 
         # 5. Output instruction
         parts.append("=== YOUR SOLUTION ===")

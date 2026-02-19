@@ -40,12 +40,14 @@ class OfflineEvaluator:
 
     ENDPOINT_URL = os.getenv("SPARQL_ENDPOINT_URL", "https://query.wikidata.org/sparql")
 
-    # Rate-limit
+    #  Rate-limit tuning 
     # Delay between consecutive item evaluations (2 SPARQL calls per item).
+    # 0.5s → ~1 call/s, well within Wikidata's soft limit of ~10 req/s for robots.
     INTER_ITEM_DELAY: float = 0.5
 
     RATE_LIMIT_MAX_RETRIES: int = 6
 
+    # attempt 0 → 2s, 1 → 4s, 2 → 8s, 3 → 16s, 4 → 32s, 5 → 60s
     RATE_LIMIT_BASE: float = 2.0
     RATE_LIMIT_MAX_SLEEP: float = 60.0
 
@@ -65,8 +67,13 @@ class OfflineEvaluator:
                               Set to 0 to disable (not recommended for large batches).
         """
         # Allow caller to override the default throttle
-        delay = inter_item_delay if inter_item_delay is not None else OfflineEvaluator.INTER_ITEM_DELAY
+        delay = (
+            inter_item_delay
+            if inter_item_delay is not None
+            else OfflineEvaluator.INTER_ITEM_DELAY
+        )
 
+        #  Filter None entries 
         raw_count = len(results)
         valid_results = [r for r in results if r is not None]
 
@@ -81,10 +88,12 @@ class OfflineEvaluator:
             logger.error("No valid results to evaluate.")
             return {"error": "No valid results to evaluate"}
 
-        logger.info(f"Starting Evaluation on {len(valid_results)} items "
-                    f"(inter-item delay: {delay}s)...")
+        logger.info(
+            f"Starting Evaluation on {len(valid_results)} items "
+            f"(inter-item delay: {delay}s)..."
+        )
 
-        #  SPARQL wrapper
+        #  SPARQL wrapper 
         sparql = SPARQLWrapper(OfflineEvaluator.ENDPOINT_URL)
         sparql.setReturnFormat(JSON)
         sparql.addCustomHttpHeader("User-Agent", "TextToSparqlEvaluator/1.0")
@@ -97,16 +106,16 @@ class OfflineEvaluator:
         total_precision = 0.0
         total_recall = 0.0
         total_f1 = 0.0
-        syntax_errors = 0      # Generated query failed 
-        pipeline_errors = 0    # Item failed in _process_item before evaluation
-        rate_limit_skips = 0   # Items skipped because Wikidata kept returning 429
+        syntax_errors = 0  
+        pipeline_errors = 0  
+        rate_limit_skips = 0  
         count = 0
         exact_matches = 0
 
         for idx, item in enumerate(valid_results):
 
-            # Throttle: sleep between items to respect Wikidata rate limits.
-            # Skip the very first item.
+            # Sleep between items to respect Wikidata rate limits.
+            # Skip the very first item (no previous call to rate-limit).
             if delay > 0 and idx > 0:
                 time.sleep(delay)
 
@@ -129,8 +138,8 @@ class OfflineEvaluator:
                 continue
 
             #  Execute gold 
-            gold_results, gold_rate_limited = OfflineEvaluator._execute_query_with_retry(
-                sparql, gold_query
+            gold_results, gold_rate_limited = (
+                OfflineEvaluator._execute_query_with_retry(sparql, gold_query)
             )
 
             #  Execute generated 
@@ -166,7 +175,9 @@ class OfflineEvaluator:
                 continue
 
             #  Compute metrics 
-            p, r, f1 = OfflineEvaluator._calculate_set_metrics(gold_results, gen_results)
+            p, r, f1 = OfflineEvaluator._calculate_set_metrics(
+                gold_results, gen_results
+            )
 
             total_precision += p
             total_recall += r
@@ -187,7 +198,9 @@ class OfflineEvaluator:
             # Progress log every 10 items
             if count % 10 == 0:
                 evaluated_so_far = count - pipeline_errors - rate_limit_skips
-                current_f1 = total_f1 / evaluated_so_far if evaluated_so_far > 0 else 0.0
+                current_f1 = (
+                    total_f1 / evaluated_so_far if evaluated_so_far > 0 else 0.0
+                )
                 logger.info(
                     f"Evaluated {count}/{len(valid_results)} | "
                     f"Macro F1: {current_f1:.4f} | "
@@ -204,19 +217,19 @@ class OfflineEvaluator:
             return {"error": "All items were either pipeline errors or rate-limited"}
 
         metrics = {
-            "precision":            round(total_precision / scored_count, 4),
-            "recall":               round(total_recall    / scored_count, 4),
-            "f1":                   round(total_f1        / scored_count, 4),
-            "exact_match_rate":     round(exact_matches   / scored_count, 4),
-            "syntax_error_rate":    round(syntax_errors   / len(valid_results), 4),
-            "pipeline_error_rate":  round(pipeline_errors / len(valid_results), 4),
+            "precision": round(total_precision / scored_count, 4),
+            "recall": round(total_recall / scored_count, 4),
+            "f1": round(total_f1 / scored_count, 4),
+            "exact_match_rate": round(exact_matches / scored_count, 4),
+            "syntax_error_rate": round(syntax_errors / len(valid_results), 4),
+            "pipeline_error_rate": round(pipeline_errors / len(valid_results), 4),
             "rate_limit_skip_rate": round(rate_limit_skips / len(valid_results), 4),
-            "evaluated_count":      scored_count,
-            "exact_matches":        exact_matches,
-            "skipped_none":         skipped_none,
-            "pipeline_errors":      pipeline_errors,
-            "syntax_errors":        syntax_errors,
-            "rate_limit_skips":     rate_limit_skips,
+            "evaluated_count": scored_count,
+            "exact_matches": exact_matches,
+            "skipped_none": skipped_none,
+            "pipeline_errors": pipeline_errors,
+            "syntax_errors": syntax_errors,
+            "rate_limit_skips": rate_limit_skips,
         }
 
         logger.info("=== Evaluation Summary ===")
@@ -246,7 +259,7 @@ class OfflineEvaluator:
     ) -> Tuple[Optional[Set[Tuple]], bool]:
         """
         Executes a SPARQL query with separate retry logic for:
-          - 429 Too Many Requests: exponential backoff, up to RATE_LIMIT_MAX_RETRIES attempts
+          - Too Many Requests: exponential backoff, up to RATE_LIMIT_MAX_RETRIES attempts
           - Timeout: fixed 2s sleep, up to max_retries attempts
           - Other HTTP errors (400, 500…): immediate None (not retryable)
 
@@ -259,7 +272,6 @@ class OfflineEvaluator:
         if not query or not query.strip():
             return None, False
 
-        #  429 handling (exponential backoff, independent retry counter) 
         rate_limit_attempts = 0
 
         for attempt in range(max_retries):
@@ -277,10 +289,11 @@ class OfflineEvaluator:
                             f"{OfflineEvaluator.RATE_LIMIT_MAX_RETRIES} retries. "
                             "Giving up on this query."
                         )
-                        return None, True  # Signal: rate-limited, not a real error
+                        return None, True  # Signal, rate-limited, not a real error
 
                     sleep_time = min(
-                        OfflineEvaluator.RATE_LIMIT_BASE * (2 ** (rate_limit_attempts - 1)),
+                        OfflineEvaluator.RATE_LIMIT_BASE
+                        * (2 ** (rate_limit_attempts - 1)),
                         OfflineEvaluator.RATE_LIMIT_MAX_SLEEP,
                     )
                     logger.warning(
@@ -289,8 +302,6 @@ class OfflineEvaluator:
                         f"Sleeping {sleep_time:.0f}s before retry..."
                     )
                     time.sleep(sleep_time)
-                    # Do NOT increment attempt — 429s don't count against max_retries
-                    # We achieve this by not breaking and looping back
                     continue
 
                 # Other HTTP errors (400 Bad Request = syntax error, 500, etc.)
@@ -384,3 +395,33 @@ class OfflineEvaluator:
             f1 = (2 * precision * recall) / (precision + recall)
 
         return precision, recall, f1
+
+
+# 
+# Utility function used by query_validator.py
+# 
+def compare_results(
+    gen_results: list,
+    gold_results: list,
+) -> tuple:
+    """
+    Computes (F1, precision, recall) between two flat result lists.
+    Used by SPARQLValidator.validate_semantic() for dry-run checks.
+    """
+    gen_set = set(str(v) for v in gen_results) if gen_results else set()
+    gold_set = set(str(v) for v in gold_results) if gold_results else set()
+
+    if not gold_set and not gen_set:
+        return 1.0, 1.0, 1.0
+    if not gold_set or not gen_set:
+        return 0.0, 0.0, 0.0
+
+    intersection = len(gen_set & gold_set)
+    precision = intersection / len(gen_set)
+    recall = intersection / len(gold_set)
+    f1 = (
+        (2 * precision * recall) / (precision + recall)
+        if (precision + recall) > 0
+        else 0.0
+    )
+    return f1, precision, recall

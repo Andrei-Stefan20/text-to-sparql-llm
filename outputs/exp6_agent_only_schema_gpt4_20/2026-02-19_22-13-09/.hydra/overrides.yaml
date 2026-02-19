@@ -1,0 +1,8 @@
+- dataset.limit=20
+- model=azure_gpt4
+- prompt=agentic
+- prompt=agentic
+- prompt.max_steps=8
+- retrieval.k=0
+- prompt.include_schema_hint=true
+- system.experiment_name=exp6_agent_only_schema_gpt4_20

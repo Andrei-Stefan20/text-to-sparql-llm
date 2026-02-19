@@ -59,9 +59,9 @@ def get_client(cfg: DictConfig):
     raise ValueError(f"Unsupported platform: {platform}")
 
 
-# ---------------------------------------------------------------------------
+
 # Run-name generator (agentic flavour)
-# ---------------------------------------------------------------------------
+
 
 
 def _run_name(cfg: DictConfig) -> str:
@@ -74,9 +74,9 @@ def _run_name(cfg: DictConfig) -> str:
     return f"agentic_{model}_{k}shot_{linker}_steps{steps}_{lim_str}"
 
 
-# ---------------------------------------------------------------------------
+
 # Compute summary stats from results
-# ---------------------------------------------------------------------------
+
 
 
 def _compute_stats(results: list) -> dict:
@@ -104,9 +104,9 @@ def _compute_stats(results: list) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
+
 # Main
-# ---------------------------------------------------------------------------
+
 
 
 @hydra.main(config_path="conf", config_name="config", version_base=None)
@@ -131,7 +131,7 @@ def main(cfg: DictConfig):
     exp_logger = ExperimentLogger(cfg, output_dir=output_dir)
 
     try:
-        #  1. Load dataset 
+        #  1. Load dataset
         logger.info("Loading dataset...")
         loader = DatasetLoader(
             dataset_name=cfg.dataset.name,
@@ -149,7 +149,7 @@ def main(cfg: DictConfig):
 
         logger.info(f"Dataset size: {len(dataset)} questions")
 
-        #  2. Initialise components 
+        #  2. Initialise components
         logger.info("Initialising components...")
 
         client = get_client(cfg.model)
@@ -170,14 +170,13 @@ def main(cfg: DictConfig):
         )
 
         # Agentic mode uses lower concurrency to respect Wikidata rate limits
-        # Each agent step makes a real HTTP call, so we cap at 3 concurrent agents
         concurrency = min(cfg.model.concurrency, 3)
         logger.info(
             f"Agent config — max_steps={max_steps}, "
             f"step_delay={step_delay}s, concurrency={concurrency}"
         )
 
-        #  3. Run pipeline 
+        #  3. Run pipeline
         runner = AgenticBatchRunner(
             client=client,
             system_prompt=system_prompt,
@@ -190,11 +189,11 @@ def main(cfg: DictConfig):
 
         results = asyncio.run(runner.run(dataset, linker, retriever))
 
-        #  4. Stats (no Wikidata evaluation — use GERBIL externally) 
+        #  4. Stats 
         stats = _compute_stats(results)
         logger.info(f"Pipeline stats: {stats}")
 
-        #  5. Save artifacts 
+        #  5. Save artifacts
         final_output = {
             "meta": {
                 "run_id": run_id,

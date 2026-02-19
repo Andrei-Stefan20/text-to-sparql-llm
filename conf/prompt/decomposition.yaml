@@ -1,5 +1,4 @@
-name: "decomposition"
-strategy: "decomposition"  # Query decomposition into sub-queries
+# Query decomposition into sub-queries
 
 # This YAML file defines the Decomposition prompting strategy for handling complex SPARQL queries.
 # It specifies the system message, rules for final queries, and guidelines for query decomposition.
@@ -9,6 +8,10 @@ strategy: "decomposition"  # Query decomposition into sub-queries
 # - Query decomposition: Guides the agent to break down complex questions into simpler sub-queries and combine them into a final query.
 
 # System prompt for decomposition - handles complex multi-part queries
+
+name: "decomposition"
+strategy: "decomposition"  
+
 system_message: |
   You are a SPARQL expert for Wikidata specializing in complex queries.
 

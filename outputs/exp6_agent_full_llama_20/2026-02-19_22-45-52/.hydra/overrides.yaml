@@ -1,0 +1,5 @@
+- dataset.limit=20
+- model=llama_33
+- prompt=agentic
+- prompt.max_steps=8
+- system.experiment_name=exp6_agent_full_llama_20

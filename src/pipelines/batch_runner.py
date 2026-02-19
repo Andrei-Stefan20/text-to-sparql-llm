@@ -96,9 +96,9 @@ class BatchRunner:
             self.validator = None
             self.correction_loop = None
 
-    # ------------------------------------------------------------------
+    # 
     # Helpers
-    # ------------------------------------------------------------------
+    # 
 
     def _merge_entities(
         self,

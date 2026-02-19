@@ -4,14 +4,14 @@ Testing roadmap for the thesis project. Same structure as the 100-question plan 
 
 **Started**: February 2026
 
----
+
 
 ## Models to Test
 
 Every experiment below should be repeated for each model:
 
 | Model ID | Config | Notes |
-|----------|--------|-------|
+|-|--|-|
 | **M1** | `model=azure_gpt4_mini` | Cheapest, baseline |
 | **M2** | `model=azure_gpt4` | More expensive, better? |
 | **M3** | `model=llama_33` | Free, slower |
@@ -19,7 +19,7 @@ Every experiment below should be repeated for each model:
 **Naming convention**: `exp{N}_{test}_{model}_394`
 - Example: `exp1_cot_gpt4mini_394`, `exp1_cot_gpt4_394`, `exp1_cot_llama_394`
 
----
+
 
 ## Before Starting: Sanity Checks
 
@@ -36,7 +36,7 @@ python src/debug/prompts.py prompt=cot linking.device=-1
 
 If any of these fail, fix that first before running anything.
 
----
+
 
 ## test Tests (limit=10)
 
@@ -65,7 +65,7 @@ python main.py dataset.limit=10 model=azure_gpt4_mini linking=relik system.exper
 ```
 
 | Config | Model | Crashed? | Notes |
-| --- | --- | --- | --- |
+|  |  |  |  |
 | standard | GPT-4-mini | | |
 | cot | GPT-4-mini | | |
 | decomposition | GPT-4-mini | | |
@@ -81,7 +81,7 @@ python main.py dataset.limit=10 model=azure_gpt4_mini linking=relik system.exper
 | standard | Llama | | |
 | cot | Llama | | |
 
----
+
 
 ## Research Questions
 
@@ -118,7 +118,7 @@ python main.py dataset.limit=10 model=azure_gpt4_mini linking=relik system.exper
    - Do models actually need the Entity Linker, or do they know common QIDs?
    - Do they need Schema Retrieval, or do they know properties?
 
----
+
 
 ## Experiment 1: Prompting Strategies
 
@@ -146,7 +146,7 @@ python main.py dataset.limit=10 model=azure_gpt4_mini linking=relik system.exper
 ### Results Matrix:
 
 | Strategy | GPT-4-mini | GPT-4 | Llama 33 |
-| --- | --- | --- | --- |
+|  |  |  |  |
 | standard | ___/394 | ___/394 | ___/394 |
 | cot | ___/394 | ___/394 | ___/394 |
 | decomposition | ___/394 | ___/394 | ___/394 |
@@ -159,7 +159,7 @@ python main.py dataset.limit=10 model=azure_gpt4_mini linking=relik system.exper
 * Does CoT help more on complex multi-hop questions? ___
 * Does strategy effect vary by model? ___
 
----
+
 
 ## Experiment 2: Entity Linking
 
@@ -186,7 +186,7 @@ python main.py dataset.limit=394 model=azure_gpt4_mini linking=all system.experi
 ### Results Matrix:
 
 | Linker | GPT-4-mini | GPT-4 | Llama 33 |
-| --- | --- | --- | --- |
+|  |  |  |  |
 | REBEL | ___/394 | ___/394 | ___/394 |
 | ReLiK | ___/394 | — | — |
 | Both | ___/394 | — | — |
@@ -199,7 +199,7 @@ python main.py dataset.limit=394 model=azure_gpt4_mini linking=all system.experi
 * If None >= REBEL: linker is introducing noise, check entity filter ___
 * Does GPT-4 need the linker less than GPT-4-mini? ___
 
----
+
 
 ## Experiment 3: Self-Correction
 
@@ -225,7 +225,7 @@ python main.py dataset.limit=394 model=llama_33 validation.enable_correction=tru
 ### Results Matrix:
 
 | Correction | GPT-4-mini | GPT-4 | Llama 33 |
-| --- | --- | --- | --- |
+|  |  |  |  |
 | None | ___/394 | ___/394 | ___/394 |
 | 3 attempts | ___/394 | ___/394 | ___/394 |
 | 5 attempts | ___/394 | — | — |
@@ -239,7 +239,7 @@ python main.py dataset.limit=394 model=llama_33 validation.enable_correction=tru
   * Llama: +___%
 * Is 5 attempts better than 3? Or diminishing returns? ___
 
----
+
 
 ## Experiment 4: Few-Shot Retrieval
 
@@ -269,7 +269,7 @@ python main.py dataset.limit=394 model=llama_33 validation.enable_correction=tru
 ### Results Matrix:
 
 | Examples | GPT-4-mini | GPT-4 | Llama 33 |
-| --- | --- | --- | --- |
+|  |  |  |  |
 | 0-shot | ___/394 | ___/394 | ___/394 |
 | 1-shot | ___/394 | — | ___/394 |
 | 3-shot | ___/394 | ___/394 | ___/394 |
@@ -284,7 +284,7 @@ python main.py dataset.limit=394 model=llama_33 validation.enable_correction=tru
   * GPT-4: ___
   * Llama: ___
 
----
+
 
 ## Experiment 5: Self-Consistency
 
@@ -307,7 +307,7 @@ python main.py dataset.limit=394 model=llama_33 validation.enable_correction=tru
 ### Results Matrix:
 
 | Samples | GPT-4-mini | Cost factor | Llama 33 | Cost factor |
-| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
 | 1 | ___/394 | 1x | ___/394 | 1x |
 | 3 | ___/394 | 3x | ___/394 | 3x |
 | 5 | ___/394 | 5x | ___/394 | 5x |
@@ -317,7 +317,7 @@ python main.py dataset.limit=394 model=llama_33 validation.enable_correction=tru
 * Is the gain from 1→3 samples worth 3x the cost? ___
 * Does voting help more for GPT-4-mini (more errors to correct)? ___
 
----
+
 
 ## Experiment 6: Agent
 
@@ -326,109 +326,59 @@ python main.py dataset.limit=394 model=llama_33 validation.enable_correction=tru
 ```bash
 
 
-# GPT-4o-mini Standard
-python main.py dataset.limit=394 model=azure_gpt4_mini prompt=standard system.experiment_name=exp8_baseline_mini_394
+#  FULL AGENTIC PIPELINE 
 
-# GPT-4o Standard
-python main.py dataset.limit=394 model=azure_gpt4 prompt=standard system.experiment_name=exp8_baseline_gpt4_394
+# GPT-4o-mini Full Agent
+(ok) python main_agentic.py dataset.limit=20 model=azure_gpt4_mini prompt=agentic prompt.max_steps=8 system.experiment_name=exp6_agent_full_mini_20
 
-# Llama 3.3 Standard
-python main.py dataset.limit=394 model=llama_33 prompt=standard system.experiment_name=exp8_baseline_llama_394
+# GPT-4o Full Agent 
+(ok) python main_agentic.py dataset.limit=20 model=azure_gpt4 prompt=agentic prompt.max_steps=8 system.experiment_name=exp6_agent_full_gpt4_20
+
+# Llama 3.3 Full Agent 
+python main_agentic.py dataset.limit=20 model=llama_33 prompt=agentic prompt.max_steps=8 system.experiment_name=exp6_agent_full_llama_20
 
 
-# GPT-4o-mini Full Agent (Economico)
-python main_agentic.py dataset.limit=394 model=azure_gpt4_mini prompt=agentic prompt.max_steps=8 system.experiment_name=exp6_agent_full_mini_394
-
-# GPT-4o Full Agent (Stato dell'Arte)
-python main_agentic.py dataset.limit=394 model=azure_gpt4 prompt=agentic prompt.max_steps=8 system.experiment_name=exp6_agent_full_gpt4_394
-
-# Llama 3.3 Full Agent (Open Source)
-python main_agentic.py dataset.limit=394 model=llama_33 prompt=agentic prompt.max_steps=8 system.experiment_name=exp6_agent_full_llama_394
+#  BLIND AGENTS (Agentic approach WITHOUT Schema Hints) 
 
 # GPT-4o-mini Agent - NO HINTS
-python main_agentic.py dataset.limit=394 model=azure_gpt4_mini prompt=agentic prompt.max_steps=8 prompt.include_schema_hint=false system.experiment_name=exp6_agent_blind_mini_394
+(ok) python main_agentic.py dataset.limit=20 model=azure_gpt4_mini prompt=agentic prompt.max_steps=8 prompt.include_schema_hint=false system.experiment_name=exp6_agent_blind_mini_20
 
 # GPT-4o Agent - NO HINTS
-python main_agentic.py dataset.limit=394 model=azure_gpt4 prompt=agentic prompt.max_steps=8 prompt.include_schema_hint=false system.experiment_name=exp6_agent_blind_gpt4_394
+(ok) python main_agentic.py dataset.limit=20 model=azure_gpt4 prompt=agentic prompt.max_steps=8 prompt.include_schema_hint=false system.experiment_name=exp6_agent_blind_gpt4_20
 
 # Llama 3.3 Agent - NO HINTS
-python main_agentic.py dataset.limit=394 model=llama_33 prompt=agentic prompt.max_steps=8 prompt.include_schema_hint=false system.experiment_name=exp6_agent_blind_llama_394
-
-# Budget ridotto a 5 step (per vedere se l'agente "corre" troppo)
-python main_agentic.py dataset.limit=394 model=azure_gpt4_mini prompt.max_steps=5 system.experiment_name=exp6_agent_budget5_mini_394
-
-# Zero-Shot Agent (Senza esempi nel prompt)
-python main_agentic.py dataset.limit=394 model=azure_gpt4 prompt.include_examples=false prompt.max_steps=8 system.experiment_name=exp6_agent_0shot_gpt4_394
+python main_agentic.py dataset.limit=20 model=llama_33 prompt=agentic prompt.max_steps=8 prompt.include_schema_hint=false system.experiment_name=exp6_agent_blind_llama_20
 
 
-# Impatto del numero di suggerimenti (K=10 invece di 5)
-# Un K più alto aiuta l'agente a trovare P39 se è sepolto tra altri risultati
-python main_agentic.py dataset.limit=394 model=azure_gpt4_mini prompt.max_steps=8 retrieval.k_properties=10 system.experiment_name=exp6_agent_k10_mini_394
+#  VARIATIONS AND STRESS TESTS 
 
-# Impatto del Retrieval vs Memoria Interna
-# Usiamo solo i suggerimenti dello schema SENZA esempi few-shot
-python main_agentic.py dataset.limit=394 model=azure_gpt4 prompt.max_steps=8 retrieval.k=0 prompt.include_schema_hint=true system.experiment_name=exp6_agent_only_schema_gpt4_394
+# Reduced budget: 5 steps (to see if the agent rushes logic)
+(ok) python main_agentic.py dataset.limit=20 model=azure_gpt4_mini prompt=agentic prompt.max_steps=5 system.experiment_name=exp6_agent_budget5_mini_20
 
-# "The Power of Reasoning": Mini con budget altissimo (12 step)
-# Può il Mini compensare la minor logica con più tentativi?
-python main_agentic.py dataset.limit=394 model=azure_gpt4_mini prompt.max_steps=12 system.experiment_name=exp6_agent_marathon_mini_394
+# Zero-Shot Agent (No examples provided in the prompt)
+(ok) python main_agentic.py dataset.limit=20 model=azure_gpt4 prompt=agentic  prompt.include_examples=false prompt.max_steps=8 system.experiment_name=exp6_agent_0shot_gpt4_20
 
-# "The Oracle": GPT-4 con budget minimo (3 step)
-# Un modello top può indovinare quasi subito se ha gli hints corretti?
-python main_agentic.py dataset.limit=394 model=azure_gpt4 prompt.max_steps=3 system.experiment_name=exp6_agent_fast_gpt4_394
+# Impact of Hint Count: K=10 instead of 5
+# Higher K helps the agent find deep properties like P39 among noisy results
+(ok) python main_agentic.py dataset.limit=20 model=azure_gpt4_mini prompt=agentic prompt.max_steps=8 retrieval.k=10 system.experiment_name=exp6_agent_k10_mini_20
 
-# M1 — GPT-4-mini (150: economico e statisticamente più robusto)
-python main_agentic.py \
-  prompt=agentic model=azure_gpt4_mini \
-  linking=rebel retrieval=3shot \
-  dataset.limit=150 \
-  prompt.max_steps=5 \
-  system.experiment_name=exp6_agentic_gpt4mini_150
+# Retrieval vs Internal Memory
+# Uses schema hints but NO few-shot examples (schema knowledge)
+(ok) python main_agentic.py dataset.limit=20 model=azure_gpt4 prompt=agentic prompt=agentic prompt.max_steps=8 retrieval.k=0 prompt.include_schema_hint=true system.experiment_name=exp6_agent_only_schema_gpt4_20
 
-python main_agentic.py \
-  prompt=agentic model=azure_gpt4_mini \
-  linking=rebel retrieval=3shot \
-  dataset.limit=5 \
-  prompt.max_steps=8 \
-  prompt.include_schema_hint=false \
-  system.experiment_name=exp6_agentic_gpt4mini_5
-  
+# Mini model with high budget (12 steps)
+# Can the smaller model compensate for lower logic with more attempts?
+(ok) python main_agentic.py dataset.limit=20 model=azure_gpt4_mini prompt=agentic  prompt.max_steps=12 system.experiment_name=exp6_agent_marathon_mini_20
 
-# M2 — GPT-4 (100: più costoso, teniamo contenuto)
-python main_agentic.py \
-  prompt=agentic model=azure_gpt4 \
-  linking=rebel retrieval=3shot \
-  dataset.limit=100 \
-  prompt.max_steps=5 \
-  system.experiment_name=exp6_agentic_gpt4_100
-
-  python main_agentic.py \
-  prompt=agentic model=azure_gpt4 \
-  linking=rebel retrieval=3shot \
-  dataset.limit=5 \
-  prompt.max_steps=8 \
-  system.experiment_name=exp6_agentic_gpt4_5
-
-# M3 — Llama 3.3 (150: gratuito, concorrenza bassa quindi ci vuole tempo)
-python main_agentic.py \
-  prompt=agentic model=llama_33 \
-  linking=rebel retrieval=3shot \
-  dataset.limit=150 \
-  prompt.max_steps=5 \
-  system.experiment_name=exp6_agentic_llama_100
-
-  python main_agentic.py \
-  prompt=agentic model=llama_33 \
-  linking=rebel retrieval=3shot \
-  dataset.limit=5 \
-  prompt.max_steps=8 \
-  system.experiment_name=exp6_agentic_llama_5
+# GPT-4 with minimum budget (3 steps)
+# Can the top model guess the path almost immediately with correct hints?
+(ok) python main_agentic.py dataset.limit=20 model=azure_gpt4 prompt=agentic  prompt.max_steps=3 system.experiment_name=exp6_agent_fast_gpt4_20
 ```
 
 ### Results Matrix:
 
 | Prompt Rules | GPT-4-mini | Llama 33 | Boolean errors | Syntax errors |
-| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
 | Minimal (no rules) | ___/394 | ___/394 | ___ | ___ |
 | Standard (current) | ___/394 | ___/394 | ___ | ___ |
 | Strict + negative examples | ___/394 | ___/394 | ___ | ___ |
@@ -439,7 +389,7 @@ python main_agentic.py \
 * Does the no-subquery rule help? ___
 * Is strict > standard, or does over-constraining hurt? ___
 
----
+
 
 ## Experiment 7: Ablation Study
 
@@ -504,7 +454,7 @@ This is the most important experiment for the thesis.
 ### Results Matrix:
 
 | Configuration | GPT-4-mini | GPT-4 | Llama 33 |
-| --- | --- | --- | --- |
+|  |  |  |  |
 | **Pure LLM** (no tools) | ___/394 | ___/394 | ___/394 |
 | **Linker only** | ___/394 | — | ___/394 |
 | **RAG only** | ___/394 | — | ___/394 |
@@ -522,7 +472,7 @@ This is the most important experiment for the thesis.
 * Does GPT-4 need the linker less than GPT-4-mini? ___
 * Does Llama benefit more from RAG? ___
 
----
+
 
 ## Best Configuration (per model)
 
@@ -562,12 +512,12 @@ python main.py dataset.limit=394 \
 ### Final Results:
 
 | Model | Best Config | Score |
-| --- | --- | --- |
+|  |  |  |
 | GPT-4-mini | | ___/394 |
 | GPT-4 | | ___/394 |
 | Llama 33 | | ___/394 |
 
----
+
 
 ## Master Results Table
 
@@ -576,7 +526,7 @@ All experiments summarized:
 ### By Model: GPT-4-mini
 
 | Experiment | Config | Result | Notes |
-| --- | --- | --- | --- |
+|  |  |  |  |
 | 1A | standard (394) | | |
 | 1B | cot (394) | | |
 | 1C | decomposition (394) | | |
@@ -609,7 +559,7 @@ All experiments summarized:
 ### By Model: GPT-4
 
 | Experiment | Config | Result | Notes |
-| --- | --- | --- | --- |
+|  |  |  |  |
 | 1A | standard (394) | | |
 | 1B | cot (394) | | |
 | 1C | decomposition (394) | | |
@@ -627,7 +577,7 @@ All experiments summarized:
 ### By Model: Llama 33
 
 | Experiment | Config | Result | Notes |
-| --- | --- | --- | --- |
+|  |  |  |  |
 | 1A | standard (394) | | |
 | 1B | cot (394) | | |
 | 1C | decomposition (394) | | |
@@ -650,7 +600,7 @@ All experiments summarized:
 | 7H | Full system (394) | | Ablation |
 | FINAL | Best composite (394) | | Primary result |
 
----
+
 
 ## Error Analysis
 
@@ -683,12 +633,12 @@ After running experiments, look at the failures:
 ### Failed queries to investigate:
 
 | Question | What went wrong | Ideas to fix |
-| --- | --- | --- |
+|  |  |  |
 | | | |
 | | | |
 | | | |
 
----
+
 
 ## My Conclusions
 
@@ -723,12 +673,12 @@ python main.py model=___ prompt=___ linking=___ retrieval.k=___
 python main.py model=___ prompt=___ linking=___ validation.enable_correction=true validation.max_attempts=3
 ```
 
----
+
 
 ## Cost Tracking
 
 | Date | Model | Experiment | API Calls | Est. Cost | Total |
-| --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |
 | | GPT-4-mini | test (all, 10q x 10) | ~100 | ~$0.01 | |
 | | GPT-4-mini | Exp 1 (3 runs x 394) | ~1,182 | ~$0.15 | |
 | | GPT-4-mini | Exp 2 (4 runs x 394) | ~1,576 | ~$0.20 | |
@@ -741,7 +691,7 @@ python main.py model=___ prompt=___ linking=___ validation.enable_correction=tru
 | | Llama 33 | All experiments | any | $0 | |
 | **Total** | | | | | |
 
----
+
 
 ## Checklist
 

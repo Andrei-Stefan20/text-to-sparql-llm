@@ -1,0 +1,5 @@
+- dataset.limit=20
+- model=azure_gpt4
+- prompt=agentic
+- prompt.max_steps=3
+- system.experiment_name=exp6_agent_fast_gpt4_20

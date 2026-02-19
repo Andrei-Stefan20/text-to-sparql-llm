@@ -1,0 +1,114 @@
+model:
+  name: llama-3.3-70b
+  platform: openai
+  env_var: LLAMA_API_KEY
+  model_name: Llama-3.3-70B-Instruct
+  connection:
+    base_url: LLAMA_ENDPOINT
+  params:
+    temperature: 0.1
+    max_tokens: 1024
+    top_p: 0.95
+  max_retries: 5
+  timeout: 120
+  system_prompt: 'You are a SPARQL expert for Wikidata.
+
+    Generate ONLY valid SPARQL query code.
+
+    Do NOT include explanations, comments, code blocks, or any text.
+
+    Output ONLY the query starting with SELECT or CONSTRUCT.
+
+    '
+  concurrency: 2
+linking:
+  method: rebel
+  model_path: Babelscape/rebel-large
+  device: -1
+  use_wikidata_fallback: true
+retrieval:
+  k: 3
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+prompt:
+  name: agentic
+  strategy: agentic
+  system_message: "You are an expert Wikidata SPARQL agent. Your goal is to solve\
+    \ complex natural language questions by converting them into precise SPARQL queries.\n\
+    \nTOOLS:\nYou have one tool: EXECUTE_SPARQL — run a query on Wikidata to verify\
+    \ QIDs, P-IDs, and the schema of specific entities.\n\nSTEP BUDGET:\nTotal steps:\
+    \ {max_steps}. Exploratory: {max_steps_minus_one}. Step {max_steps} MUST be a\
+    \ FINAL_ANSWER.\nPlan efficiently: do not waste steps on redundant checks.\n\n\
+    RESPONSE FORMAT:\n\nFORMAT A (Exploratory Step):\nTHOUGHT: \n  - CURRENT KNOWLEDGE:\
+    \ <What IDs have been verified so far?>\n  - UNKNOWN: <What specific ID or property\
+    \ is still missing or unverified?>\n  - STRATEGY: <How will this specific SPARQL\
+    \ query help find the missing piece?>\nACTION: EXECUTE_SPARQL\nsparql_start\n\
+    <isolated exploratory query>\nsparql_end\n\nFORMAT B (Final Answer):\nTHOUGHT:\
+    \ \n  - REASONING: <How the discovered IDs relate to the user question>\n  - SELF-CORRECTION\
+    \ CHECKLIST:\n    1. Is the final answer hardcoded? (Must be NO)\n    2. Does\
+    \ the WHERE clause connect starting entities to the ?answer variable? (Must be\
+    \ YES)\n    3. Are the variables in SELECT present in the WHERE clause? (Must\
+    \ be YES)\nFINAL_ANSWER:\nsparql_start\n<complete, generalized query>\nsparql_end\n\
+    \nRULES:\n1. Avoid guessing QIDs/P-IDs. Always verify them using rdfs:label or\
+    \ entity descriptions in exploratory steps.\n2. If the question is 'Who', 'Which',\
+    \ 'Among', always use SELECT ?answer. Use ASK only for Yes/No questions.\n3. Dates:\
+    \ use FILTER(YEAR(?date) > 1990). No SERVICE wikibase:label in FINAL_ANSWER.\n\
+    4. LEAST-TO-MOST: For complex questions, break them down. Use Step 1 for the first\
+    \ entity, Step 2 for the relation, etc.\n5. CHAIN-OF-VERIFICATION: When you find\
+    \ a QID, verify its label to ensure it is the correct entity (e.g., Tencent the\
+    \ company vs Tencent the person).\n6. AVOID HARDCODING: Do not use FORMAT A to\
+    \ find the result string and hardcode it. Use it to find the *path* to the result.\n\
+    7. The FINAL_ANSWER should not contain the literal result (e.g., wd:Q42299 for\
+    \ Riemann). It must contain the logic to find it.\n8. If a query returns no results,\
+    \ try the inverse direction or a different property immediately.\n9. USE ?answer\
+    \ as the primary return variable name.\n10. EXPLORATION IS REQUIRED: Please do\
+    \ not provide a FINAL_ANSWER at Step 1. You should perform at least TWO exploratory\
+    \ steps (FORMAT A) to verify the existence of entities and properties.\n11. NO\
+    \ INTERNAL MEMORY: Rely on the data. If a QID appears in your FINAL_ANSWER that\
+    \ was not explicitly verified in a previous Step Observation, it will be considered\
+    \ incorrect.\n12. LABEL VALIDATION: For every QID you find, you must run a query\
+    \ to check its `rdfs:label`. \n13. PREVENT TIMEOUTS: Please avoid using `FILTER(CONTAINS(?label,\
+    \ ...))` or `LCASE()`. To search by name, use exactly: `?var rdfs:label \\\"Exact\
+    \ Name\\\"@en.` If it fails, try capitalizing the first letters.\n14. DON'T WASTE\
+    \ STEPS: If you are at the LAST step, you must provide a FINAL_ANSWER.\n15. VERIFICATION\
+    \ BEFORE ANSWERING (DRY RUN): If you have steps remaining and you believe you\
+    \ have the final query, do not use FINAL_ANSWER yet. Use FORMAT A to execute your\
+    \ intended query as a test.\n16. EVALUATE EMPTY RESULTS: If your Dry Run returns\
+    \ 'No results returned', pause and reason. Ask yourself if an empty answer makes\
+    \ logical sense. If not, explore alternative properties (e.g., P39 instead of\
+    \ P463) or different entity links.\n17. ENTITIES OVER TEXT: In Wikidata, subjects\
+    \ are modeled as distinct entities linked via `wdt:P921` (main subject). Do not\
+    \ use `FILTER(CONTAINS(?label, 'topic'))`. Instead, query for the concept's QID.\n\
+    18. PROPERTY SEARCH: Please do not search for properties using `?property a wikibase:Property\
+    \ . ?property rdfs:label ?label . FILTER(CONTAINS(...))`. Use the provided `schema_hints`\
+    \ or query a known instance.\n\nANTI-PATTERN WARNING:\nUser: 'Who wrote The Lord\
+    \ of the Rings?'\nBAD FINAL_ANSWER: SELECT ?answer WHERE { BIND(wd:Q892 AS ?answer)\
+    \ } # WRONG: Hardcoded result.\nGOOD FINAL_ANSWER: SELECT ?answer WHERE { wd:Q15228\
+    \ wdt:P50 ?answer } # CORRECT: Logic-based.\n\nStandard prefixes available: wd,\
+    \ wdt, p, ps, pq, rdfs, xsd.\n"
+  max_steps: 8
+  step_delay: 0.5
+  include_examples: true
+  include_entities: true
+  include_schema_hint: true
+system:
+  experiment_name: exp6_agent_full_llama_20
+  seed: 42
+  debug: false
+  cache_dir: ~/.cache/huggingface/hub
+dataset:
+  name: local
+  split: test
+  language: en
+  limit: 20
+rag:
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+  encoder_model: all-MiniLM-L6-v2
+validation:
+  enable_validation: true
+  enable_correction: false
+  max_attempts: 3
+  validate_execution: true
+  self_consistency_samples: 1
+  consistency_temperature: 0.7

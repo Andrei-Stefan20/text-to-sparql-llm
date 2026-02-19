@@ -1,0 +1,5 @@
+- dataset.limit=20
+- model=azure_gpt4_mini
+- prompt=agentic
+- prompt.max_steps=5
+- system.experiment_name=exp6_agent_budget5_mini_20
