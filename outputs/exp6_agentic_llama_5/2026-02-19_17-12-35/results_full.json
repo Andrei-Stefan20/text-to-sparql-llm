@@ -1,0 +1,311 @@
+{
+  "meta": {
+    "run_id": "agentic_llama3.370b_3shot_rebel_steps5_lim5",
+    "status": "completed",
+    "dataset_size": 5,
+    "pipeline": "agentic"
+  },
+  "configuration": {
+    "model": {
+      "name": "llama-3.3-70b",
+      "platform": "openai",
+      "env_var": "LLAMA_API_KEY",
+      "model_name": "Llama-3.3-70B-Instruct",
+      "connection": {
+        "base_url": "LLAMA_ENDPOINT"
+      },
+      "params": {
+        "temperature": 0.1,
+        "max_tokens": 1024,
+        "top_p": 0.95
+      },
+      "max_retries": 5,
+      "timeout": 120,
+      "system_prompt": "You are a SPARQL expert for Wikidata.\nGenerate ONLY valid SPARQL query code.\nDo NOT include explanations, comments, code blocks, or any text.\nOutput ONLY the query starting with SELECT or CONSTRUCT.\n",
+      "concurrency": 2
+    },
+    "linking": {
+      "method": "rebel",
+      "model_path": "Babelscape/rebel-large",
+      "device": -1,
+      "use_wikidata_fallback": true
+    },
+    "retrieval": {
+      "k": 3,
+      "index_path": "data/processed/train_index.faiss",
+      "metadata_path": "data/processed/train_metadata.pkl"
+    },
+    "prompt": {
+      "name": "agentic",
+      "strategy": "agentic",
+      "system_message": "You are an expert Wikidata SPARQL agent.\nYour goal is to answer the user question by constructing a valid SPARQL query.\n\nTOOLS:\nYou have one tool: EXECUTE_SPARQL \u2014 run a SPARQL query on Wikidata to verify QIDs, P-IDs, and schema.\n\nSTEP BUDGET:\nYou have at most {max_steps} steps in total (FORMAT A + FORMAT B combined).\nUse at most {max_steps_minus_one} exploratory steps (FORMAT A).\nStep {max_steps} MUST be a FINAL_ANSWER \u2014 you will not get another chance after that.\nPlan efficiently: do not waste steps on redundant checks.\n\nRESPONSE FORMAT \u2014 use exactly one of these two formats per step:\n\nFORMAT A (exploratory step, max {max_steps_minus_one} times):\nTHOUGHT: <explain what you need to verify>\nACTION: EXECUTE_SPARQL\nsparql_start\n<your exploratory query>\nsparql_end\n\nFORMAT B (final answer, mandatory on last step):\nTHOUGHT: <explain why the query is correct>\nFINAL_ANSWER:\nsparql_start\n<your complete query>\nsparql_end\n\nRULES:\n1. Never guess QIDs or P-IDs \u2014 always verify with EXECUTE_SPARQL first.\n2. 2. Use ASK ONLY if the question is literally yes/no (starts with Is/Was/Did/Are/Does).\"Who\", \"Which\", \"Among\" questions always use SELECT ?answer.\n3. SELECT queries always use ?answer as the main variable.\n4. Dates: use FILTER(YEAR(?date) > 1990).\n5. Do not use SERVICE wikibase:label in FINAL_ANSWER.\n6. Output only the format above, no extra text.\n7. If a query returns no results, do NOT repeat it. Try a completely different property. If using p:P + ps:P failed, try wdt:P directly (direct properties).\n8. NEVER use FILTER(CONTAINS(?label, \"...\")) - it causes timeouts.\n To find an entity by name use: ?item rdfs:label \"Exact Name\"@en\n If the exact label fails, try common variants (\u00d7 instead of x, etc.)\n\nUse wdt:P (direct) for simple lookups: { wd:Q1 wdt:P138 ?answer }\nUse p:P + ps:P only when you need qualifiers (date, place, etc.)\n\nStandard prefixes available: wd, wdt, p, ps, pq, rdfs, xsd.\n",
+      "max_steps": 5,
+      "step_delay": 0.5,
+      "include_examples": true,
+      "include_entities": true,
+      "include_schema_hint": true
+    },
+    "system": {
+      "experiment_name": "exp6_agentic_llama_5",
+      "seed": 42,
+      "debug": false,
+      "cache_dir": "~/.cache/huggingface/hub"
+    },
+    "dataset": {
+      "name": "local",
+      "split": "test",
+      "language": "en",
+      "limit": 5
+    },
+    "rag": {
+      "index_path": "data/processed/train_index.faiss",
+      "metadata_path": "data/processed/train_metadata.pkl",
+      "encoder_model": "all-MiniLM-L6-v2"
+    },
+    "validation": {
+      "enable_validation": true,
+      "enable_correction": false,
+      "max_attempts": 3,
+      "validate_execution": false,
+      "self_consistency_samples": 1,
+      "consistency_temperature": 0.7
+    }
+  },
+  "stats": {
+    "total": 5,
+    "valid_syntax_rate": 1.0,
+    "error_rate": 0.0,
+    "terminated_final_answer": 3,
+    "terminated_max_steps": 2,
+    "avg_steps_per_question": 3.8
+  },
+  "results": [
+    {
+      "id": "0",
+      "question": "After whom is the Riemannian geometry named?",
+      "generated_sparql": "SELECT ?answer \nWHERE { \n  wd:Q761383 wdt:P138 ?answer .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE { wd:Q761383 wdt:P138 ?result. }",
+      "is_valid": true,
+      "termination_reason": "final_answer",
+      "total_steps": 2,
+      "validation_error": null,
+      "agent_steps": [
+        {
+          "step": 1,
+          "thought": "To find out after whom the Riemannian geometry is named, we need to use the property P138 (named after) and the entity Riemannian geometry (wd:Q761383).",
+          "action": "EXECUTE_SPARQL",
+          "query": "SELECT ?answer \nWHERE { \n  wd:Q761383 wdt:P138 ?answer .\n}",
+          "observation": "Results (1 row):\nanswer\n--------\nwd:Q42299"
+        },
+        {
+          "step": 2,
+          "thought": "The query has returned the QID of the entity after whom the Riemannian geometry is named. To provide the final answer, we need to verify that this QID corresponds to the correct person. Since the question is about the name of the person, we should directly use the returned QID to provide the answer.",
+          "action": "FINAL_ANSWER",
+          "query": "SELECT ?answer \nWHERE { \n  wd:Q761383 wdt:P138 ?answer .\n}",
+          "observation": null
+        }
+      ],
+      "entities_linked": [
+        {
+          "text": "Riemannian geometry",
+          "qid": "Q761383"
+        }
+      ],
+      "schema_hints": "P8362 (Regensburg Classification (works and editions)), P7900 (Monument Atlas Lower Saxony Objekt-ID), P2460 (Persons of Ancient Athens), P9664 (named place on map), P138 (named after)",
+      "error": null
+    },
+    {
+      "id": "1",
+      "question": "Which animal participated in a military operation with the Australian Defence Force?",
+      "generated_sparql": "SELECT ?answer \nWHERE { \n  ?answer wdt:P31 wd:Q729 .\n  ?answer wdt:P798 ?designation .\n  FILTER regex(?designation, \"military\", \"i\") .\n  ?unit wdt:P4624 wd:Q625657 .\n  ?unit wdt:P798 ?unitDesignation .\n  FILTER regex(?unitDesignation, \"animal\", \"i\") .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {?result wdt:P31 wd:Q16521. ?mop wdt:P31 wd:Q645883; wdt:P710 ?result, wd:Q625657.}",
+      "is_valid": true,
+      "termination_reason": "final_answer",
+      "total_steps": 5,
+      "validation_error": null,
+      "agent_steps": [
+        {
+          "step": 1,
+          "thought": "To find the animal that participated in a military operation with the Australian Defence Force, we first need to identify any military units or operations associated with the Australian Defence Force that involved animals.",
+          "action": "EXECUTE_SPARQL",
+          "query": "SELECT ?answer \nWHERE { \n  wd:Q625657 p:P7779 ?unit .\n  ?unit wdt:P798 ?designation .\n  FILTER regex(?designation, \"animal\", \"i\") .\n  BIND(?unit AS ?answer) .\n}",
+          "observation": "No results returned."
+        },
+        {
+          "step": 2,
+          "thought": "Since the previous query did not return any results, we need to try a different approach. This time, we will look for entities that have a military rank (P410) and are associated with the Australian Defence Force. We will also check if these entities have an Australian Classification (P3156) that might indicate they are animals.",
+          "action": "EXECUTE_SPARQL",
+          "query": "SELECT ?answer \nWHERE { \n  ?answer p:P410 ?rank .\n  ?answer wdt:P3156 ?classification .\n  FILTER regex(?classification, \"animal\", \"i\") .\n  ?unit p:P7779 ?answer .\n  ?unit wdt:P798 ?designation .\n  ?unit wdt:P4624 wd:Q625657 .\n}",
+          "observation": "No results returned."
+        },
+        {
+          "step": 3,
+          "thought": "The previous queries did not",
+          "action": "UNKNOWN",
+          "query": "",
+          "observation": null
+        },
+        {
+          "step": 4,
+          "thought": "",
+          "action": "UNKNOWN",
+          "query": "",
+          "observation": null
+        },
+        {
+          "step": 5,
+          "thought": "Given the previous queries did not yield results, the most direct approach to find an animal that participated in a military operation with the Australian Defence Force would involve looking for entities that are known to be animals and have some form of association with the Australian Defence Force through military operations or units. Since direct queries on military units and ranks did not provide the desired outcome, we must consider that the information might be represented differently in Wikidata, possibly requiring a broader search that includes entities known to be animals and their potential involvement in military contexts.",
+          "action": "FINAL_ANSWER",
+          "query": "SELECT ?answer \nWHERE { \n  ?answer wdt:P31 wd:Q729 .\n  ?answer wdt:P798 ?designation .\n  FILTER regex(?designation, \"military\", \"i\") .\n  ?unit wdt:P4624 wd:Q625657 .\n  ?unit wdt:P798 ?unitDesignation .\n  FILTER regex(?unitDesignation, \"animal\", \"i\") .\n}",
+          "observation": null
+        }
+      ],
+      "entities_linked": [
+        {
+          "text": "Australian Defence Force",
+          "qid": "Q625657"
+        }
+      ],
+      "schema_hints": "P7779 (military unit), P798 (military designation), P3156 (Australian Classification), P410 (military, police or special rank), P4624 (squadron embarked)",
+      "error": null
+    },
+    {
+      "id": "2",
+      "question": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+      "generated_sparql": "SELECT ?answer\nWHERE {\n  ?answer wdt:P451 wd:Q4205826 .\n  ?answer wdt:P451 wd:Q4463198 .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q11835640 wdt:P674 ?result. ?result wdt:P451 ?p1, ?p2. FILTER(?p1 != ?p2 &&(?result IN (wd:Q4205826, wd:Q4463198)))}",
+      "is_valid": true,
+      "termination_reason": "final_answer",
+      "total_steps": 2,
+      "validation_error": null,
+      "agent_steps": [
+        {
+          "step": 1,
+          "thought": "To find the character with two unmarried partners, Yennefer of Vengerberg and Triss Merigold, we need to query for entities that have both Yennefer and Triss as their unmarried partners. We can use the property P451 (unmarried partner) to achieve this.",
+          "action": "EXECUTE_SPARQL",
+          "query": "SELECT ?answer\nWHERE {\n  ?answer wdt:P451 wd:Q4205826 .\n  ?answer wdt:P451 wd:Q4463198 .\n}",
+          "observation": "Results (1 row):\nanswer\n--------\nwd:Q2492923"
+        },
+        {
+          "step": 2,
+          "thought": "The query has returned a result, which is wd:Q2492923, indicating that this entity has both Yennefer of Vengerberg and Triss Merigold as unmarried partners. Since the question is about identifying the character with this specific relationship, we can use this result as the answer.",
+          "action": "FINAL_ANSWER",
+          "query": "SELECT ?answer\nWHERE {\n  ?answer wdt:P451 wd:Q4205826 .\n  ?answer wdt:P451 wd:Q4463198 .\n}",
+          "observation": null
+        }
+      ],
+      "entities_linked": [
+        {
+          "text": "Yennefer of Vengerberg",
+          "qid": "Q4205826"
+        },
+        {
+          "text": "Triss Merigold",
+          "qid": "Q4463198"
+        }
+      ],
+      "schema_hints": "P2562 (married name), P451 (unmarried partner), P8416 (Dowker-Thistlethwaite name), P2962 (title of chess person), P26 (spouse)",
+      "error": null
+    },
+    {
+      "id": "3",
+      "question": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\n\nSELECT ?founder ?founderLabel\nWHERE {\n  wd:Q8797 wdt:P162 ?founder.\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q860580 wdt:P112 ?result. ?result wdt:P39 wd:Q10891456.}",
+      "is_valid": true,
+      "termination_reason": "max_steps",
+      "total_steps": 5,
+      "validation_error": null,
+      "agent_steps": [
+        {
+          "step": 1,
+          "thought": "To find the founders of Tencent Company who have been members of the National People's Congress, we first need to identify the founders of Tencent and then check which of them have been members of the National People's Congress. We know that being a member of the National People's Congress can be related to political affiliations or roles, so we might need to use properties related to political parties or roles.",
+          "action": "EXECUTE_SPARQL",
+          "query": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\n\nSELECT ?founder ?founderLabel\nWHERE {\n  wd:Q8797 wdt:P112 ?founder.\n  ?founder wdt:P102 ?party.\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }\n}",
+          "observation": "No results returned."
+        },
+        {
+          "step": 2,
+          "thought": "The initial query did not return any results, likely because being a member of the National People's Congress is not directly related to the property P102 (member of political party). Instead, we should look for a property that indicates membership in a legislative body or a specific role. Let's try to find the founders of Tencent Company first, and then explore properties related to their roles or memberships.",
+          "action": "EXECUTE_SPARQL",
+          "query": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\n\nSELECT ?founder ?founderLabel\nWHERE {\n  wd:Q8797 wdt:P112 ?founder.\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }\n}",
+          "observation": "No results returned."
+        },
+        {
+          "step": 3,
+          "thought": "The previous queries did not return any results, likely because the property P112 (founded by) is not the correct property to use for finding founders. Let's try using the property P162 (founder) to find the founders of Tencent Company.",
+          "action": "EXECUTE_SPARQL",
+          "query": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\n\nSELECT ?founder ?founderLabel\nWHERE {\n  wd:Q8797 wdt:P162 ?founder.\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }\n}",
+          "observation": "No results returned."
+        },
+        {
+          "step": 4,
+          "thought": "The previous queries did not return any results, likely because the property P162 (founder) is not the correct property to use for finding founders of Tencent Company. Let's try using the property P112 (founded by) with a different approach, focusing on finding individuals who have a relationship with Tencent as founders, and then checking if any of them have been members of the National People's Congress. We will look for members of the National People's Congress using a different property.",
+          "action": "UNKNOWN",
+          "query": "",
+          "observation": null
+        },
+        {
+          "step": 5,
+          "thought": "",
+          "action": "UNKNOWN",
+          "query": "",
+          "observation": null
+        }
+      ],
+      "entities_linked": [],
+      "schema_hints": "P102 (member of political party), P199 (has organizational division), P10786 (date of incorporation), P210 (party chief representative), P1149 (Library of Congress Classification)",
+      "error": null
+    },
+    {
+      "id": "4",
+      "question": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+      "generated_sparql": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\n\nSELECT ?author ?work ?workLabel\nWHERE {\n  wd:Q216332 wdt:P50 ?author.\n  ?work wdt:P50 ?author.\n  ?work rdfs:label ?workLabel.\n  FILTER NOT EXISTS { ?work wdt:P50 wd:Q216332 }\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q696071 wdt:P50 ?author. ?author wdt:P800 ?result. ?result wdt:P921 wd:Q16003532 FILTER(?result != wd:Q69071)}",
+      "is_valid": true,
+      "termination_reason": "max_steps",
+      "total_steps": 5,
+      "validation_error": null,
+      "agent_steps": [
+        {
+          "step": 1,
+          "thought": "To answer this question, we need to find the author of \"Hunter x Hunter\", then find their other notable works, and finally filter those works to find the one that features a middle school student as the main character.",
+          "action": "EXECUTE_SPARQL",
+          "query": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\n\nSELECT ?author ?work ?workLabel\nWHERE {\n  wd:Q216332 wdt:P50 ?author.\n  ?author wdt:P50 ?work.\n  ?work rdfs:label ?workLabel.\n  FILTERNOT(?work = wd:Q216332)\n}",
+          "observation": "Error executing query: QueryBadFormed: A bad request has been sent to the endpoint: probably the SPARQL query is badly formed. "
+        },
+        {
+          "step": 2,
+          "thought": "The error in the previous query is due to the incorrect use of the P50 property, which represents the author of a work, being used to find works by an author. Instead, we should find the author of \"Hunter x Hunter\" and then find their notable works. We can use the P50 property to find the author, and then use the P50 property again to find the works written by that author.",
+          "action": "EXECUTE_SPARQL",
+          "query": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\n\nSELECT ?author ?work ?workLabel\nWHERE {\n  wd:Q216332 wdt:P50 ?author.\n  ?work wdt:P50 ?author.\n  ?work rdfs:label ?workLabel.\n  FILTER NOT EXISTS { ?work wdt:P50 wd:Q216332 }\n}",
+          "observation": "No results returned."
+        },
+        {
+          "step": 3,
+          "thought": "The issue with the previous query is that it's trying to find works that have the same",
+          "action": "UNKNOWN",
+          "query": "",
+          "observation": null
+        },
+        {
+          "step": 4,
+          "thought": "",
+          "action": "UNKNOWN",
+          "query": "",
+          "observation": null
+        },
+        {
+          "step": 5,
+          "thought": "",
+          "action": "UNKNOWN",
+          "query": "",
+          "observation": null
+        }
+      ],
+      "entities_linked": [],
+      "schema_hints": "P9687 (author given names), P50 (author), P1433 (published in), P2679 (author of foreword), P835 (author citation (zoology))",
+      "error": null
+    }
+  ]
+}

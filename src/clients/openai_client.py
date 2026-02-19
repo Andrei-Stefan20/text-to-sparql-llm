@@ -109,6 +109,7 @@ class OpenAIClient(BaseClient):
                 max_tokens=self.max_tokens,
                 top_p=self.top_p,
                 timeout=self.timeout,
+                stop=["Observation:", "Result (", "ACTION:"],
             )
             return completion.choices[0].message.content or ""
 

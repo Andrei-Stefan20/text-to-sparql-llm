@@ -324,13 +324,75 @@ python main.py dataset.limit=394 model=llama_33 validation.enable_correction=tru
 **Question**: 
 
 ```bash
+
+
+# GPT-4o-mini Standard
+python main.py dataset.limit=394 model=azure_gpt4_mini prompt=standard system.experiment_name=exp8_baseline_mini_394
+
+# GPT-4o Standard
+python main.py dataset.limit=394 model=azure_gpt4 prompt=standard system.experiment_name=exp8_baseline_gpt4_394
+
+# Llama 3.3 Standard
+python main.py dataset.limit=394 model=llama_33 prompt=standard system.experiment_name=exp8_baseline_llama_394
+
+
+# GPT-4o-mini Full Agent (Economico)
+python main_agentic.py dataset.limit=394 model=azure_gpt4_mini prompt=agentic prompt.max_steps=8 system.experiment_name=exp6_agent_full_mini_394
+
+# GPT-4o Full Agent (Stato dell'Arte)
+python main_agentic.py dataset.limit=394 model=azure_gpt4 prompt=agentic prompt.max_steps=8 system.experiment_name=exp6_agent_full_gpt4_394
+
+# Llama 3.3 Full Agent (Open Source)
+python main_agentic.py dataset.limit=394 model=llama_33 prompt=agentic prompt.max_steps=8 system.experiment_name=exp6_agent_full_llama_394
+
+# GPT-4o-mini Agent - NO HINTS
+python main_agentic.py dataset.limit=394 model=azure_gpt4_mini prompt=agentic prompt.max_steps=8 prompt.include_schema_hint=false system.experiment_name=exp6_agent_blind_mini_394
+
+# GPT-4o Agent - NO HINTS
+python main_agentic.py dataset.limit=394 model=azure_gpt4 prompt=agentic prompt.max_steps=8 prompt.include_schema_hint=false system.experiment_name=exp6_agent_blind_gpt4_394
+
+# Llama 3.3 Agent - NO HINTS
+python main_agentic.py dataset.limit=394 model=llama_33 prompt=agentic prompt.max_steps=8 prompt.include_schema_hint=false system.experiment_name=exp6_agent_blind_llama_394
+
+# Budget ridotto a 5 step (per vedere se l'agente "corre" troppo)
+python main_agentic.py dataset.limit=394 model=azure_gpt4_mini prompt.max_steps=5 system.experiment_name=exp6_agent_budget5_mini_394
+
+# Zero-Shot Agent (Senza esempi nel prompt)
+python main_agentic.py dataset.limit=394 model=azure_gpt4 prompt.include_examples=false prompt.max_steps=8 system.experiment_name=exp6_agent_0shot_gpt4_394
+
+
+# Impatto del numero di suggerimenti (K=10 invece di 5)
+# Un K più alto aiuta l'agente a trovare P39 se è sepolto tra altri risultati
+python main_agentic.py dataset.limit=394 model=azure_gpt4_mini prompt.max_steps=8 retrieval.k_properties=10 system.experiment_name=exp6_agent_k10_mini_394
+
+# Impatto del Retrieval vs Memoria Interna
+# Usiamo solo i suggerimenti dello schema SENZA esempi few-shot
+python main_agentic.py dataset.limit=394 model=azure_gpt4 prompt.max_steps=8 retrieval.k=0 prompt.include_schema_hint=true system.experiment_name=exp6_agent_only_schema_gpt4_394
+
+# "The Power of Reasoning": Mini con budget altissimo (12 step)
+# Può il Mini compensare la minor logica con più tentativi?
+python main_agentic.py dataset.limit=394 model=azure_gpt4_mini prompt.max_steps=12 system.experiment_name=exp6_agent_marathon_mini_394
+
+# "The Oracle": GPT-4 con budget minimo (3 step)
+# Un modello top può indovinare quasi subito se ha gli hints corretti?
+python main_agentic.py dataset.limit=394 model=azure_gpt4 prompt.max_steps=3 system.experiment_name=exp6_agent_fast_gpt4_394
+
 # M1 — GPT-4-mini (150: economico e statisticamente più robusto)
 python main_agentic.py \
   prompt=agentic model=azure_gpt4_mini \
   linking=rebel retrieval=3shot \
-  dataset.limit=5 \
+  dataset.limit=150 \
   prompt.max_steps=5 \
+  system.experiment_name=exp6_agentic_gpt4mini_150
+
+python main_agentic.py \
+  prompt=agentic model=azure_gpt4_mini \
+  linking=rebel retrieval=3shot \
+  dataset.limit=5 \
+  prompt.max_steps=8 \
+  prompt.include_schema_hint=false \
   system.experiment_name=exp6_agentic_gpt4mini_5
+  
 
 # M2 — GPT-4 (100: più costoso, teniamo contenuto)
 python main_agentic.py \
@@ -340,6 +402,13 @@ python main_agentic.py \
   prompt.max_steps=5 \
   system.experiment_name=exp6_agentic_gpt4_100
 
+  python main_agentic.py \
+  prompt=agentic model=azure_gpt4 \
+  linking=rebel retrieval=3shot \
+  dataset.limit=5 \
+  prompt.max_steps=8 \
+  system.experiment_name=exp6_agentic_gpt4_5
+
 # M3 — Llama 3.3 (150: gratuito, concorrenza bassa quindi ci vuole tempo)
 python main_agentic.py \
   prompt=agentic model=llama_33 \
@@ -347,6 +416,13 @@ python main_agentic.py \
   dataset.limit=150 \
   prompt.max_steps=5 \
   system.experiment_name=exp6_agentic_llama_100
+
+  python main_agentic.py \
+  prompt=agentic model=llama_33 \
+  linking=rebel retrieval=3shot \
+  dataset.limit=5 \
+  prompt.max_steps=8 \
+  system.experiment_name=exp6_agentic_llama_5
 ```
 
 ### Results Matrix:

@@ -1,0 +1,7 @@
+- prompt=agentic
+- model=llama_33
+- linking=rebel
+- retrieval=3shot
+- dataset.limit=5
+- prompt.max_steps=5
+- system.experiment_name=exp6_agentic_llama_5

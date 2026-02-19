@@ -287,12 +287,39 @@ class AgenticSPARQLRunner:
     # Main loop
     # ------------------------------------------------------------------
 
+    async def _check_semantic_correctness(self, generated_query: str, gold_query: str) -> bool:
+        """ Executes both generated and gold queries on Wikidata and compares results."""
+        try:
+            gen_res_raw = self.executor.execute(generated_query)
+            gold_res_raw = self.executor.execute(gold_query)
+            
+            def get_val_set(res):
+                if not res or 'results' not in res: return set()
+                return {str(row[v]['value']) for row in res['results']['bindings'] for v in row}
+
+            gen_set = get_val_set(gen_res_raw)
+            gold_set = get_val_set(gold_res_raw)
+
+            if not gold_set and not gen_set: return True
+            
+            intersection = gen_set.intersection(gold_set)
+            if not gold_set: return not gen_set
+            
+            recall = len(intersection) / len(gold_set)
+            precision = len(intersection) / len(gen_set) if gen_set else 0
+            
+            return recall == 1.0 and precision == 1.0
+        except Exception as e:
+            logger.error(f"Error in semantic check: {e}")
+            return False
+
     async def run(
         self,
         question: str,
         entities: List,
         context_examples: str,
         schema_hints: str,
+        gold_sparql: Optional[str] = None,
     ) -> AgentResult:
         """Runs the full ReAct loop for a single question."""
         steps: List[AgentStep] = []
@@ -351,10 +378,28 @@ class AgenticSPARQLRunner:
                 )
                 steps.append(step)
 
-                valid, error = self._validate_final_query(query)
+                is_valid, error = self._validate_final_query(query)
+
+                if is_valid and gold_sparql and step < self.max_steps:
+                    is_correct = await self._check_semantic_correctness(query, gold_sparql)
+                    
+                    if not is_correct:
+                        # Feedback all'agente: non uscire, correggi la query!
+                        observation = (
+                            "OBSERVATION: Pre-check failed. Your query is syntactically correct, "
+                            "but the results DO NOT match the expected answer. "
+                            f"You have {self.max_steps - step} steps left. "
+                            "Please use FORMAT A to test alternative properties (P-IDs) or filters."
+                        )
+                        conversation.append(
+                            self._format_exchange(step, thought, query, observation)
+                        )
+                        logger.info(f"[Agent] Step {step}: Semantic check failed, retrying...")
+                        continue
+
                 return AgentResult(
                     final_query=query,
-                    is_valid=valid,
+                    is_valid=is_valid,
                     steps=steps,
                     total_steps=step_num,
                     termination_reason="final_answer",

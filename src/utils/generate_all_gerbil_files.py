@@ -28,6 +28,7 @@ ROOT_DIR = "outputs"
 INPUT_FILENAME = "results_full.json"
 OUTPUT_FILENAME = "gerbil_test.json"
 WIKIDATA_ENDPOINT = "https://query.wikidata.org/sparql"
+WIKIDATA_ENDPOINT = os.getenv("SPARQL_ENDPOINT_URL", WIKIDATA_ENDPOINT)
 
 # SPARQL Client Configuration
 sparql_client = SPARQLWrapper(WIKIDATA_ENDPOINT)

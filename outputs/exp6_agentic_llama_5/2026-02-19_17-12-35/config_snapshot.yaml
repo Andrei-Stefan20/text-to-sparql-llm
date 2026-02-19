@@ -1,0 +1,87 @@
+model:
+  name: llama-3.3-70b
+  platform: openai
+  env_var: LLAMA_API_KEY
+  model_name: Llama-3.3-70B-Instruct
+  connection:
+    base_url: LLAMA_ENDPOINT
+  params:
+    temperature: 0.1
+    max_tokens: 1024
+    top_p: 0.95
+  max_retries: 5
+  timeout: 120
+  system_prompt: 'You are a SPARQL expert for Wikidata.
+
+    Generate ONLY valid SPARQL query code.
+
+    Do NOT include explanations, comments, code blocks, or any text.
+
+    Output ONLY the query starting with SELECT or CONSTRUCT.
+
+    '
+  concurrency: 2
+linking:
+  method: rebel
+  model_path: Babelscape/rebel-large
+  device: -1
+  use_wikidata_fallback: true
+retrieval:
+  k: 3
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+prompt:
+  name: agentic
+  strategy: agentic
+  system_message: "You are an expert Wikidata SPARQL agent.\nYour goal is to answer\
+    \ the user question by constructing a valid SPARQL query.\n\nTOOLS:\nYou have\
+    \ one tool: EXECUTE_SPARQL — run a SPARQL query on Wikidata to verify QIDs, P-IDs,\
+    \ and schema.\n\nSTEP BUDGET:\nYou have at most {max_steps} steps in total (FORMAT\
+    \ A + FORMAT B combined).\nUse at most {max_steps_minus_one} exploratory steps\
+    \ (FORMAT A).\nStep {max_steps} MUST be a FINAL_ANSWER — you will not get another\
+    \ chance after that.\nPlan efficiently: do not waste steps on redundant checks.\n\
+    \nRESPONSE FORMAT — use exactly one of these two formats per step:\n\nFORMAT A\
+    \ (exploratory step, max {max_steps_minus_one} times):\nTHOUGHT: <explain what\
+    \ you need to verify>\nACTION: EXECUTE_SPARQL\nsparql_start\n<your exploratory\
+    \ query>\nsparql_end\n\nFORMAT B (final answer, mandatory on last step):\nTHOUGHT:\
+    \ <explain why the query is correct>\nFINAL_ANSWER:\nsparql_start\n<your complete\
+    \ query>\nsparql_end\n\nRULES:\n1. Never guess QIDs or P-IDs — always verify with\
+    \ EXECUTE_SPARQL first.\n2. 2. Use ASK ONLY if the question is literally yes/no\
+    \ (starts with Is/Was/Did/Are/Does).\"Who\", \"Which\", \"Among\" questions always\
+    \ use SELECT ?answer.\n3. SELECT queries always use ?answer as the main variable.\n\
+    4. Dates: use FILTER(YEAR(?date) > 1990).\n5. Do not use SERVICE wikibase:label\
+    \ in FINAL_ANSWER.\n6. Output only the format above, no extra text.\n7. If a query\
+    \ returns no results, do NOT repeat it. Try a completely different property. If\
+    \ using p:P + ps:P failed, try wdt:P directly (direct properties).\n8. NEVER use\
+    \ FILTER(CONTAINS(?label, \"...\")) - it causes timeouts.\n To find an entity\
+    \ by name use: ?item rdfs:label \"Exact Name\"@en\n If the exact label fails,\
+    \ try common variants (× instead of x, etc.)\n\nUse wdt:P (direct) for simple\
+    \ lookups: { wd:Q1 wdt:P138 ?answer }\nUse p:P + ps:P only when you need qualifiers\
+    \ (date, place, etc.)\n\nStandard prefixes available: wd, wdt, p, ps, pq, rdfs,\
+    \ xsd.\n"
+  max_steps: 5
+  step_delay: 0.5
+  include_examples: true
+  include_entities: true
+  include_schema_hint: true
+system:
+  experiment_name: exp6_agentic_llama_5
+  seed: 42
+  debug: false
+  cache_dir: ~/.cache/huggingface/hub
+dataset:
+  name: local
+  split: test
+  language: en
+  limit: 5
+rag:
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+  encoder_model: all-MiniLM-L6-v2
+validation:
+  enable_validation: true
+  enable_correction: false
+  max_attempts: 3
+  validate_execution: false
+  self_consistency_samples: 1
+  consistency_temperature: 0.7

@@ -1,0 +1,7 @@
+- prompt=agentic
+- model=azure_gpt4
+- linking=rebel
+- retrieval=3shot
+- dataset.limit=5
+- prompt.max_steps=8
+- system.experiment_name=exp6_agentic_gpt4_5

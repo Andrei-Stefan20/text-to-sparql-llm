@@ -17,9 +17,11 @@ import asyncio
 import logging
 import re
 import ssl
+import os          
 from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
+from src.evaluation.metrics import compare_results
 
 from SPARQLWrapper import JSON, SPARQLWrapper
 
@@ -66,6 +68,7 @@ class SPARQLValidator:
     """
 
     WIKIDATA_ENDPOINT = "https://query.wikidata.org/sparql"
+    WIKIDATA_ENDPOINT = os.getenv("SPARQL_ENDPOINT_URL", WIKIDATA_ENDPOINT)
 
     # Common Wikidata prefixes that should be auto-added if missing
     STANDARD_PREFIXES = """
@@ -186,6 +189,24 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             return ValidationResult(
                 is_valid=False, error_type=error_type, error_message=clean_error
             )
+        
+    def validate_semantic(self, generated_query: str, gold_query: str) -> bool:
+        def get_results(q):
+            try:
+                resp = requests.get(self.WIKIDATA_ENDPOINT, params={'query': q, 'format': 'json'}, timeout=30)
+                data = resp.json()
+                return [row[v]['value'] for row in data['results']['bindings'] for v in row]
+            except:
+                return []
+
+        gen_res = get_results(generated_query)
+        gold_res = get_results(gold_query)
+        
+        if not gold_res and not gen_res: return True
+        
+        # Se l'F1-score è 1.0, i set di risultati sono identici
+        f1, _, _ = compare_results(gen_res, gold_res)
+        return f1 == 1.0
 
     def validate(self, query: str, check_execution: bool = None) -> ValidationResult:
         """

@@ -151,7 +151,7 @@ class AgenticBatchRunner:
                     step_delay=self.step_delay,
                 )
 
-                agent_result: AgentResult = await runner.run(
+                agent_result = await runner.run(
                     question=question,
                     entities=entities,
                     context_examples=context,
@@ -166,6 +166,16 @@ class AgenticBatchRunner:
                 )
                 gold_clean = gold_sparql.replace("\\n", "\n") if gold_sparql else ""
 
+                execution_result = ""
+                if agent_result.is_valid and final_sparql:
+                    try:
+                        # Esegue la query in modo asincrono per non bloccare il loop
+                        execution_result = await loop.run_in_executor(
+                            None, self.wikidata_tool.execute, final_sparql
+                        )
+                    except Exception as e:
+                        execution_result = f"Error executing final query: {e}"
+
                 logger.info(
                     f"[ID {item['id']}] Done — steps={agent_result.total_steps}, "
                     f"valid={agent_result.is_valid}, "
@@ -176,6 +186,7 @@ class AgenticBatchRunner:
                     "id": item["id"],
                     "question": question,
                     "generated_sparql": final_sparql,
+                    "execution_result": execution_result,  
                     "gold_sparql": gold_clean,
                     "is_valid": agent_result.is_valid,
                     "termination_reason": agent_result.termination_reason,
@@ -198,6 +209,7 @@ class AgenticBatchRunner:
                     "id": item.get("id", "unknown"),
                     "question": item.get("question", ""),
                     "generated_sparql": "",
+                    "execution_result": "",  # <-- Aggiunto per consistenza in caso di errore
                     "gold_sparql": item.get("gold_sparql", ""),
                     "is_valid": False,
                     "termination_reason": "error",

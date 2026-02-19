@@ -51,7 +51,7 @@ validation:
   
   # Validate by executing query on Wikidata (slower, more accurate)
   # WARNING: This makes actual API calls to Wikidata
-  validate_execution: false
+  validate_execution: true
   
   # Self-consistency: generate N queries and vote for best
   # Set to 1 to disable, >1 to enable (e.g., 3 or 5)

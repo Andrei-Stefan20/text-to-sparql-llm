@@ -1,0 +1,116 @@
+model:
+  name: gpt-4o
+  platform: azure
+  env_var: AZURE_OPENAI_KEY
+  connection:
+    endpoint: AZURE_OPENAI_ENDPOINT
+    api_version: 2024-12-01-preview
+    deployment: gpt-4o
+  params:
+    temperature: 0.0
+    max_tokens: 4096
+    top_p: 1.0
+  max_retries: 5
+  timeout: 60
+  system_prompt: 'You are a SPARQL expert for Wikidata.
+
+    Generate ONLY valid SPARQL query code.
+
+    Do NOT include explanations, comments, code blocks, or any text.
+
+    Output ONLY the query starting with SELECT or CONSTRUCT.
+
+    '
+  concurrency: 20
+linking:
+  method: rebel
+  model_path: Babelscape/rebel-large
+  device: -1
+  use_wikidata_fallback: true
+retrieval:
+  k: 3
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+prompt:
+  name: agentic
+  strategy: agentic
+  system_message: "You are an expert Wikidata SPARQL agent. Your goal is to solve\
+    \ complex natural language questions by converting them into precise SPARQL queries.\n\
+    \nTOOLS:\nYou have one tool: EXECUTE_SPARQL — run a query on Wikidata to verify\
+    \ QIDs, P-IDs, and the schema of specific entities.\n\nSTEP BUDGET:\nTotal steps:\
+    \ {max_steps}. Exploratory: {max_steps_minus_one}. Step {max_steps} MUST be a\
+    \ FINAL_ANSWER.\nPlan efficiently: do not waste steps on redundant checks.\n\n\
+    RESPONSE FORMAT:\n\nFORMAT A (Exploratory Step):\nTHOUGHT: \n  - CURRENT KNOWLEDGE:\
+    \ <What IDs have been verified so far?>\n  - UNKNOWN: <What specific ID or property\
+    \ is still missing or unverified?>\n  - STRATEGY: <How will this specific SPARQL\
+    \ query help find the missing piece?>\nACTION: EXECUTE_SPARQL\nsparql_start\n\
+    <isolated exploratory query>\nsparql_end\n\nFORMAT B (Final Answer):\nTHOUGHT:\
+    \ \n  - REASONING: <How the discovered IDs relate to the user question>\n  - SELF-CORRECTION\
+    \ CHECKLIST:\n    1. Is the final answer hardcoded? (Must be NO)\n    2. Does\
+    \ the WHERE clause connect starting entities to the ?answer variable? (Must be\
+    \ YES)\n    3. Are the variables in SELECT present in the WHERE clause? (Must\
+    \ be YES)\nFINAL_ANSWER:\nsparql_start\n<complete, generalized query>\nsparql_end\n\
+    \nRULES:\n1. NEVER guess QIDs/P-IDs. Always verify them using rdfs:label or entity\
+    \ descriptions in exploratory steps.\n2. If the question is \"Who\", \"Which\"\
+    , \"Among\", always use SELECT ?answer. Use ASK only for Yes/No questions.\n3.\
+    \ Dates: use FILTER(YEAR(?date) > 1990). No SERVICE wikibase:label in FINAL_ANSWER.\n\
+    4. LEAST-TO-MOST: For complex questions, break them down. Use Step 1 for the first\
+    \ entity, Step 2 for the relation, etc.\n5. CHAIN-OF-VERIFICATION: When you find\
+    \ a QID, verify its label to ensure it is the correct entity (e.g., Tencent the\
+    \ company vs Tencent the person).\n6. NO CHEATING: Do not use FORMAT A to find\
+    \ the result string. Use it to find the *path* to the result.\n7. NO HARDCODING:\
+    \ The FINAL_ANSWER must NEVER contain the literal result (e.g., wd:Q42299 for\
+    \ Riemann). It must contain the logic to find it.\n8. If a query returns no results,\
+    \ try the inverse direction or a different property immediately.\n9. USE ?answer\
+    \ as the primary return variable name.\n10. MANDATORY EXPLORATION: You are STRICTLY\
+    \ FORBIDDEN from providing a FINAL_ANSWER at Step 1. You must perform at least\
+    \ TWO exploratory steps (FORMAT A) to verify the existence of entities and properties,\
+    \ even if you think you know them.\n11. NO INTERNAL MEMORY: Do not trust your\
+    \ internal knowledge for QIDs or P-IDs. If a QID appears in your FINAL_ANSWER\
+    \ that was not explicitly verified in a previous Step Observation, the query is\
+    \ considered a failure.\n12. LABEL VALIDATION: For every QID you find, you must\
+    \ run a query to check its `rdfs:label`. If the label doesn't match the context\
+    \ of the question (e.g., Tencent the person vs Tencent the company), you must\
+    \ search for a different QID.\n13. STRIKE SYSTEM: Using `FILTER(CONTAINS(...))`\
+    \ or `FILTER(STRSTARTS(...))` will result in a timeout and an incorrect answer.\
+    \ You MUST find the exact entity QID and use it directly or use `rdfs:label \"\
+    Exact Name\"@en`.\n14. DON'T WASTE STEPS: If you are at the LAST step, you MUST\
+    \ provide a FINAL_ANSWER.\n15. VERIFICATION BEFORE ANSWERING: If you have 2 or\
+    \ more steps remaining and you believe you found the correct query, DO NOT provide\
+    \ a FINAL_ANSWER immediately. Instead, use your current step as a \"Dry Run\"\
+    : use FORMAT A to EXECUTE your full intended query.\n16. ANALYZE DRY RUN: If the\
+    \ Dry Run returns \"No results\" or incorrect data, use your remaining steps to\
+    \ fix it. If the results look correct, only then provide the FINAL_ANSWER in the\
+    \ very last step.\n17. MANDATORY EXPLORATION: You are STRICTLY FORBIDDEN from\
+    \ providing a FINAL_ANSWER at Step 1. You must perform at least one exploratory\
+    \ step (FORMAT A) to verify entities or test triple patterns.\n\nANTI-PATTERN\
+    \ WARNING:\n\nUser: \"Who wrote The Lord of the Rings?\"\nBAD FINAL_ANSWER: SELECT\
+    \ ?answer WHERE { BIND(wd:Q892 AS ?answer) } # WRONG: Hardcoded result.\nGOOD\
+    \ FINAL_ANSWER: SELECT ?answer WHERE { wd:Q15228 wdt:P50 ?answer } # CORRECT:\
+    \ Logic-based.\n\nStandard prefixes available: wd, wdt, p, ps, pq, rdfs, xsd.\n"
+  max_steps: 8
+  step_delay: 0.5
+  include_examples: true
+  include_entities: true
+  include_schema_hint: true
+system:
+  experiment_name: exp6_agentic_gpt4_5
+  seed: 42
+  debug: false
+  cache_dir: ~/.cache/huggingface/hub
+dataset:
+  name: local
+  split: test
+  language: en
+  limit: 5
+rag:
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+  encoder_model: all-MiniLM-L6-v2
+validation:
+  enable_validation: true
+  enable_correction: false
+  max_attempts: 3
+  validate_execution: true
+  self_consistency_samples: 1
+  consistency_temperature: 0.7
