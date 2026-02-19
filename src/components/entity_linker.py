@@ -26,7 +26,6 @@ from typing import List, Optional, Tuple, Union
 from omegaconf import DictConfig
 from transformers import pipeline
 
-# Configure logger
 logger = logging.getLogger(__name__)
 
 
@@ -118,7 +117,7 @@ class WikidataResolver:
 
 
 class BaseLinker(ABC):
-    """Abstract base class for Entity Linking strategies."""
+    """Abstract base class for Entity Linking."""
 
     @abstractmethod
     def extract(self, text: str) -> List[LinkedEntity]:
@@ -232,7 +231,6 @@ class RebelLinker(BaseLinker):
         "instance of",
     }
 
-    # Relazioni comuni REBEL che non sono entità Wikidata utili
     COMMON_RELATIONS = {
         "spouse",
         "employer",
@@ -324,10 +322,9 @@ class RelikLinker(BaseLinker):
             entities = []
 
             for span in response.spans:
-                # Extract QID from label (ReLiK returns full URL or just ID)
+                # Extract QID from label 
                 qid = self._extract_qid(span.label) if hasattr(span, "label") else None
 
-                # Fallback to Wikidata API if no QID found
                 if not qid and self.use_wikidata_fallback:
                     qid = WikidataResolver.resolve(span.text)
 

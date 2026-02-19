@@ -29,7 +29,6 @@ class DatasetLoader:
         self.split = split
         self.language = language
 
-        # Map split to local file paths
         self.local_paths = {
             "train": "data/raw/QALD-10/data/qald_9_plus/qald_9_plus_train_wikidata.json",
             "test": "data/raw/QALD-10/data/qald_10/qald_10.json",
@@ -60,7 +59,6 @@ class DatasetLoader:
 
         try:
             # Download specific parquet file directly using huggingface_hub
-            # This avoids the datasets library's schema casting issues
             parquet_file = f"data/wikidata_{self.language}_train.parquet"
             logger.info(f"Downloading {parquet_file} from HuggingFace Hub...")
 
@@ -68,7 +66,6 @@ class DatasetLoader:
                 repo_id=self.dataset_name, filename=parquet_file, repo_type="dataset"
             )
 
-            # Load with pandas
             df = pd.read_parquet(local_parquet)
             logger.info(f"Loaded {len(df)} rows from parquet file")
 

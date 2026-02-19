@@ -162,7 +162,7 @@ def fetch_enriched_properties() -> list:
     sorted_props = sorted(props_by_pid.values(), key=lambda x: x["num"])[:TOP_N]
 
  
-    # Enrich with aliases (batch query in chunks of 200 to avoid timeout)
+    # Enrich with aliases 
  
     logger.info("Fetching aliases (skos:altLabel) in batches...")
     pid_list = [p["id"] for p in sorted_props]
@@ -314,7 +314,7 @@ def build_rich_text(prop: dict) -> str:
 def build_schema_index():
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
-    # 1. Fetch & enrich
+    # 1. Fetch 
     properties = fetch_enriched_properties()
 
     if not properties:
@@ -326,8 +326,7 @@ def build_schema_index():
     for p in properties[:3]:
         logger.info(f"  [{p['id']}] {build_rich_text(p)}")
 
-    # 2. Build rich text for each property and encode
-    # Force CPU on macOS — MPS causes segfault during batch encoding
+    # 2. Build text for each property and encode
     device = "cpu" if platform.system() == "Darwin" else "cuda"
     logger.info(f"Encoding enriched property representations (device={device})...")
     encoder = SentenceTransformer(MODEL_NAME, device=device)

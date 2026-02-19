@@ -274,32 +274,32 @@ class PromptBuilder:
         # 4. Decomposition Template
         parts.append("\n=== DECOMPOSITION ANALYSIS ===")
         parts.append("""
-Analyze the question complexity:
-- Is this a SIMPLE query (single relationship)? → Write directly
-- Is this a COMPLEX query? → Decompose first
+        Analyze the question complexity:
+        - Is this a SIMPLE query (single relationship)? → Write directly
+        - Is this a COMPLEX query? → Decompose first
 
-If COMPLEX, follow this structure:
+        If COMPLEX, follow this structure:
 
-**Sub-question 1**: [First part of the question]
-```sparql
-# Sub-query 1
-SELECT ?x WHERE { ... }
-```
+        **Sub-question 1**: [First part of the question]
+        ```sparql
+        # Sub-query 1
+        SELECT ?x WHERE { ... }
+        ```
 
-**Sub-question 2**: [Second part, may use results from above]
-```sparql
-# Sub-query 2 
-SELECT ?y WHERE { ... }
-```
+        **Sub-question 2**: [Second part, may use results from above]
+        ```sparql
+        # Sub-query 2 
+        SELECT ?y WHERE { ... }
+        ```
 
-**Final Combined Query**:
-```sparql
-# Combines all sub-queries
-SELECT ... WHERE {
-  # Integration of sub-patterns
-}
-```
-""")
+        **Final Combined Query**:
+        ```sparql
+        # Combines all sub-queries
+        SELECT ... WHERE {
+        # Integration of sub-patterns
+        }
+        ```
+        """)
 
         # 5. Output instruction
         parts.append("=== YOUR SOLUTION ===")
