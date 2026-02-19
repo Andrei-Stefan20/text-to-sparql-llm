@@ -1,0 +1,4 @@
+- dataset.limit=10
+- model=azure_gpt4_mini
+- retrieval.k=5
+- system.experiment_name=test_5shot_gpt4mini_10

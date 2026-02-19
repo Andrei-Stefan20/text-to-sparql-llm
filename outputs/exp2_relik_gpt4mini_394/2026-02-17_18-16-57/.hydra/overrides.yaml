@@ -1,0 +1,4 @@
+- dataset.limit=394
+- model=azure_gpt4_mini
+- linking=relik
+- system.experiment_name=exp2_relik_gpt4mini_394

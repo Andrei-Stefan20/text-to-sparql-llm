@@ -31,7 +31,7 @@ system:
   seed: 42
   debug: false
 dataset:
-  name: casey-martin/qald_9_plus
+  name: local
   split: train
   language: en
   limit: 1

@@ -1,0 +1,4 @@
+- dataset.limit=394
+- model=azure_gpt4_mini
+- prompt=standard
+- system.experiment_name=exp1_standard_gpt4mini_394

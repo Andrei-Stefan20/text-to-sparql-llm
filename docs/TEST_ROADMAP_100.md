@@ -125,7 +125,7 @@ python main.py dataset.limit=100 model=llama_33 prompt=decomposition system.expe
 ```bash
 # === GPT-4-mini ===
 python main.py dataset.limit=100 model=azure_gpt4_mini linking=rebel system.experiment_name=exp2_rebel_gpt4mini_100
-python main.py dataset.limit=100 model=azure_gpt4_mini linking=relik system.experiment_name=exp2_relik_gpt4mini_100
+python main.py dataset.limit=10 model=azure_gpt4_mini linking=relik system.experiment_name=exp2_relik_gpt4mini_10
 python main.py dataset.limit=100 model=azure_gpt4_mini linking=all system.experiment_name=exp2_all_gpt4mini_100
 
 # === GPT-4 ===
@@ -560,16 +560,6 @@ python main.py model=___ prompt=___ linking=___ validation.enable_correction=tru
 ### Final:
 
 * [ ] Best config per model identified
-* [ ] Results documented
-* [ ] Thesis section written
+* [ ] Results documenteds
 
----
-
-## Notes & Random Thoughts
-
-**2026-02-__**:
-
-**2026-02-__**:
-
-**2026-02-__**:
 

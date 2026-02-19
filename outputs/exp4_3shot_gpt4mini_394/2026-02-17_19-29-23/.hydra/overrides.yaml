@@ -1,0 +1,4 @@
+- dataset.limit=394
+- model=azure_gpt4_mini
+- retrieval.k=3
+- system.experiment_name=exp4_3shot_gpt4mini_394

@@ -1,0 +1,4 @@
+- dataset.limit=10
+- model=azure_gpt4_mini
+- validation.self_consistency_samples=3
+- system.experiment_name=test_3samples_gpt4mini_10

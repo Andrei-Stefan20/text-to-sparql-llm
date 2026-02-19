@@ -136,10 +136,12 @@ def main(cfg: DictConfig):
         results = asyncio.run(runner.run(dataset, linker, retriever))
 
         # 5. Evaluation & Reporting
-        logger.info("Computing offline evaluation metrics...")
+        #logger.info("Computing offline evaluation metrics...")
 
-        metrics = OfflineEvaluator.compute_metrics(results)
-        logger.info(f"Final Metrics: {metrics}")
+        #metrics = OfflineEvaluator.compute_metrics(results)
+        #logger.info(f"Final Metrics: {metrics}")
+
+        logger.info(f"Completed. {len(results)} items processed. Evaluation use GERBIL externally.")
 
         final_output = {
             "meta": {
@@ -148,7 +150,7 @@ def main(cfg: DictConfig):
                 "dataset_size": len(dataset),
             },
             "configuration": OmegaConf.to_container(cfg, resolve=True),
-            "metrics": metrics,
+            "metrics": {},
             "results": results,
         }
 

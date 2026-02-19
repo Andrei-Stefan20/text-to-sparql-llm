@@ -1,0 +1,226 @@
+{
+  "meta": {
+    "run_id": "gpt4omini_0shot_rebel_EntsON_ExON_lim10",
+    "status": "completed",
+    "dataset_size": 10
+  },
+  "configuration": {
+    "model": {
+      "name": "gpt-4o-mini",
+      "platform": "azure",
+      "env_var": "AZURE_OPENAI_KEY",
+      "connection": {
+        "endpoint": "AZURE_OPENAI_ENDPOINT",
+        "api_version": "2024-12-01-preview",
+        "deployment": "gpt-4o-mini"
+      },
+      "params": {
+        "temperature": 0.0,
+        "max_tokens": 2048,
+        "top_p": 1.0
+      },
+      "max_retries": 5,
+      "timeout": 60,
+      "system_prompt": "You are a SPARQL expert for Wikidata.\nGenerate ONLY valid SPARQL query code.\nDo NOT include explanations, comments, code blocks, or any text.\nOutput ONLY the query starting with SELECT or CONSTRUCT.\n",
+      "concurrency": 30
+    },
+    "linking": {
+      "method": "rebel",
+      "model_path": "Babelscape/rebel-large",
+      "device": -1,
+      "use_wikidata_fallback": true
+    },
+    "retrieval": {
+      "k": 0,
+      "index_path": "data/processed/train_index.faiss",
+      "metadata_path": "data/processed/train_metadata.pkl"
+    },
+    "prompt": {
+      "name": "std",
+      "strategy": "base",
+      "system_message": "You are a SPARQL expert for Wikidata.\n\nCRITICAL RULES (FOLLOW OR FAIL):\n1. **BOOLEAN QUESTIONS = ASK**: If the question starts with \"Is\", \"Are\", \"Was\", \"Did\", \"Does\", you MUST start your query with `ASK {`.\n2. **DATES**: When filtering by year (e.g. \"after 1990\"), use `FILTER(YEAR(?date) > 1990)`.\n3. **NO SUBQUERIES**: Do NOT use nested `SELECT` queries inside `WHERE`.\n4. **DIRECT PROPERTIES**: Do not invent transitive paths.\n5. **NO SERVICE LABEL**: Do NOT use `SERVICE wikibase:label`. Never add ?xLabel variables.\n6. **VARIABLE NAME**: Always use `?answer` as the main result variable.\n\nOutput ONLY the SPARQL code.\n",
+      "use_system_msg": true,
+      "include_examples": true,
+      "include_entities": true,
+      "include_schema_hint": true,
+      "custom_instruction": "Output ONLY the SPARQL query (no markdown, no explanation):"
+    },
+    "system": {
+      "experiment_name": "test_0shot_gpt4mini_10",
+      "seed": 42,
+      "debug": false,
+      "cache_dir": "~/.cache/huggingface/hub"
+    },
+    "dataset": {
+      "name": "casey-martin/qald_9_plus",
+      "split": "test",
+      "language": "en",
+      "limit": 10
+    },
+    "rag": {
+      "index_path": "data/processed/train_index.faiss",
+      "metadata_path": "data/processed/train_metadata.pkl",
+      "encoder_model": "all-MiniLM-L6-v2"
+    },
+    "validation": {
+      "enable_validation": true,
+      "enable_correction": false,
+      "max_attempts": 3,
+      "validate_execution": false,
+      "self_consistency_samples": 1,
+      "consistency_temperature": 0.7
+    }
+  },
+  "metrics": {},
+  "results": [
+    {
+      "id": "0",
+      "question": "After whom is the Riemannian geometry named?",
+      "prompt": "Relevant Properties: Verified Properties for entities: \nOther Semantic Matches: P8362 (Regensburg Classification (works and editions)), P7900 (Monument Atlas Lower Saxony Objekt-ID), P2460 (Persons of Ancient Athens), P9664 (named place on map), P138 (named after)\nEntities: Riemannian geometry (wd:Q761383)\nQuestion: After whom is the Riemannian geometry named?\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?person ?personLabel WHERE {\n  wd:Q761383 wdt:P138 ?person.\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE { wd:Q761383 wdt:P138 ?result. }",
+      "hints_used": "Verified Properties for entities: \nOther Semantic Matches: P8362 (Regensburg Classification (works and editions)), P7900 (Monument Atlas Lower Saxony Objekt-ID), P2460 (Persons of Ancient Athens), P9664 (named place on map), P138 (named after)",
+      "entities_linked": [
+        {
+          "text": "Riemannian geometry",
+          "qid": "Q761383"
+        }
+      ],
+      "validation": null,
+      "raw_response": null,
+      "error": null
+    },
+    {
+      "id": "1",
+      "question": "Which animal participated in a military operation with the Australian Defence Force?",
+      "prompt": "Relevant Properties: Verified Properties for entities: \nOther Semantic Matches: P7779 (military unit), P798 (military designation), P3156 (Australian Classification), P410 (military, police or special rank), P4624 (squadron embarked)\nEntities: Australian Defence Force (wd:Q625657)\nQuestion: Which animal participated in a military operation with the Australian Defence Force?\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?animal WHERE {\n  wd:Q625657 wdt:P7779 ?militaryUnit .\n  ?militaryUnit wdt:P4624 ?animal .\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {?result wdt:P31 wd:Q16521. ?mop wdt:P31 wd:Q645883; wdt:P710 ?result, wd:Q625657.}",
+      "hints_used": "Verified Properties for entities: \nOther Semantic Matches: P7779 (military unit), P798 (military designation), P3156 (Australian Classification), P410 (military, police or special rank), P4624 (squadron embarked)",
+      "entities_linked": [
+        {
+          "text": "Australian Defence Force",
+          "qid": "Q625657"
+        }
+      ],
+      "validation": null,
+      "raw_response": null,
+      "error": null
+    },
+    {
+      "id": "2",
+      "question": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+      "prompt": "Relevant Properties: Verified Properties for entities: \nOther Semantic Matches: P2562 (married name), P451 (unmarried partner), P8416 (Dowker-Thistlethwaite name), P2962 (title of chess person), P26 (spouse)\nEntities: Yennefer of Vengerberg (wd:Q4205826), Triss Merigold (wd:Q4463198)\nQuestion: among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?character WHERE {\n  ?character wdt:P451 wd:Q4205826.\n  ?character wdt:P451 wd:Q4463198.\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q11835640 wdt:P674 ?result. ?result wdt:P451 ?p1, ?p2. FILTER(?p1 != ?p2 &&(?result IN (wd:Q4205826, wd:Q4463198)))}",
+      "hints_used": "Verified Properties for entities: \nOther Semantic Matches: P2562 (married name), P451 (unmarried partner), P8416 (Dowker-Thistlethwaite name), P2962 (title of chess person), P26 (spouse)",
+      "entities_linked": [
+        {
+          "text": "Yennefer of Vengerberg",
+          "qid": "Q4205826"
+        },
+        {
+          "text": "Triss Merigold",
+          "qid": "Q4463198"
+        }
+      ],
+      "validation": null,
+      "raw_response": null,
+      "error": null
+    },
+    {
+      "id": "3",
+      "question": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+      "prompt": "Relevant Properties: Verified Properties for entities: \nOther Semantic Matches: P102 (member of political party), P199 (has organizational division), P10786 (date of incorporation), P210 (party chief representative), P1149 (Library of Congress Classification)\nQuestion: among the founders of tencent company, who has been member of national people\u2019s congress?\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?founder ?founderLabel WHERE {\n  ?company wdt:P31 wd:Q4830453;\n           wdt:P10786 ?incorporationDate;\n           wdt:P199 ?division.\n  ?founder wdt:P102 wd:Q200202;\n           wdt:P210 ?partyChief.\n  ?founder wdt:P39 wd:Q200202.\n  ?founder rdfs:label ?founderLabel.\n  FILTER(LANG(?founderLabel) = \"en\")\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q860580 wdt:P112 ?result. ?result wdt:P39 wd:Q10891456.}",
+      "hints_used": "Verified Properties for entities: \nOther Semantic Matches: P102 (member of political party), P199 (has organizational division), P10786 (date of incorporation), P210 (party chief representative), P1149 (Library of Congress Classification)",
+      "entities_linked": [],
+      "validation": null,
+      "raw_response": "SELECT ?founder ?founderLabel WHERE {\n  ?company wdt:P31 wd:Q4830453; \n           wdt:P10786 ?incorporationDate; \n           wdt:P199 ?division.\n  ?founder wdt:P102 wd:Q200202; \n           wdt:P210 ?partyChief.\n  ?founder wdt:P39 wd:Q200202.\n  ?founder rdfs:label ?founderLabel.\n  FILTER(LANG(?founderLabel) = \"en\")\n}",
+      "error": null
+    },
+    {
+      "id": "4",
+      "question": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+      "prompt": "Relevant Properties: Verified Properties for entities: \nOther Semantic Matches: P9687 (author given names), P50 (author), P1433 (published in), P2679 (author of foreword), P835 (author citation (zoology))\nQuestion: among the other representative work of the author of hunter x hunter, which one is talking about middle school student?\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?work WHERE {\n  ?author wdt:P50 wd:Q10000.\n  ?work wdt:P50 ?author;\n        wdt:P1433 wd:Q123456.\n  ?work wdt:P9687 ?title.\n  FILTER(CONTAINS(?title, \"middle school student\"))\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q696071 wdt:P50 ?author. ?author wdt:P800 ?result. ?result wdt:P921 wd:Q16003532 FILTER(?result != wd:Q69071)}",
+      "hints_used": "Verified Properties for entities: \nOther Semantic Matches: P9687 (author given names), P50 (author), P1433 (published in), P2679 (author of foreword), P835 (author citation (zoology))",
+      "entities_linked": [],
+      "validation": null,
+      "raw_response": "SELECT ?work WHERE {\n  ?author wdt:P50 wd:Q10000. \n  ?work wdt:P50 ?author; \n        wdt:P1433 wd:Q123456. \n  ?work wdt:P9687 ?title. \n  FILTER(CONTAINS(?title, \"middle school student\"))\n}",
+      "error": null
+    },
+    {
+      "id": "5",
+      "question": "On which stock exchanges are Siemens AG shares traded?",
+      "prompt": "Relevant Properties: Verified Properties for entities: \nOther Semantic Matches: P8247 (nominal share capital), P414 (stock exchange), P3679 (stock market index), P2226 (market capitalization), P2294 (balance of trade)\nEntities: Siemens AG (wd:Q81230)\nQuestion: On which stock exchanges are Siemens AG shares traded?\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?stockExchange WHERE {\n  wd:Q81230 wdt:P414 ?stockExchange.\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q81230 wdt:P414 ?result}",
+      "hints_used": "Verified Properties for entities: \nOther Semantic Matches: P8247 (nominal share capital), P414 (stock exchange), P3679 (stock market index), P2226 (market capitalization), P2294 (balance of trade)",
+      "entities_linked": [
+        {
+          "text": "Siemens AG",
+          "qid": "Q81230"
+        }
+      ],
+      "validation": null,
+      "raw_response": null,
+      "error": null
+    },
+    {
+      "id": "6",
+      "question": "Apart from the book series the witcher, name all of the author\u2019s notable work.",
+      "prompt": "Relevant Properties: Verified Properties for entities: \nOther Semantic Matches: P9687 (author given names), P9688 (author last names), P6333 (title of broader work), P50 (author), P957 (ISBN-10)\nQuestion: Apart from the book series the witcher, name all of the author\u2019s notable work.\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?work ?workLabel WHERE {\n  ?work wdt:P50 wd:Q29565.\n  FILTER NOT EXISTS { ?work wdt:P6333 wd:Q12345678. } # Replace Q12345678 with the actual QID for the Witcher series\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"[AUTO_LANGUAGE],en\". }\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q11835640 wdt:P50 ?author. ?author wdt:P800 ?result. FILTER(?result != wd:Q11835640)}",
+      "hints_used": "Verified Properties for entities: \nOther Semantic Matches: P9687 (author given names), P9688 (author last names), P6333 (title of broader work), P50 (author), P957 (ISBN-10)",
+      "entities_linked": [],
+      "validation": null,
+      "raw_response": null,
+      "error": null
+    },
+    {
+      "id": "7",
+      "question": "are brooke raboutou and colin duffy from same state of the usa?",
+      "prompt": "Relevant Properties: Verified Properties for entities: \nOther Semantic Matches: P4997 (National Governors Association biography URL), P1950 (second family name in Spanish name), P5278 (surname for other gender), P2562 (married name), P3290 (biography at the Landtag of Mecklenburg-Vorpommern)\nQuestion: are brooke raboutou and colin duffy from same state of the usa?\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?state WHERE {\n  {\n    wd:Q10420480 wdt:P276 ?state.\n  } UNION {\n    wd:Q10420481 wdt:P276 ?state.\n  }\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ASK {wd:Q2926117 wdt:P19 ?b1. wd:Q87192979 wdt:P19 ?b2. ?b1 wdt:P131* ?state. ?b2 wdt:P131* ?state. ?state wdt:P31 wd:Q35657 .}",
+      "hints_used": "Verified Properties for entities: \nOther Semantic Matches: P4997 (National Governors Association biography URL), P1950 (second family name in Spanish name), P5278 (surname for other gender), P2562 (married name), P3290 (biography at the Landtag of Mecklenburg-Vorpommern)",
+      "entities_linked": [],
+      "validation": null,
+      "raw_response": "SELECT ?state WHERE {\n  { \n    wd:Q10420480 wdt:P276 ?state. \n  } UNION { \n    wd:Q10420481 wdt:P276 ?state. \n  }\n}",
+      "error": null
+    },
+    {
+      "id": "8",
+      "question": "What is the boiling point of water?",
+      "prompt": "Relevant Properties: Verified Properties for entities: \nOther Semantic Matches: P2102 (boiling point), P2101 (melting point), P2076 (temperature), P873 (phase point), P206 (located in or next to body of water)\nQuestion: What is the boiling point of water?\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?boilingPoint WHERE {\n  wd:Q283 wdt:P2102 ?boilingPoint.\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE{wd:Q283 wdt:P2102 ?result}",
+      "hints_used": "Verified Properties for entities: \nOther Semantic Matches: P2102 (boiling point), P2101 (melting point), P2076 (temperature), P873 (phase point), P206 (located in or next to body of water)",
+      "entities_linked": [],
+      "validation": null,
+      "raw_response": null,
+      "error": null
+    },
+    {
+      "id": "9",
+      "question": "At which school was Yayoi Kusama educated at?",
+      "prompt": "Relevant Properties: Verified Properties for entities: \nOther Semantic Matches: P9863 (Gujarati Vishwakosh entry), P4997 (National Governors Association biography URL), P9317 (Institute of Language in Education Scheme), P812 (academic major), P3428 (INCAA film rating)\nEntities: Yayoi Kusama (wd:Q231121)\nQuestion: At which school was Yayoi Kusama educated at?\n\nOutput ONLY the SPARQL query (no markdown, no explanation):",
+      "generated_sparql": "SELECT ?school WHERE {\n  wd:Q231121 wdt:P69 ?school.\n}",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result {wd:Q231121 wdt:P69 ?result}",
+      "hints_used": "Verified Properties for entities: \nOther Semantic Matches: P9863 (Gujarati Vishwakosh entry), P4997 (National Governors Association biography URL), P9317 (Institute of Language in Education Scheme), P812 (academic major), P3428 (INCAA film rating)",
+      "entities_linked": [
+        {
+          "text": "Yayoi Kusama",
+          "qid": "Q231121"
+        }
+      ],
+      "validation": null,
+      "raw_response": "SELECT ?school WHERE { \n  wd:Q231121 wdt:P69 ?school. \n}",
+      "error": null
+    }
+  ]
+}

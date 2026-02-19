@@ -1,0 +1,6 @@
+- dataset.limit=394
+- model=azure_gpt4_mini
+- linking=rebel
+- retrieval.k=3
+- prompt.include_schema_hint=false
+- system.experiment_name=exp7_linker_rag_gpt4mini_394

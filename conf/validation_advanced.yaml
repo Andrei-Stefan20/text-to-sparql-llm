@@ -28,7 +28,7 @@ validation:
   # Validates by actually running query on Wikidata
   # WARNING: Makes real API calls, slower but catches semantic errors
   # Enables result-based refinement when queries return empty results
-  validate_execution: true
+  validate_execution: false
   
   # ===== Self-Consistency Voting =====
   # Generates multiple diverse queries and votes for the most common one
@@ -46,28 +46,3 @@ validation:
   consistency_temperature: 0.8
 
 
-# ===== USAGE EXAMPLES =====
-
-# Example 1: Maximum Quality (expensive)
-# enable_validation: true
-# enable_correction: true
-# max_attempts: 5
-# validate_execution: true
-# self_consistency_samples: 5
-# consistency_temperature: 0.8
-
-# Example 2: Balanced (recommended)
-# enable_validation: true
-# enable_correction: true
-# max_attempts: 3
-# validate_execution: false
-# self_consistency_samples: 1
-# consistency_temperature: 0.7
-
-# Example 3: Fast (minimal)
-# enable_validation: true
-# enable_correction: false
-# max_attempts: 1
-# validate_execution: false
-# self_consistency_samples: 1
-# consistency_temperature: 0.0

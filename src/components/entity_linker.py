@@ -191,36 +191,59 @@ class RebelLinker(BaseLinker):
         except Exception as e:
             logger.warning(f"REBEL generation failed: {e}")
             return []
+    
+    QUESTION_WORDS = {
+        "who", "whom", "after whom", "what", "which", "where", "when",
+        "how many", "how much", "how long", "is", "are", "was", "were",
+        "did", "does", "do", "named after", "instance of"
+    }
+
+    # Relazioni comuni REBEL che non sono entità Wikidata utili
+    COMMON_RELATIONS = {
+        "spouse", "employer", "owned by", "part of", "located in",
+        "country", "occupation", "position held", "member of",
+        "conflict", "main subject", "named after", "instance of"
+    }
+
 
     def _parse_rebel_output(self, text: str) -> List[str]:
-        """
-        Parses REBEL output to extract entity mentions.
-        """
         text = text.replace("</s>", "").replace("<s>", "")
         entities = set()
-
         relations = text.split("<triplet>")
 
         for relation in relations:
             if "<subj>" in relation:
                 parts = relation.split("<subj>")
                 subject = parts[0].strip()
-                if subject:
+                if subject and self._is_valid_entity(subject):
                     entities.add(subject)
 
                 if len(parts) > 1 and "<obj>" in parts[1]:
                     obj_parts = parts[1].split("<obj>")
-
-                    rel_text = obj_parts[0].strip()
-                    if rel_text:
-                        entities.add(rel_text)
-
                     if len(obj_parts) > 1:
                         obj = obj_parts[1].strip()
-                        if obj and obj.lower() != "instance of":
+                        if obj and self._is_valid_entity(obj):
                             entities.add(obj)
 
         return list(entities)
+    
+    def _is_valid_entity(self, text: str) -> bool:
+        """Evaluates if a text is a valid entity."""
+        text_lower = text.lower().strip()
+        
+        if len(text_lower) <= 2:
+            return False
+        
+        if text_lower in self.QUESTION_WORDS:
+            return False
+        
+        if text_lower in self.COMMON_RELATIONS:
+            return False
+        
+        if not text[0].isupper():
+            return False
+        
+        return True
 
 
 class RelikLinker(BaseLinker):

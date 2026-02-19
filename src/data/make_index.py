@@ -27,7 +27,11 @@ def make_index(cfg: DictConfig):
     metadata_file = output_path / "train_metadata.pkl"
 
     logger.info(f"Loading dataset: {cfg.dataset.name}")
-    loader = DatasetLoader(cfg.dataset)
+    loader = DatasetLoader(
+        dataset_name=cfg.dataset.name,
+        split="train",  
+        language=cfg.dataset.language,
+    )
     raw_data = loader.load() # Carica lo split di train
     
     logger.info("Filtering data (English only, no DBpedia)...")

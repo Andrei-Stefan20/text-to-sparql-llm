@@ -15,7 +15,8 @@ WIKIDATA_ENDPOINT = "https://query.wikidata.org/sparql"
 # SPARQL Client Configuration
 sparql_client = SPARQLWrapper(WIKIDATA_ENDPOINT)
 sparql_client.setReturnFormat(JSON)
-# Important: Wikidata requires a valid User-Agent
+sparql_client.setTimeout(5) 
+
 sparql_client.addCustomHttpHeader("User-Agent", "PhD-Thesis-Bot/1.0 (contact: your_email@example.com)")
 
 def execute_sparql(query):
@@ -27,9 +28,8 @@ def execute_sparql(query):
     
     try:
         sparql_client.setQuery(query)
-        return sparql_client.query().convert()
+        return sparql_client.queryAndConvert()
     except Exception as e:
-        # In case of error (malformed query or timeout), return empty result
         return {"head": {"vars": []}, "results": {"bindings": []}}
 
 def convert_single_file(file_path):
@@ -41,7 +41,7 @@ def convert_single_file(file_path):
     exp_name = path_parts[-3]
     timestamp = path_parts[-2]
     
-    print(f"\n📂 Processing: [{exp_name}] - {timestamp}")
+    print(f"\n>>> Processing: [{exp_name}] - {timestamp}")
 
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -53,7 +53,7 @@ def convert_single_file(file_path):
         elif isinstance(data, list):
             items = data
         else:
-            print(f"⚠️  Unrecognized format in {file_path}, skipping.")
+            print(f">>> Unrecognized format in {file_path}, skipping.")
             return
 
         qald_questions = []
@@ -66,7 +66,7 @@ def convert_single_file(file_path):
             
             # Execute query to get real answers
             answers = execute_sparql(generated_sparql)
-            time.sleep(0.5) # Respect Wikidata API rate limits
+            time.sleep(0.1) # Riduciamo un po' l'attesa visto che abbiamo il timeout
 
             # Construct QALD object
             qald_entry = {

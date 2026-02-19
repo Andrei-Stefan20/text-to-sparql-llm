@@ -5,7 +5,7 @@ device: -1
 rebel_model_path: "Babelscape/rebel-large"
 
 # RELIK config
-relik_model_path: "sapienzanlp/relik-entity-linking-large"
+relik_model_path: "sapienzanlp/relik-entity-linking-small"
 window_size: 32
 
 # Enable Wikidata API fallback for entities without QIDs

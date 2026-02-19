@@ -1,0 +1,93 @@
+model:
+  name: llama-3.3-70b
+  platform: openai
+  env_var: LLAMA_API_KEY
+  model_name: Llama-3.3-70B-Instruct
+  connection:
+    base_url: LLAMA_ENDPOINT
+  params:
+    temperature: 0.1
+    max_tokens: 1024
+    top_p: 0.95
+  max_retries: 5
+  timeout: 120
+  system_prompt: 'You are a SPARQL expert for Wikidata.
+
+    Generate ONLY valid SPARQL query code.
+
+    Do NOT include explanations, comments, code blocks, or any text.
+
+    Output ONLY the query starting with SELECT or CONSTRUCT.
+
+    '
+  concurrency: 2
+linking:
+  method: rebel
+  model_path: Babelscape/rebel-large
+  device: -1
+  use_wikidata_fallback: true
+retrieval:
+  k: 3
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+prompt:
+  name: cot
+  strategy: cot
+  system_message: 'You are a SPARQL expert for Wikidata.
+
+    Your task is to translate natural language questions into SPARQL queries.
+
+
+    CRITICAL GUIDELINES:
+
+    1. **Query Type:** IF the question is a Yes/No question (starts with Did/Was/Is/Are),
+    use `ASK { ... }`. Otherwise use `SELECT`.
+
+    2. **No Hardcoded Dates:** If comparing against an event (e.g. "before Brezhnev"),
+    retrieve the event''s date from the graph first. Do not guess the date.
+
+    3. **Variables:** Use `?answer` as the main projection variable.
+
+    4. **Entities & Properties:** Use the provided Q-IDs and P-IDs. Avoid generic
+    properties like `wdt:P527` unless appropriate.
+
+
+    Think step-by-step:
+
+    1. Identify if the intent is SELECT or ASK.
+
+    2. Identify entities (Q-IDs) and verify which Properties (P-IDs) from the hints
+    fit best.
+
+    3. If a comparison is required (e.g. time, quantity), plan to retrieve the reference
+    value within the query.
+
+    4. Write the SPARQL query inside a ```sparql code block.
+
+    '
+  use_system_msg: true
+  include_examples: true
+  include_entities: true
+  include_schema_hint: true
+  custom_instruction: ''
+system:
+  experiment_name: test_cot_llama_10
+  seed: 42
+  debug: false
+  cache_dir: ~/.cache/huggingface/hub
+dataset:
+  name: casey-martin/qald_9_plus
+  split: test
+  language: en
+  limit: 10
+rag:
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+  encoder_model: all-MiniLM-L6-v2
+validation:
+  enable_validation: true
+  enable_correction: false
+  max_attempts: 3
+  validate_execution: false
+  self_consistency_samples: 1
+  consistency_temperature: 0.7

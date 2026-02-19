@@ -1,0 +1,4 @@
+- dataset.limit=10
+- model=azure_gpt4_mini
+- prompt=decomposition
+- system.experiment_name=test_decomp_gpt4mini_10

@@ -1,0 +1,76 @@
+model:
+  name: gpt-4o
+  platform: azure
+  env_var: AZURE_OPENAI_KEY
+  connection:
+    endpoint: AZURE_OPENAI_ENDPOINT
+    api_version: 2024-12-01-preview
+    deployment: gpt-4o
+  params:
+    temperature: 0.0
+    max_tokens: 4096
+    top_p: 1.0
+  max_retries: 5
+  timeout: 60
+  system_prompt: 'You are a SPARQL expert for Wikidata.
+
+    Generate ONLY valid SPARQL query code.
+
+    Do NOT include explanations, comments, code blocks, or any text.
+
+    Output ONLY the query starting with SELECT or CONSTRUCT.
+
+    '
+  concurrency: 20
+linking:
+  method: rebel
+  model_path: Babelscape/rebel-large
+  device: -1
+  use_wikidata_fallback: true
+retrieval:
+  k: 3
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+prompt:
+  name: decomposition
+  strategy: decomposition
+  system_message: "You are a SPARQL expert for Wikidata specializing in complex queries.\n\
+    \nCRITICAL RULES FOR FINAL QUERY:\n1. Use `ASK { ... }` for boolean (Yes/No) questions.\n\
+    2. Use `?answer` as the main variable for SELECT queries.\n3. NEVER hardcode dates\
+    \ or values not present in the text; retrieve them dynamically via sub-queries.\n\
+    \nFor complex questions, you will:\n1. Analyze the question to determine its complexity.\n\
+    2. If complex (multiple conditions, aggregations, nested relationships):\n   -\
+    \ Break it into simpler sub-questions.\n   - Write a sub-query for each sub-question\
+    \ using Q-IDs and P-IDs.\n   - Combine sub-queries into the final SPARQL query.\n\
+    3. If simple: write the query directly.\n\nComplex patterns to look for:\n- Multiple\
+    \ conditions (AND, OR, UNION)\n- Aggregations (COUNT, MAX, MIN, AVG, SUM)\n- Nested\
+    \ relationships (friend of friend, etc.)\n- Temporal constraints (dates, periods)\
+    \ -> Retrieve comparison dates dynamically!\n- Comparisons between entities\n\
+    - OPTIONAL patterns\n- Subqueries and EXISTS/NOT EXISTS\n\nAlways output the FINAL\
+    \ query inside a ```sparql code block at the end.\n"
+  use_system_msg: true
+  include_examples: true
+  include_entities: true
+  include_schema_hint: true
+  custom_instruction: ''
+system:
+  experiment_name: exp1_decomp_gpt4_394
+  seed: 42
+  debug: false
+  cache_dir: ~/.cache/huggingface/hub
+dataset:
+  name: casey-martin/qald_9_plus
+  split: test
+  language: en
+  limit: 394
+rag:
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+  encoder_model: all-MiniLM-L6-v2
+validation:
+  enable_validation: true
+  enable_correction: false
+  max_attempts: 3
+  validate_execution: false
+  self_consistency_samples: 1
+  consistency_temperature: 0.7

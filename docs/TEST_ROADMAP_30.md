@@ -449,16 +449,3 @@ python main.py model=___ prompt=___ linking=___ validation.enable_correction=tru
 ### Final:
 - [ ] Best config per model identified
 - [ ] Results documented
-- [ ] Thesis section written
-
----
-
-## Notes & Random Thoughts
-
-**2026-02-__**:
-
-
-**2026-02-__**:
-
-
-**2026-02-__**:

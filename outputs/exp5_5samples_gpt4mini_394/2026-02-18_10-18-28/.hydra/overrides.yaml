@@ -1,0 +1,5 @@
+- dataset.limit=394
+- model=azure_gpt4_mini
+- validation.self_consistency_samples=5
+- validation.consistency_temperature=0.7
+- system.experiment_name=exp5_5samples_gpt4mini_394

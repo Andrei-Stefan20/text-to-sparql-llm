@@ -1,0 +1,4 @@
+- dataset.limit=10
+- model=llama_33
+- prompt=cot
+- system.experiment_name=test_cot_llama_10
