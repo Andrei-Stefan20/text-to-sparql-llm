@@ -18,6 +18,7 @@ class PromptStrategy(str, Enum):
     BASE = "base"           # Standard few-shot prompting
     COT = "cot"             # Chain-of-Thought reasoning
     DECOMPOSITION = "decomposition"  # Query decomposition into sub-queries
+    AGENTIC = "agentic"     # ReAct agent loop (handled by AgenticBatchRunner)
 
 
 class PromptBuilder:
@@ -32,9 +33,11 @@ class PromptBuilder:
     
     def __init__(self, config: DictConfig):
         self.cfg = config
-        self.strategy = PromptStrategy(
-            config.get("strategy", "base").lower()
-        )
+        raw_strategy = config.get("strategy", "base").lower()
+        if raw_strategy == "agentic":
+            self.strategy = PromptStrategy.BASE
+        else:
+            self.strategy = PromptStrategy(raw_strategy)
 
     def build_system_prompt(self) -> str:
         """Builds the system prompt based on strategy."""
@@ -51,9 +54,9 @@ class PromptBuilder:
         return self.cfg.get(
             "system_message",
             """You are a SPARQL expert for Wikidata.
-Generate ONLY valid SPARQL query code.
-Do NOT include explanations, comments, code blocks, or any text.
-Output ONLY the query starting with SELECT or CONSTRUCT."""
+            Generate ONLY valid SPARQL query code.
+            Do NOT include explanations, comments, code blocks, or any text.
+            Output ONLY the query starting with SELECT or CONSTRUCT."""
         )
     
     def _get_cot_system_prompt(self) -> str:
@@ -61,16 +64,16 @@ Output ONLY the query starting with SELECT or CONSTRUCT."""
         return self.cfg.get(
             "system_message",
             """You are a SPARQL expert for Wikidata.
-Your task is to translate natural language questions into SPARQL queries.
+            Your task is to translate natural language questions into SPARQL queries.
 
-You must think step-by-step before writing the query:
-1. Identify what the question is asking for (the target variable)
-2. Identify the entities mentioned and their Wikidata IDs
-3. Identify the relationships/properties needed
-4. Consider any filters, aggregations, or special conditions
-5. Write the SPARQL query
+            You must think step-by-step before writing the query:
+            1. Identify what the question is asking for (the target variable)
+            2. Identify the entities mentioned and their Wikidata IDs
+            3. Identify the relationships/properties needed
+            4. Consider any filters, aggregations, or special conditions
+            5. Write the SPARQL query
 
-Always show your reasoning, then output the final query."""
+            Always show your reasoning, then output the final query."""
         )
     
     def _get_decomposition_system_prompt(self) -> str:
@@ -79,18 +82,18 @@ Always show your reasoning, then output the final query."""
             "system_message",
             """You are a SPARQL expert for Wikidata specializing in complex queries.
 
-For complex questions, you will:
-1. Analyze the question complexity
-2. If complex, break it into simpler sub-questions
-3. Write a sub-query for each sub-question
-4. Combine sub-queries into the final SPARQL query
+            For complex questions, you will:
+            1. Analyze the question complexity
+            2. If complex, break it into simpler sub-questions
+            3. Write a sub-query for each sub-question
+            4. Combine sub-queries into the final SPARQL query
 
-Use this approach for questions involving:
-- Multiple conditions (AND, OR)
-- Aggregations (COUNT, MAX, MIN, AVG)
-- Nested relationships
-- Temporal constraints
-- Comparisons between entities"""
+            Use this approach for questions involving:
+            - Multiple conditions (AND, OR)
+            - Aggregations (COUNT, MAX, MIN, AVG)
+            - Nested relationships
+            - Temporal constraints
+            - Comparisons between entities"""
         )
 
     def _format_entities(self, entities: List) -> str:
