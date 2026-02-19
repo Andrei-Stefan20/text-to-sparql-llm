@@ -24,11 +24,11 @@ class BaseClient(ABC):
     async def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """
         Generates text based on the provided prompts.
-        
+
         Args:
             prompt: The user prompt to send to the model.
             system_prompt: Optional system prompt override. If None, uses default.
-            
+
         Returns:
             The generated text response.
         """
@@ -40,11 +40,11 @@ class BaseClient(ABC):
     ) -> AsyncIterator[str]:
         """
         Generates text with streaming support.
-        
+
         Args:
             prompt: The user prompt to send to the model.
             system_prompt: Optional system prompt override.
-            
+
         Yields:
             Chunks of generated text as they become available.
         """

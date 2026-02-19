@@ -42,31 +42,35 @@ logger = logging.getLogger(__name__)
 # Data classes
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class AgentStep:
     """Records a single reasoning + action step."""
+
     step_number: int
     thought: str
-    action: str                    # "EXECUTE_SPARQL" | "FINAL_ANSWER"
-    query: str                     # The SPARQL issued in this step
-    observation: Optional[str]     # Result returned by Wikidata (None for FINAL_ANSWER)
+    action: str  # "EXECUTE_SPARQL" | "FINAL_ANSWER"
+    query: str  # The SPARQL issued in this step
+    observation: Optional[str]  # Result returned by Wikidata (None for FINAL_ANSWER)
     raw_llm_response: str
 
 
 @dataclass
 class AgentResult:
     """Final result of the agentic run."""
+
     final_query: str
     is_valid: bool
     steps: List[AgentStep] = field(default_factory=list)
     total_steps: int = 0
-    termination_reason: str = ""   # "final_answer" | "max_steps" | "error"
+    termination_reason: str = ""  # "final_answer" | "max_steps" | "error"
     validation_error: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
 # Wikidata tool executor
 # ---------------------------------------------------------------------------
+
 
 class WikidataTool:
     """
@@ -101,7 +105,9 @@ class WikidataTool:
         if not query or not query.strip():
             return "Error: empty query."
 
-        full_query = query if "PREFIX" in query.upper() else self.STANDARD_PREFIXES + query
+        full_query = (
+            query if "PREFIX" in query.upper() else self.STANDARD_PREFIXES + query
+        )
 
         try:
             self.sparql.setQuery(full_query)
@@ -149,18 +155,23 @@ class WikidataTool:
 # Response parser
 # ---------------------------------------------------------------------------
 
+
 class AgentResponseParser:
     """
     Parses LLM responses that follow the ReAct format.
     Supports both sparql_start/sparql_end markers and backtick blocks.
     """
 
-    _THOUGHT_RE = re.compile(r"THOUGHT\s*[:]\s*(.*?)(?=\nACTION|\nFINAL_ANSWER|$)", re.IGNORECASE | re.DOTALL)
+    _THOUGHT_RE = re.compile(
+        r"THOUGHT\s*[:]\s*(.*?)(?=\nACTION|\nFINAL_ANSWER|$)", re.IGNORECASE | re.DOTALL
+    )
     _ACTION_RE = re.compile(r"ACTION\s*[:]\s*EXECUTE_SPARQL", re.IGNORECASE)
     _FINAL_RE = re.compile(r"FINAL_ANSWER\s*[:]?", re.IGNORECASE)
 
     # Supports sparql_start/sparql_end (primary) and backtick blocks (fallback)
-    _SPARQL_MARKER_RE = re.compile(r"sparql_start\s*([\s\S]*?)\s*sparql_end", re.IGNORECASE)
+    _SPARQL_MARKER_RE = re.compile(
+        r"sparql_start\s*([\s\S]*?)\s*sparql_end", re.IGNORECASE
+    )
     _SPARQL_BLOCK_RE = re.compile(r"```(?:sparql)?\s*([\s\S]*?)```", re.IGNORECASE)
 
     def parse(self, response: str) -> Tuple[str, str, str]:
@@ -179,7 +190,9 @@ class AgentResponseParser:
 
         # Fallback: bare SPARQL block with no explicit marker
         if query:
-            logger.debug("No explicit action found; treating SPARQL block as FINAL_ANSWER.")
+            logger.debug(
+                "No explicit action found; treating SPARQL block as FINAL_ANSWER."
+            )
             return thought, "FINAL_ANSWER", query
 
         return thought, "UNKNOWN", ""
@@ -203,7 +216,8 @@ class AgentResponseParser:
         # 3. Bare SELECT/ASK/CONSTRUCT
         bare = re.search(
             r"((?:PREFIX[^\n]+\n)*\s*(?:SELECT|ASK|CONSTRUCT|DESCRIBE)\s+[\s\S]+)",
-            text, re.IGNORECASE
+            text,
+            re.IGNORECASE,
         )
         if bare:
             return bare.group(1).strip()
@@ -214,6 +228,7 @@ class AgentResponseParser:
 # ---------------------------------------------------------------------------
 # Core agent loop
 # ---------------------------------------------------------------------------
+
 
 class AgenticSPARQLRunner:
     """
@@ -332,7 +347,11 @@ class AgenticSPARQLRunner:
         # Max steps reached
         logger.warning("[Agent] Max steps reached. Returning best available query.")
         last_query = next((s.query for s in reversed(steps) if s.query), "")
-        valid, error = self._validate_final_query(last_query) if last_query else (False, "No query generated")
+        valid, error = (
+            self._validate_final_query(last_query)
+            if last_query
+            else (False, "No query generated")
+        )
 
         return AgentResult(
             final_query=last_query,

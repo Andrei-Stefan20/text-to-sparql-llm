@@ -21,10 +21,11 @@ from typing import Any, Dict, List, Optional
 from tqdm.asyncio import tqdm
 
 from src.clients.base import BaseClient
+from src.components.agentic_runner import (AgenticSPARQLRunner, AgentResult,
+                                           WikidataTool)
 from src.components.entity_linker import BaseLinker, LinkedEntity
 from src.components.rag_retriever import RagRetriever
 from src.components.schema_retriever import SchemaRetriever
-from src.components.agentic_runner import AgenticSPARQLRunner, WikidataTool, AgentResult
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +83,9 @@ class AgenticBatchRunner:
                 merged[key] = e
         return list(merged.values())
 
-    async def _run_linker(self, linker: BaseLinker, question: str) -> List[LinkedEntity]:
+    async def _run_linker(
+        self, linker: BaseLinker, question: str
+    ) -> List[LinkedEntity]:
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, linker.extract, question)
 
@@ -90,13 +93,15 @@ class AgenticBatchRunner:
         """Converts AgentResult steps to JSON-serialisable dicts."""
         out = []
         for s in result.steps:
-            out.append({
-                "step": s.step_number,
-                "thought": s.thought,
-                "action": s.action,
-                "query": s.query,
-                "observation": s.observation,
-            })
+            out.append(
+                {
+                    "step": s.step_number,
+                    "thought": s.thought,
+                    "action": s.action,
+                    "query": s.query,
+                    "observation": s.observation,
+                }
+            )
         return out
 
     # ------------------------------------------------------------------
@@ -125,7 +130,9 @@ class AgenticBatchRunner:
                         e2 = await self._run_linker(self.linker2, question)
                         entities = self._merge_entities(entities, e2)
                     except Exception as exc:
-                        logger.warning(f"[ID {item.get('id')}] Secondary linker failed: {exc}")
+                        logger.warning(
+                            f"[ID {item.get('id')}] Secondary linker failed: {exc}"
+                        )
 
                 # 2. RAG retrieval + schema hints
                 loop = asyncio.get_event_loop()
@@ -154,7 +161,8 @@ class AgenticBatchRunner:
                 # 4. Clean SPARQL
                 final_sparql = (
                     agent_result.final_query.replace("\\n", "\n")
-                    if agent_result.final_query else ""
+                    if agent_result.final_query
+                    else ""
                 )
                 gold_clean = gold_sparql.replace("\\n", "\n") if gold_sparql else ""
 

@@ -16,11 +16,11 @@ Implementation:
 
 import json
 import logging
+import os
 import ssl
 import time
 import urllib.error
 from typing import Any, Dict, List, Optional, Set, Tuple
-import os
 
 from SPARQLWrapper import JSON, SPARQLWrapper
 
@@ -108,9 +108,7 @@ class OfflineEvaluator:
             )
 
             # Execute Generated
-            gen_results = OfflineEvaluator._execute_query_with_retry(
-                sparql, gen_query
-            )
+            gen_results = OfflineEvaluator._execute_query_with_retry(sparql, gen_query)
 
             # Track syntax/execution errors on the generated query
             if gen_results is None:
@@ -206,9 +204,7 @@ class OfflineEvaluator:
                 error_msg = str(e).lower()
                 if "time-out" in error_msg or "timed out" in error_msg:
                     if attempt < max_retries - 1:
-                        logger.warning(
-                            f"Timeout on attempt {attempt + 1}. Retrying..."
-                        )
+                        logger.warning(f"Timeout on attempt {attempt + 1}. Retrying...")
                         time.sleep(2)
                         continue
                     else:
@@ -246,9 +242,7 @@ class OfflineEvaluator:
                 if v in binding:
                     val = binding[v]["value"]
                     # Normalise Wikidata entity URIs
-                    val = val.replace(
-                        "http://www.wikidata.org/entity/", ""
-                    )
+                    val = val.replace("http://www.wikidata.org/entity/", "")
                     row.append(val)
                 else:
                     row.append(None)

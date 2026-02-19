@@ -30,7 +30,7 @@ def cleanup_cache():
         print("✓ Cache removed")
     else:
         print("No HuggingFace cache found")
-    
+
     project_root = Path(__file__).parent.parent.parent
     local_models = project_root / "models"
     if local_models.exists():
@@ -44,15 +44,15 @@ def cleanup_cache():
 def cleanup_pycache():
     """Remove __pycache__ and .pyc files."""
     project_root = Path(__file__).parent.parent.parent
-    
+
     for pycache in project_root.rglob("__pycache__"):
         print(f"Removing: {pycache}")
         shutil.rmtree(pycache)
-    
+
     for pyc in project_root.rglob("*.pyc"):
         print(f"Removing: {pyc}")
         pyc.unlink()
-    
+
     print("✓ Python cache cleaned")
 
 
@@ -71,9 +71,9 @@ def cleanup_outputs():
 def cleanup_tmp():
     """Remove .DS_Store and other temp files."""
     project_root = Path(__file__).parent.parent.parent
-    
+
     patterns = [".DS_Store", ".pytest_cache", "*.egg-info", ".eggs"]
-    
+
     for pattern in patterns:
         for item in project_root.rglob(pattern):
             try:
@@ -84,7 +84,7 @@ def cleanup_tmp():
                 print(f"Removing: {item}")
             except Exception as e:
                 print(f"Failed to remove {item}: {e}")
-    
+
     print("✓ Temp files cleaned")
 
 
@@ -93,10 +93,10 @@ def main():
     print("=" * 60)
     print("CLEANUP SCRIPT")
     print("=" * 60)
-    
+
     if len(sys.argv) > 1:
         option = sys.argv[1].lower()
-        
+
         if option == "--cache":
             cleanup_cache()
         elif option == "--pycache":

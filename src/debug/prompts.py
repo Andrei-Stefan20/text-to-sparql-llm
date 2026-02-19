@@ -85,7 +85,9 @@ def run_inspection(cfg: DictConfig):
     logger.info(f"  - Include Schema Hints:  {cfg.prompt.include_schema_hint}")
     logger.info(f"  - Custom Instruction:    {cfg.prompt.custom_instruction}")
     logger.info(f"Dataset:        {cfg.dataset.name} (split: {cfg.dataset.split})")
-    logger.info(f"Limit:          {cfg.dataset.limit if cfg.dataset.limit else 'No limit'}")
+    logger.info(
+        f"Limit:          {cfg.dataset.limit if cfg.dataset.limit else 'No limit'}"
+    )
     logger.info("============================")
 
     # 2. Component Initialization
@@ -115,9 +117,9 @@ def run_inspection(cfg: DictConfig):
     )
     logger.info("[INSTRUCTION] Type 'exit' or 'quit' to terminate the session.")
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("SYSTEM READY - DEBUG MODE (Prompt Generation Only)")
-    print("="*70)
+    print("=" * 70)
     print("")
     print("OVERRIDE PARAMETERS (Hydra syntax):")
     print("")
@@ -151,7 +153,7 @@ def run_inspection(cfg: DictConfig):
     print("    python src/debug/prompts.py prompt=decomposition retrieval=3shot")
     print("    python src/debug/prompts.py prompt.custom_instruction='Focus on dates'")
     print("")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     while True:
         try:
@@ -210,15 +212,15 @@ def run_inspection(cfg: DictConfig):
             )
 
             # E. Display Prompts
-            print("\n" + "="*70)
+            print("\n" + "=" * 70)
             print("SYSTEM PROMPT")
-            print("="*70)
+            print("=" * 70)
             print(system_prompt)
-            print("\n" + "="*70)
+            print("\n" + "=" * 70)
             print("USER PROMPT")
-            print("="*70)
+            print("=" * 70)
             print(final_prompt)
-            print("="*70 + "\n")
+            print("=" * 70 + "\n")
 
             logger.info("=== SYSTEM PROMPT ===")
             for line in system_prompt.split("\n"):

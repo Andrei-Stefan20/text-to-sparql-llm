@@ -1,3 +1,27 @@
+"""
+main.py — Entry point for the Text-to-SPARQL pipeline.
+
+Uses:
+  conf/config.yaml          (base configuration file)
+  conf/model/*.yaml         (model selection and configuration)
+  conf/linking/*.yaml       (entity linker configuration)
+  conf/retrieval/*.yaml     (retrieval-augmented generation configuration)
+
+Run examples:
+  # GPT-4o-mini, full dataset, validation enabled
+  python main.py model=azure_gpt4_mini
+
+  # GPT-4o, limit 50 questions, REBEL linker
+  python main.py model=azure_gpt4 dataset.limit=50 linking=rebel
+
+  # Llama, 3-shot RAG, ReliK linker
+  python main.py model=llama_33 retrieval=3shot linking=relik
+
+  # Enable self-correction with 5 attempts
+  python main.py model=azure_gpt4 validation.enable_correction=true validation.max_attempts=5
+
+"""
+
 import asyncio
 import logging
 import os
@@ -23,6 +47,9 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Client factory (instantiates the correct LLM client based on configuration)
+# ---------------------------------------------------------------------------
 def get_client_factory(cfg: DictConfig):
     """
     Method to instantiate the correct LLM Client based on the configuration.
@@ -36,6 +63,9 @@ def get_client_factory(cfg: DictConfig):
         raise ValueError(f"Unsupported platform: {platform}")
 
 
+# ---------------------------------------------------------------------------
+# Main entry point for the Text-to-SPARQL pipeline
+# ---------------------------------------------------------------------------
 @hydra.main(config_path="conf", config_name="config", version_base=None)
 def main(cfg: DictConfig):
     """
@@ -82,7 +112,7 @@ def main(cfg: DictConfig):
         # B. Entity Linker(s)
         cache_dir = cfg.system.get("cache_dir")
         linker = get_linker(cfg.linking, cache_dir=cache_dir)
-        
+
         # Optional: Use a second linker for hybrid approach
         linker2 = None
         if cfg.linking.get("use_dual_linkers", False):
@@ -90,6 +120,7 @@ def main(cfg: DictConfig):
             if secondary_method:
                 logger.info(f"Initializing secondary linker: {secondary_method}")
                 from omegaconf import DictConfig as OmegaConfConfig
+
                 secondary_config = OmegaConfConfig({"method": secondary_method})
                 linker2 = get_linker(secondary_config, cache_dir=cache_dir)
                 logger.info("✓ Dual linker mode enabled")
@@ -106,11 +137,11 @@ def main(cfg: DictConfig):
         # 4. Pipeline Execution
         # Get validation and correction settings
         validation_cfg = cfg.get("validation", {})
-        
+
         logger.info(
             f"Starting Batch Pipeline with concurrency limit: {cfg.model.concurrency}"
         )
-        
+
         if validation_cfg.get("enable_correction", False):
             logger.info(
                 f"Self-correction enabled: max_attempts={validation_cfg.get('max_attempts', 3)}, "
@@ -136,12 +167,14 @@ def main(cfg: DictConfig):
         results = asyncio.run(runner.run(dataset, linker, retriever))
 
         # 5. Evaluation & Reporting
-        #logger.info("Computing offline evaluation metrics...")
+        # logger.info("Computing offline evaluation metrics...")
 
-        #metrics = OfflineEvaluator.compute_metrics(results)
-        #logger.info(f"Final Metrics: {metrics}")
+        # metrics = OfflineEvaluator.compute_metrics(results)
+        # logger.info(f"Final Metrics: {metrics}")
 
-        logger.info(f"Completed. {len(results)} items processed. Evaluation use GERBIL externally.")
+        logger.info(
+            f"Completed. {len(results)} items processed. Evaluation use GERBIL externally."
+        )
 
         final_output = {
             "meta": {

@@ -21,7 +21,6 @@ Run examples:
   # Override agent loop settings
   python main_agentic.py model=azure_gpt4_mini prompt.max_steps=8
 
-The prompt group is ALWAYS forced to "agentic" — do not override it.
 """
 
 import asyncio
@@ -52,6 +51,7 @@ logger = logging.getLogger(__name__)
 # Client factory (same as main.py)
 # ---------------------------------------------------------------------------
 
+
 def get_client(cfg: DictConfig):
     platform = cfg.platform.lower()
     if platform == "azure":
@@ -64,6 +64,7 @@ def get_client(cfg: DictConfig):
 # ---------------------------------------------------------------------------
 # Run-name generator (agentic flavour)
 # ---------------------------------------------------------------------------
+
 
 def _run_name(cfg: DictConfig) -> str:
     model = cfg.model.name.replace("-", "").replace(" ", "")
@@ -79,6 +80,7 @@ def _run_name(cfg: DictConfig) -> str:
 # Compute summary stats from results
 # ---------------------------------------------------------------------------
 
+
 def _compute_stats(results: list) -> dict:
     total = len(results)
     if total == 0:
@@ -86,11 +88,13 @@ def _compute_stats(results: list) -> dict:
 
     valid = sum(1 for r in results if r.get("is_valid", False))
     errors = sum(1 for r in results if r.get("error"))
-    terminated_final = sum(1 for r in results if r.get("termination_reason") == "final_answer")
-    terminated_max = sum(1 for r in results if r.get("termination_reason") == "max_steps")
-    avg_steps = (
-        sum(r.get("total_steps", 0) for r in results) / total if total else 0
+    terminated_final = sum(
+        1 for r in results if r.get("termination_reason") == "final_answer"
     )
+    terminated_max = sum(
+        1 for r in results if r.get("termination_reason") == "max_steps"
+    )
+    avg_steps = sum(r.get("total_steps", 0) for r in results) / total if total else 0
 
     return {
         "total": total,
@@ -105,6 +109,7 @@ def _compute_stats(results: list) -> dict:
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 @hydra.main(config_path="conf", config_name="config", version_base=None)
 def main(cfg: DictConfig):

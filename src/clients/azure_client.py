@@ -19,13 +19,9 @@ import os
 from typing import AsyncIterator, Optional
 
 from omegaconf import DictConfig, OmegaConf
-from openai import AsyncAzureOpenAI, APIError, RateLimitError, APITimeoutError
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_exponential,
-    retry_if_exception_type,
-)
+from openai import APIError, APITimeoutError, AsyncAzureOpenAI, RateLimitError
+from tenacity import (retry, retry_if_exception_type, stop_after_attempt,
+                      wait_exponential)
 
 from src.clients.base import BaseClient
 
@@ -99,9 +95,7 @@ class AzureClient(BaseClient):
             f"Retry attempt {retry_state.attempt_number} after error: {retry_state.outcome.exception()}"
         ),
     )
-    async def generate(
-        self, prompt: str, system_prompt: Optional[str] = None
-    ) -> str:
+    async def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """
         Generates text with automatic retry on transient errors.
 

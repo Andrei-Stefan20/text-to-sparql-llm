@@ -14,57 +14,61 @@ Implementation:
 - Saves FAISS indices and metadata to specified paths.
 """
 
-import os
-import platform
-import pickle
 import logging
+import os
+import pickle
+import platform
 from pathlib import Path
 
 # Fix per crash su macOS
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-import hydra
 import faiss
+import hydra
 import numpy as np
 from omegaconf import DictConfig
 from sentence_transformers import SentenceTransformer
+
 from src.data.loader import DatasetLoader
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 @hydra.main(config_path="../../conf", config_name="config", version_base=None)
 def make_index(cfg: DictConfig):
     output_path = Path("data/processed")
     output_path.mkdir(parents=True, exist_ok=True)
-    
+
     index_file = output_path / "train_index.faiss"
     metadata_file = output_path / "train_metadata.pkl"
 
     logger.info(f"Loading dataset: {cfg.dataset.name}")
     loader = DatasetLoader(
         dataset_name=cfg.dataset.name,
-        split="train",  
+        split="train",
         language=cfg.dataset.language,
     )
-    raw_data = loader.load() # Carica lo split di train
-    
+    raw_data = loader.load()  # Carica lo split di train
+
     logger.info("Filtering data (English only, no DBpedia)...")
     clean_data = []
     questions_text = []
 
     for item in raw_data:
         # 1. Filtro SPARQL (solo Wikidata)
-        sparql = item.get('query', {}).get('sparql', '')
+        sparql = item.get("query", {}).get("sparql", "")
         if "dbpedia" in sparql or "dbo:" in sparql:
             continue
 
         # 2. Estrazione domanda inglese
-        raw_q = item.get('question', [])
+        raw_q = item.get("question", [])
         en_q = ""
         if isinstance(raw_q, list):
-            en_q = next((q['string'] for q in raw_q if q.get('language') == 'en'), "")
+            en_q = next((q["string"] for q in raw_q if q.get("language") == "en"), "")
         elif isinstance(raw_q, str):
             en_q = raw_q
 
@@ -80,7 +84,7 @@ def make_index(cfg: DictConfig):
     # 4. Generazione Embedding (Forza CPU su Mac per stabilità)
     device = "cpu" if platform.system() == "Darwin" else "cuda"
     model = SentenceTransformer(cfg.rag.encoder_model, device=device)
-    
+
     logger.info("Generating embeddings...")
     embeddings = model.encode(questions_text, show_progress_bar=True)
     embeddings = np.array(embeddings).astype("float32")
@@ -96,6 +100,7 @@ def make_index(cfg: DictConfig):
         pickle.dump(clean_data, f)
 
     logger.info("Index generation completed successfully!")
+
 
 if __name__ == "__main__":
     make_index()

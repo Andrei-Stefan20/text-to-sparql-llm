@@ -25,12 +25,10 @@ from tqdm.asyncio import tqdm
 from src.clients.base import BaseClient
 from src.components.entity_linker import BaseLinker, LinkedEntity
 from src.components.prompt_builder import PromptBuilder
+from src.components.query_validator import (CorrectionResult,
+                                            SelfCorrectionLoop,
+                                            SPARQLValidator)
 from src.components.rag_retriever import RagRetriever
-from src.components.query_validator import (
-    SPARQLValidator,
-    SelfCorrectionLoop,
-    CorrectionResult,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -120,14 +118,15 @@ class BatchRunner:
 
         return list(merged.values())
 
-    async def _run_linker(self, linker: BaseLinker, question: str) -> List[LinkedEntity]:
+    async def _run_linker(
+        self, linker: BaseLinker, question: str
+    ) -> List[LinkedEntity]:
         """
         Runs the entity linker in a thread pool executor so that CPU-bound /
         blocking models (e.g. ReLiK) do not stall the async event loop.
         """
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, linker.extract, question)
-
 
     async def _process_item(
         self,
@@ -184,12 +183,14 @@ class BatchRunner:
 
                 # 3. Generation
                 if self.correction_loop:
-                    correction_result = await self.correction_loop.generate_with_correction(
-                        question=question,
-                        entities=entities,
-                        context_examples=context,
-                        schema_hints=schema_hints,
-                        system_prompt=self.prompt_builder.build_system_prompt(),
+                    correction_result = (
+                        await self.correction_loop.generate_with_correction(
+                            question=question,
+                            entities=entities,
+                            context_examples=context,
+                            schema_hints=schema_hints,
+                            system_prompt=self.prompt_builder.build_system_prompt(),
+                        )
                     )
                     sparql = correction_result.final_query
                     validation_info = {
@@ -214,7 +215,9 @@ class BatchRunner:
 
                 # 4. Clean output
                 generated_sparql = sparql.replace("\\n", "\n") if sparql else ""
-                gold_sparql_clean = gold_sparql.replace("\\n", "\n") if gold_sparql else ""
+                gold_sparql_clean = (
+                    gold_sparql.replace("\\n", "\n") if gold_sparql else ""
+                )
 
                 return {
                     "id": item["id"],
@@ -276,7 +279,9 @@ class BatchRunner:
             )
 
         # Periodic partial save every 50 items
-        import json, os
+        import json
+        import os
+
         os.makedirs("outputs", exist_ok=True)
         if len(valid) >= 50:
             with open(f"outputs/partial_{len(valid)}.json", "w") as f:
