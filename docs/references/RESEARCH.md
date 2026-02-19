@@ -1,6 +1,6 @@
 # Research Notes & TODO
 
-Personal notes for the Text-to-SPARQL project. Work in progress.
+Notes for the Text-to-SPARQL project. Work in progress.
 
 ---
 
@@ -8,7 +8,7 @@ Personal notes for the Text-to-SPARQL project. Work in progress.
 
 Translate natural language → SPARQL for Wikidata with minimal errors.
 
-**Key questions I'm exploring:**
+**Questions I'm exploring:**
 - Which prompting strategy works best? (few-shot vs CoT vs decomposition)
 - Does entity linking actually help?
 - Can the model fix its own mistakes? (self-correction)
@@ -31,8 +31,8 @@ Text-to-SQL has mature benchmarks (Spider, WikiSQL). SPARQL is harder because:
 |----------|-------|
 | Fine-tuning | Best accuracy but needs data + compute |
 | In-context learning | No training, but limited by context window |
-| RAG + ICL | What I'm using - retrieve similar examples |
-| Agentic | LLM uses tools, can self-correct - interesting but slow |
+| RAG + ICL | Retrieve similar examples |
+| Agentic | LLM uses tools, can self-correct, interesting but slow and cost |
 
 ---
 
@@ -41,7 +41,7 @@ Text-to-SQL has mature benchmarks (Spider, WikiSQL). SPARQL is harder because:
 ### Chain-of-Thought (Wei et al., 2022)
 [arXiv](https://arxiv.org/abs/2201.11903)
 
-- "Let's think step by step" actually works
+- "Let's think step by step" 
 - Helps with complex reasoning
 - **Implemented**: `prompt=cot`
 
@@ -77,54 +77,11 @@ Text-to-SQL has mature benchmarks (Spider, WikiSQL). SPARQL is harder because:
 - Break complex tasks into subtasks
 - **Implemented**: `prompt=decomposition`
 
-### Self-Debugging (Chen et al., 2023)
-[arXiv](https://arxiv.org/abs/2304.05128)
-
-- Use execution results to fix code
-- **TODO**: extend my correction loop with this
 
 ---
 
-## TODO: Things to Try
 
-### High Priority
-- [ ] **Constrained decoding** - force valid SPARQL syntax at generation time
-  - Check out [Outlines](https://github.com/outlines-dev/outlines) or [Guidance](https://github.com/guidance-ai/guidance)
-- [ ] **Better entity linking** - mGENRE or BLINK might work better
-- [ ] **Execution-guided correction** - use query results as feedback
 
-### Medium Priority
-- [ ] **LoRA fine-tuning** on Llama with QALD data
-- [ ] **Plan-and-Solve prompting** - seems promising for complex queries
-- [ ] **Tree-of-Thought** - multiple reasoning paths
-
-### Low Priority / Future Work
-- [ ] Agentic approach with tool use
-- [ ] Multi-hop reasoning
-- [ ] Multilingual support
-
----
-
-## Progress
-
-### Done
-- [x] Basic RAG pipeline working
-- [x] Entity linking with REBEL and ReLiK
-- [x] Syntax validation with rdflib
-- [x] Self-correction loop (up to N attempts)
-- [x] Chain-of-Thought prompting
-- [x] Query decomposition strategy
-- [x] Self-consistency voting
-
-### In Progress
-- [ ] Testing different configurations systematically
-- [ ] Improving extraction of SPARQL from LLM responses
-
-### Blocked / Need Help
-- [ ] Getting consistent Wikidata QIDs from entity linkers
-- [ ] Handling queries that return empty results
-
----
 
 ## Datasets
 
@@ -141,16 +98,6 @@ Links:
 
 ---
 
-## Metrics I'm Tracking
-
-| Metric | What it measures |
-|--------|------------------|
-| Syntax Valid % | Does the query parse? |
-| Exact Match | Query = gold query? |
-| Execution Accuracy | Same results as gold? |
-| Correction Success % | Fixed after retries? |
-
----
 
 ## Useful Resources
 
