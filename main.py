@@ -47,9 +47,6 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# Client factory (instantiates the correct LLM client based on configuration)
-# ---------------------------------------------------------------------------
 def get_client_factory(cfg: DictConfig):
     """
     Method to instantiate the correct LLM Client based on the configuration.

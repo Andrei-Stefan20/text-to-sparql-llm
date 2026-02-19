@@ -47,12 +47,10 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# Client factory (same as main.py)
-# ---------------------------------------------------------------------------
-
-
 def get_client(cfg: DictConfig):
+    """
+    Method to instantiate the correct LLM Client based on the configuration.
+    """
     platform = cfg.platform.lower()
     if platform == "azure":
         return AzureClient(cfg)
@@ -133,7 +131,7 @@ def main(cfg: DictConfig):
     exp_logger = ExperimentLogger(cfg, output_dir=output_dir)
 
     try:
-        # ── 1. Load dataset ─────────────────────────────────────────────
+        #  1. Load dataset 
         logger.info("Loading dataset...")
         loader = DatasetLoader(
             dataset_name=cfg.dataset.name,
@@ -151,7 +149,7 @@ def main(cfg: DictConfig):
 
         logger.info(f"Dataset size: {len(dataset)} questions")
 
-        # ── 2. Initialise components ─────────────────────────────────────
+        #  2. Initialise components 
         logger.info("Initialising components...")
 
         client = get_client(cfg.model)
@@ -179,7 +177,7 @@ def main(cfg: DictConfig):
             f"step_delay={step_delay}s, concurrency={concurrency}"
         )
 
-        # ── 3. Run pipeline ──────────────────────────────────────────────
+        #  3. Run pipeline 
         runner = AgenticBatchRunner(
             client=client,
             system_prompt=system_prompt,
@@ -192,11 +190,11 @@ def main(cfg: DictConfig):
 
         results = asyncio.run(runner.run(dataset, linker, retriever))
 
-        # ── 4. Stats (no Wikidata evaluation — use GERBIL externally) ────
+        #  4. Stats (no Wikidata evaluation — use GERBIL externally) 
         stats = _compute_stats(results)
         logger.info(f"Pipeline stats: {stats}")
 
-        # ── 5. Save artifacts ────────────────────────────────────────────
+        #  5. Save artifacts 
         final_output = {
             "meta": {
                 "run_id": run_id,
