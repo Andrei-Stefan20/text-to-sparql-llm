@@ -1,3 +1,19 @@
+"""
+Azure OpenAI Client.
+
+This module provides an asynchronous client for interacting with Azure OpenAI models, including retry logic and streaming support.
+
+Features:
+- Supports both standard and streaming generation.
+- Implements retry logic for API errors, rate limits, and timeouts.
+- Configurable via environment variables and Hydra configurations.
+
+Implementation:
+- Extends the `BaseClient` abstract class.
+- Uses `tenacity` for robust retry mechanisms.
+- Reads API keys and endpoints from environment variables.
+"""
+
 import logging
 import os
 from typing import AsyncIterator, Optional

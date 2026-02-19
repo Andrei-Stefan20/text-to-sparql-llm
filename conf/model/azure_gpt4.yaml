@@ -1,3 +1,11 @@
+# =====================================================
+# Model Configuration: Azure GPT-4
+# =====================================================
+# This configuration defines the parameters for the Azure GPT-4 model.
+# - Platform: Azure OpenAI
+# - Deployment: gpt-4o
+#
+
 name: "gpt-4o"
 platform: "azure"
 env_var: "AZURE_OPENAI_KEY"

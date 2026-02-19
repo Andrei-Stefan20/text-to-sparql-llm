@@ -1,0 +1,85 @@
+model:
+  name: gpt-4o-mini
+  platform: azure
+  env_var: AZURE_OPENAI_KEY
+  connection:
+    endpoint: AZURE_OPENAI_ENDPOINT
+    api_version: 2024-12-01-preview
+    deployment: gpt-4o-mini
+  params:
+    temperature: 0.0
+    max_tokens: 2048
+    top_p: 1.0
+  max_retries: 5
+  timeout: 60
+  system_prompt: 'You are a SPARQL expert for Wikidata.
+
+    Generate ONLY valid SPARQL query code.
+
+    Do NOT include explanations, comments, code blocks, or any text.
+
+    Output ONLY the query starting with SELECT or CONSTRUCT.
+
+    '
+  concurrency: 30
+linking:
+  method: none
+retrieval:
+  k: 0
+  index_path: null
+prompt:
+  name: agentic
+  strategy: agentic
+  system_message: "You are an expert Wikidata SPARQL agent.\nYour goal is to answer\
+    \ the user's question by constructing a valid, executable SPARQL query.\n\n──\
+    \ TOOLS ──────────────────────────────────────────────────────────\nYou have ONE\
+    \ tool:\n  EXECUTE_SPARQL — run a SPARQL query on Wikidata and see the results.\n\
+    Use it to:\n  • Verify that a QID refers to the correct entity\n  • Find the right\
+    \ property (P-ID) for a relationship\n  • Check what properties an entity has\n\
+    \  • Explore the schema before writing the final query\n\n── RESPONSE FORMAT ────────────────────────────────────────────────\n\
+    Every response MUST follow EXACTLY one of these two formats:\n\nFORMAT A — use\
+    \ tool (exploratory step):\n┌─────────────────────────────────────────────────────────────────┐\n\
+    THOUGHT: <explain what you know and what you need to verify>\nACTION: EXECUTE_SPARQL\n\
+    ```sparql\n<your exploratory SPARQL query>\n```\n└─────────────────────────────────────────────────────────────────┘\n\
+    \nFORMAT B — final answer:\n┌─────────────────────────────────────────────────────────────────┐\n\
+    THOUGHT: <explain why the query is now correct and complete>\nFINAL_ANSWER:\n\
+    ```sparql\n<your complete, correct SPARQL query>\n```\n└─────────────────────────────────────────────────────────────────┘\n\
+    \n── CRITICAL RULES ─────────────────────────────────────────────────\n1. NEVER\
+    \ guess QIDs or P-IDs — always verify with EXECUTE_SPARQL first.\n2. BOOLEAN questions\
+    \ (Is/Was/Did/Are) → use ASK { ... } in FINAL_ANSWER.\n3. SELECT queries → always\
+    \ use ?answer as the main variable.\n4. DATES → use FILTER(YEAR(?date) > 1990),\
+    \ never compare dates to integers.\n5. Do NOT use SERVICE wikibase:label in the\
+    \ FINAL_ANSWER query.\n6. Do NOT use nested SELECT subqueries unless strictly\
+    \ necessary.\n7. Use only PREFIX declarations already provided or standard Wikidata\
+    \ prefixes.\n8. Output ONLY the format above — no extra text outside THOUGHT/ACTION/FINAL_ANSWER.\n\
+    \n── STANDARD PREFIXES (always available) ───────────────────────────\nPREFIX\
+    \ wd:  <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\n\
+    PREFIX p:   <http://www.wikidata.org/prop/>\nPREFIX ps:  <http://www.wikidata.org/prop/statement/>\n\
+    PREFIX pq:  <http://www.wikidata.org/prop/qualifier/>\nPREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>\n\
+    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
+  max_steps: 3
+  step_delay: 0.5
+  include_examples: true
+  include_entities: true
+  include_schema_hint: true
+system:
+  experiment_name: test_agentic_mini_5
+  seed: 42
+  debug: false
+  cache_dir: ~/.cache/huggingface/hub
+dataset:
+  name: casey-martin/qald_9_plus
+  split: test
+  language: en
+  limit: 5
+rag:
+  index_path: data/processed/train_index.faiss
+  metadata_path: data/processed/train_metadata.pkl
+  encoder_model: all-MiniLM-L6-v2
+validation:
+  enable_validation: true
+  enable_correction: false
+  max_attempts: 3
+  validate_execution: false
+  self_consistency_samples: 1
+  consistency_temperature: 0.7

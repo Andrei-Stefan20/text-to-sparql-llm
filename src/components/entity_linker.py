@@ -1,3 +1,18 @@
+"""
+Entity Linking Module for SPARQL Generation.
+
+This module identifies and links entities in the input text to their corresponding Wikidata QIDs.
+
+Features:
+- Resolves entities to Wikidata QIDs with confidence scores.
+- Formats entities for SPARQL queries.
+- Handles unresolved entities gracefully.
+
+Implementation:
+- Uses `LinkedEntity` dataclass to represent entities with attributes like text, QID, label, and score.
+- Provides a method to format entities for SPARQL prompts.
+"""
+
 import logging
 import os
 import re

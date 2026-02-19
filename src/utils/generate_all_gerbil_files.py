@@ -1,3 +1,19 @@
+"""
+GERBIL File Generator.
+
+This script converts SPARQL query results into GERBIL-compatible QALD format for evaluation.
+
+Features:
+- Executes SPARQL queries against the Wikidata endpoint.
+- Converts `results_full.json` files into GERBIL-compatible JSON.
+- Supports batch processing of multiple result files.
+
+Implementation:
+- Uses `SPARQLWrapper` for query execution.
+- Processes files recursively from the `outputs` directory.
+- Handles query errors gracefully and provides default empty results.
+"""
+
 import os
 import json
 import glob

@@ -1,3 +1,11 @@
+# This YAML file defines the Standard prompting strategy for SPARQL query generation.
+# It specifies the system message, critical rules, and custom instructions for constructing SPARQL queries.
+# Components:
+# - System message: Provides the agent with context for generating SPARQL queries.
+# - Critical rules: Enforces strict guidelines for query construction, such as using ASK for boolean questions and avoiding nested SELECT queries.
+# - Custom instruction: Allows for additional user-defined instructions.
+# This configuration ensures consistent and accurate SPARQL query generation for Wikidata.
+
 name: "std"
 strategy: "base"  # Options: base, cot, decomposition
 

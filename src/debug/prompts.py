@@ -1,3 +1,19 @@
+"""
+Prompt Debugging Module.
+
+This module provides utilities for inspecting and debugging prompt generation and related components.
+
+Features:
+- Logs structured sections for debugging output.
+- Integrates with entity linking, prompt building, and retrieval components.
+- Supports configuration-driven debugging workflows.
+
+Implementation:
+- Uses `format_section` to log structured debug information.
+- Loads environment variables using `dotenv`.
+- Integrates with Hydra for configuration management.
+"""
+
 import logging
 import os
 import sys

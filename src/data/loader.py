@@ -1,3 +1,16 @@
+"""
+Dataset Loader Module.
+
+This module handles the loading of datasets for SPARQL generation tasks.
+
+Features:
+- Supports loading datasets from local JSON files or Hugging Face Hub.
+- Logs detailed information about the loading process.
+
+Implementation:
+- Maps dataset splits (e.g., train, test) to local file paths.
+"""
+
 import logging
 import json
 import os

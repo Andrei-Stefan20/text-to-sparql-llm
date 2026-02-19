@@ -1,3 +1,11 @@
+# =====================================================
+# Model Configuration: Llama 3.3 70B
+# =====================================================
+# This configuration defines the parameters for the Llama 3.3 70B model.
+# - Platform: OpenAI-compatible
+# - Model Name: Llama-3.3-70B-Instruct
+#
+
 name: llama-3.3-70b
 platform: openai  
 env_var: LLAMA_API_KEY

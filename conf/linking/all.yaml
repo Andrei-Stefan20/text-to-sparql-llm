@@ -1,3 +1,13 @@
+# =====================================================
+# Linking Configuration: All Methods
+# =====================================================
+# This configuration enables all entity linking methods, including:
+# - REBEL for relation extraction
+# - RELIK for entity linking
+# - Wikidata API fallback for unresolved entities
+#
+# Use this configuration for comprehensive entity linking workflows.
+
 method: "all"
 device: -1
 

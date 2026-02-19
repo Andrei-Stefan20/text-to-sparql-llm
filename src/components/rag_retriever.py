@@ -1,3 +1,18 @@
+"""
+Retrieval-Augmented Generation (RAG) Module.
+
+This module retrieves semantically similar examples from a FAISS index to enhance SPARQL generation.
+
+Features:
+- Semantic similarity search using Sentence Transformers.
+- Efficient retrieval from pre-built FAISS indices.
+
+Implementation:
+- Loads FAISS index and metadata from specified paths.
+- Retrieves top-k similar examples based on input embeddings.
+- Integrates with the `sentence_transformers` library for encoding.
+"""
+
 import logging
 import pickle
 from pathlib import Path

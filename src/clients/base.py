@@ -1,3 +1,18 @@
+"""
+Base Client Interface.
+
+This module defines the abstract interface for LLM clients, ensuring consistency across different implementations.
+
+Features:
+- Abstract methods for text generation and streaming generation.
+- Provides a unified interface for all LLM clients.
+
+Implementation:
+- Defines `generate` for standard text generation.
+- Defines `generate_stream` for streaming text generation.
+- Serves as the base class for specific client implementations (e.g., Azure, OpenAI).
+"""
+
 from abc import ABC, abstractmethod
 from typing import AsyncIterator, Optional
 

@@ -1,0 +1,7 @@
+- prompt=agentic
+- model=azure_gpt4_mini
+- linking=none
+- retrieval=none
+- dataset.limit=5
+- prompt.max_steps=3
+- system.experiment_name=test_agentic_mini_5

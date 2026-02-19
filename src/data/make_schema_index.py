@@ -1,3 +1,19 @@
+"""
+Schema Index Creation Module.
+
+This module creates FAISS indices for schema properties and classes to assist in SPARQL generation.
+
+Features:
+- Retrieves and filters schema properties from Wikidata.
+- Encodes schema labels using Sentence Transformers.
+- Saves indices and metadata for efficient schema retrieval.
+
+Implementation:
+- Queries Wikidata for schema properties and classes.
+- Filters out irrelevant properties based on heuristics.
+- Saves FAISS indices and metadata to specified paths.
+"""
+
 import logging
 import pickle
 import ssl

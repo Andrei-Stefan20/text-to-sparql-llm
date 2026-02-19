@@ -1,3 +1,18 @@
+"""
+Dynamic Schema Retrieval Module.
+
+This module dynamically retrieves relevant Wikidata properties (P-ids) and classes (Q-ids) based on input question semantics.
+
+Features:
+- Semantic search for schema hints.
+- Integration with FAISS indices for efficient retrieval.
+
+Implementation:
+- Loads schema index and metadata from specified paths.
+- Retrieves top-k relevant properties and classes based on input embeddings.
+- Uses `sentence_transformers` for encoding and FAISS for similarity search.
+"""
+
 import logging
 import pickle
 from pathlib import Path

@@ -9,19 +9,19 @@ The agent loop:
 
 Response format the LLM must follow:
 ─────────────────────────────────────────
-THOUGHT: <reasoning about what to do next>
+THOUGHT: <reasoning>
 ACTION: EXECUTE_SPARQL
-```sparql
+sparql_start
 <exploratory query>
-```
+sparql_end
 ─────────────────────────────────────────
-OR (final step):
+OR:
 ─────────────────────────────────────────
-THOUGHT: <I have all I need>
+THOUGHT: <reasoning>
 FINAL_ANSWER:
-```sparql
+sparql_start
 <complete answer query>
-```
+sparql_end
 ─────────────────────────────────────────
 """
 
@@ -71,7 +71,6 @@ class AgentResult:
 class WikidataTool:
     """
     Executes exploratory SPARQL queries against Wikidata.
-    Used by the agent as a tool to verify QIDs, PIDs, and schema.
     """
 
     ENDPOINT = "https://query.wikidata.org/sparql"
@@ -86,7 +85,7 @@ class WikidataTool:
         "PREFIX bd: <http://www.bigdata.com/rdf#>\n"
         "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
     )
-    MAX_ROWS_IN_OBSERVATION = 10   # Truncate results to keep context small
+    MAX_ROWS_IN_OBSERVATION = 10
 
     def __init__(self, timeout: int = 8):
         self.timeout = timeout
@@ -99,20 +98,9 @@ class WikidataTool:
             ssl._create_default_https_context = ssl._create_unverified_context
 
     def execute(self, query: str) -> str:
-        """
-        Runs a SPARQL query and returns a concise, human-readable observation
-        string that can be appended to the LLM context.
-
-        Returns a string like:
-          "Results (3 rows): [['Q76', 'Barack Obama'], ['Q47', ...]]"
-          "ASK result: true"
-          "Error: <message>"
-          "No results returned."
-        """
         if not query or not query.strip():
             return "Error: empty query."
 
-        # Inject prefixes if missing
         full_query = query if "PREFIX" in query.upper() else self.STANDARD_PREFIXES + query
 
         try:
@@ -121,15 +109,10 @@ class WikidataTool:
             return self._format_results(raw)
 
         except Exception as exc:
-            err = str(exc)
-            # Trim stack traces / long messages
-            err = err.split("\n")[0][:200]
+            err = str(exc).split("\n")[0][:200]
             return f"Error executing query: {err}"
 
     def _format_results(self, raw: Dict) -> str:
-        """Converts SPARQLWrapper JSON output to a readable string."""
-
-        # ASK query
         if "boolean" in raw:
             return f"ASK result: {str(raw['boolean']).lower()}"
 
@@ -143,7 +126,6 @@ class WikidataTool:
             row = []
             for v in vars_list:
                 val = b.get(v, {}).get("value", "")
-                # Strip full Wikidata URI for readability
                 val = val.replace("http://www.wikidata.org/entity/", "wd:")
                 val = val.replace("http://www.wikidata.org/prop/direct/", "wdt:")
                 row.append(val)
@@ -156,7 +138,6 @@ class WikidataTool:
             header += f", showing first {shown}"
         header += "):"
 
-        # Format as simple table
         col_labels = " | ".join(vars_list)
         separator = "-+-".join(["-" * max(len(v), 8) for v in vars_list])
         data_lines = [" | ".join(str(c) for c in r) for r in rows]
@@ -171,27 +152,24 @@ class WikidataTool:
 class AgentResponseParser:
     """
     Parses LLM responses that follow the ReAct format.
-
-    Handles:
-    - THOUGHT + ACTION: EXECUTE_SPARQL + ```sparql...```
-    - THOUGHT + FINAL_ANSWER: + ```sparql...```
-    - Gracefully falls back when format is not perfectly followed
+    Supports both sparql_start/sparql_end markers and backtick blocks.
     """
 
-    # Patterns (case-insensitive, flexible whitespace)
     _THOUGHT_RE = re.compile(r"THOUGHT\s*[:]\s*(.*?)(?=\nACTION|\nFINAL_ANSWER|$)", re.IGNORECASE | re.DOTALL)
     _ACTION_RE = re.compile(r"ACTION\s*[:]\s*EXECUTE_SPARQL", re.IGNORECASE)
     _FINAL_RE = re.compile(r"FINAL_ANSWER\s*[:]?", re.IGNORECASE)
+
+    # Supports sparql_start/sparql_end (primary) and backtick blocks (fallback)
+    _SPARQL_MARKER_RE = re.compile(r"sparql_start\s*([\s\S]*?)\s*sparql_end", re.IGNORECASE)
     _SPARQL_BLOCK_RE = re.compile(r"```(?:sparql)?\s*([\s\S]*?)```", re.IGNORECASE)
 
     def parse(self, response: str) -> Tuple[str, str, str]:
         """
-        Returns (thought, action, query) where:
-          action = "EXECUTE_SPARQL" | "FINAL_ANSWER" | "UNKNOWN"
-          query  = extracted SPARQL (may be empty on UNKNOWN)
+        Returns (thought, action, query).
+        action = "EXECUTE_SPARQL" | "FINAL_ANSWER" | "UNKNOWN"
         """
         thought = self._extract_thought(response)
-        query = self._extract_last_sparql_block(response)
+        query = self._extract_sparql(response)
 
         if self._FINAL_RE.search(response):
             return thought, "FINAL_ANSWER", query
@@ -199,8 +177,7 @@ class AgentResponseParser:
         if self._ACTION_RE.search(response):
             return thought, "EXECUTE_SPARQL", query
 
-        # Fallback: if we found a SPARQL block with no explicit marker,
-        # treat as FINAL_ANSWER (common with weaker models)
+        # Fallback: bare SPARQL block with no explicit marker
         if query:
             logger.debug("No explicit action found; treating SPARQL block as FINAL_ANSWER.")
             return thought, "FINAL_ANSWER", query
@@ -209,22 +186,28 @@ class AgentResponseParser:
 
     def _extract_thought(self, text: str) -> str:
         m = self._THOUGHT_RE.search(text)
-        if m:
-            return m.group(1).strip()
-        return ""
+        return m.group(1).strip() if m else ""
 
-    def _extract_last_sparql_block(self, text: str) -> str:
-        """Returns the last ```sparql ... ``` block (covers multi-step decomp)."""
+    def _extract_sparql(self, text: str) -> str:
+        """Try sparql_start/end first, then backtick blocks, then bare SELECT/ASK."""
+        # 1. sparql_start / sparql_end markers
+        matches = self._SPARQL_MARKER_RE.findall(text)
+        if matches:
+            return matches[-1].strip()
+
+        # 2. Backtick fenced blocks
         matches = self._SPARQL_BLOCK_RE.findall(text)
         if matches:
             return matches[-1].strip()
-        # No fenced block: try to find bare SELECT/ASK/CONSTRUCT
+
+        # 3. Bare SELECT/ASK/CONSTRUCT
         bare = re.search(
             r"((?:PREFIX[^\n]+\n)*\s*(?:SELECT|ASK|CONSTRUCT|DESCRIBE)\s+[\s\S]+)",
             text, re.IGNORECASE
         )
         if bare:
             return bare.group(1).strip()
+
         return ""
 
 
@@ -235,13 +218,6 @@ class AgentResponseParser:
 class AgenticSPARQLRunner:
     """
     Orchestrates the ReAct loop for SPARQL generation.
-
-    Args:
-        client:          LLM client (AzureClient / OpenAIClient)
-        wikidata_tool:   WikidataTool instance (injected for testability)
-        system_prompt:   System prompt to use for every LLM call
-        max_steps:       Max reasoning iterations before forced stop
-        step_delay:      Seconds to wait between Wikidata calls (rate-limit protection)
     """
 
     def __init__(
@@ -259,10 +235,6 @@ class AgenticSPARQLRunner:
         self.step_delay = step_delay
         self.parser = AgentResponseParser()
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
     async def run(
         self,
         question: str,
@@ -270,15 +242,11 @@ class AgenticSPARQLRunner:
         context_examples: str,
         schema_hints: str,
     ) -> AgentResult:
-        """
-        Runs the full ReAct loop for a single question.
-
-        Returns AgentResult with final SPARQL and step history.
-        """
+        """Runs the full ReAct loop for a single question."""
         steps: List[AgentStep] = []
-        conversation: List[str] = []  # Accumulated context sent to LLM each step
+        conversation: List[str] = []
 
-        # Build the opening prompt (shown only on step 1)
+        # Opening prompt — clean, just question + context, no meta-instructions
         opening = self._build_initial_prompt(
             question, entities, context_examples, schema_hints
         )
@@ -287,11 +255,9 @@ class AgenticSPARQLRunner:
         for step_num in range(1, self.max_steps + 1):
             logger.info(f"[Agent] Step {step_num}/{self.max_steps}")
 
-            # --- LLM call --------------------------------------------------
             full_prompt = "\n\n".join(conversation)
             raw_response = await self.client.generate(full_prompt, self.system_prompt)
 
-            # --- Parse response --------------------------------------------
             thought, action, query = self.parser.parse(raw_response)
 
             logger.info(f"[Agent] Thought: {thought[:120]}")
@@ -299,7 +265,7 @@ class AgenticSPARQLRunner:
             if query:
                 logger.debug(f"[Agent] Query  : {query[:200]}")
 
-            # --- FINAL_ANSWER branch ---------------------------------------
+            # FINAL_ANSWER branch
             if action == "FINAL_ANSWER":
                 step = AgentStep(
                     step_number=step_num,
@@ -321,16 +287,13 @@ class AgenticSPARQLRunner:
                     validation_error=error,
                 )
 
-            # --- EXECUTE_SPARQL branch -------------------------------------
+            # EXECUTE_SPARQL branch
             if action == "EXECUTE_SPARQL" and query:
-                # Rate-limit protection
                 if self.step_delay > 0:
                     await asyncio.sleep(self.step_delay)
 
                 loop = asyncio.get_event_loop()
-                observation = await loop.run_in_executor(
-                    None, self.tool.execute, query
-                )
+                observation = await loop.run_in_executor(None, self.tool.execute, query)
                 logger.info(f"[Agent] Observation: {observation[:200]}")
 
                 step = AgentStep(
@@ -343,17 +306,13 @@ class AgenticSPARQLRunner:
                 )
                 steps.append(step)
 
-                # Append this exchange to conversation history
                 conversation.append(
                     self._format_exchange(step_num, thought, action, query, observation)
                 )
                 continue
 
-            # --- UNKNOWN / malformed response ------------------------------
-            logger.warning(
-                f"[Agent] Step {step_num}: could not parse action from response. "
-                "Appending a correction hint."
-            )
+            # UNKNOWN / malformed
+            logger.warning(f"[Agent] Step {step_num}: could not parse action.")
             step = AgentStep(
                 step_number=step_num,
                 thought=thought,
@@ -364,25 +323,15 @@ class AgenticSPARQLRunner:
             )
             steps.append(step)
 
-            # Give the model a nudge
             conversation.append(
-                f"[SYSTEM] Step {step_num}: Your response did not follow the required format.\n"
-                "You MUST respond with either:\n"
-                "  THOUGHT: ...\n  ACTION: EXECUTE_SPARQL\n  ```sparql ... ```\n"
-                "OR:\n"
-                "  THOUGHT: ...\n  FINAL_ANSWER:\n  ```sparql ... ```"
+                f"Step {step_num} result: format not recognized.\n"
+                "Please respond with THOUGHT followed by either ACTION: EXECUTE_SPARQL "
+                "with a sparql_start/sparql_end block, or FINAL_ANSWER: with a sparql_start/sparql_end block."
             )
 
-        # --- Max steps reached -------------------------------------------
+        # Max steps reached
         logger.warning("[Agent] Max steps reached. Returning best available query.")
-
-        # Try to return the last query we found
-        last_query = ""
-        for s in reversed(steps):
-            if s.query:
-                last_query = s.query
-                break
-
+        last_query = next((s.query for s in reversed(steps) if s.query), "")
         valid, error = self._validate_final_query(last_query) if last_query else (False, "No query generated")
 
         return AgentResult(
@@ -395,7 +344,7 @@ class AgenticSPARQLRunner:
         )
 
     # ------------------------------------------------------------------
-    # Prompt builders
+    # Prompt builders — CLEAN user turns to avoid Azure content filter
     # ------------------------------------------------------------------
 
     def _build_initial_prompt(
@@ -405,32 +354,32 @@ class AgenticSPARQLRunner:
         context_examples: str,
         schema_hints: str,
     ) -> str:
+        """
+        Builds a CLEAN user prompt with just question + context.
+        No instruction-like meta-text that could trigger Azure jailbreak filter.
+        """
         parts = []
 
-        parts.append("=== TASK ===")
-        parts.append(f"Question: {question}")
+        # Schema hints
+        if schema_hints and schema_hints.strip():
+            parts.append(f"Relevant properties: {schema_hints}")
 
+        # Entities
         if entities:
             ent_str = ", ".join(
                 e.to_sparql_format() if hasattr(e, "to_sparql_format") else str(e)
                 for e in entities
             )
-            parts.append(f"\nIdentified Entities (may need verification): {ent_str}")
+            parts.append(f"Identified entities: {ent_str}")
 
-        if schema_hints and schema_hints.strip():
-            parts.append(f"\nSchema Hints (candidate properties): {schema_hints}")
-
+        # Few-shot examples
         if context_examples and context_examples.strip():
-            parts.append("\n=== SIMILAR EXAMPLES ===")
-            parts.append(context_examples)
+            parts.append(f"Similar examples:\n{context_examples}")
 
-        parts.append("\n=== BEGIN REASONING ===")
-        parts.append(
-            "Start by verifying entity QIDs and relevant properties using EXECUTE_SPARQL.\n"
-            "When you are confident you have the correct IDs and structure, issue FINAL_ANSWER."
-        )
+        # The question — always last
+        parts.append(f"Question: {question}")
 
-        return "\n".join(parts)
+        return "\n\n".join(parts)
 
     def _format_exchange(
         self,
@@ -440,12 +389,11 @@ class AgenticSPARQLRunner:
         query: str,
         observation: str,
     ) -> str:
+        """Formats a completed step for conversation history."""
         return (
-            f"--- Step {step} ---\n"
-            f"THOUGHT: {thought}\n"
-            f"ACTION: {action}\n"
-            f"```sparql\n{query}\n```\n"
-            f"OBSERVATION:\n{observation}"
+            f"Step {step} thought: {thought}\n"
+            f"Ran query:\n{query}\n"
+            f"Result:\n{observation}"
         )
 
     # ------------------------------------------------------------------
@@ -453,10 +401,6 @@ class AgenticSPARQLRunner:
     # ------------------------------------------------------------------
 
     def _validate_final_query(self, query: str) -> Tuple[bool, Optional[str]]:
-        """
-        Quick structural validation: balanced braces + correct start keyword.
-        Does NOT execute against Wikidata (that is done by the evaluator).
-        """
         if not query or not query.strip():
             return False, "Empty query"
 
@@ -465,7 +409,6 @@ class AgenticSPARQLRunner:
         if not any(q.startswith(s) for s in valid_starts):
             return False, f"Query must start with one of {valid_starts}"
 
-        # Balanced braces
         count = 0
         for ch in query:
             if ch == "{":
@@ -477,7 +420,6 @@ class AgenticSPARQLRunner:
         if count != 0:
             return False, f"Unbalanced braces (open={count})"
 
-        # SELECT/CONSTRUCT must have WHERE
         if q.startswith(("SELECT", "CONSTRUCT")) and "WHERE" not in q:
             return False, "SELECT/CONSTRUCT query missing WHERE clause"
 

@@ -1,11 +1,16 @@
 """
 SPARQL Validation and Self-Correction Module.
 
-Provides:
-- Syntax validation using rdflib
-- Execution validation against Wikidata
-- Self-correction loop with error feedback
-- Self-consistency with majority voting
+This module ensures the validity of SPARQL queries through:
+- Syntax validation using `rdflib`.
+- Execution validation against Wikidata.
+- Self-correction loops with error feedback.
+- Self-consistency checks using majority voting.
+
+Implementation:
+- Validates queries for syntax errors and execution correctness.
+- Provides detailed error feedback for self-correction.
+- Uses `ValidationResult` to encapsulate validation outcomes.
 """
 
 import asyncio

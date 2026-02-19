@@ -1,3 +1,11 @@
+# =====================================================
+# Linking Configuration: RELIK
+# =====================================================
+# This configuration enables the RELIK model for entity linking.
+# - RELIK resolves entity mentions to QIDs.
+# - Wikidata API fallback is enabled for unresolved entities.
+#
+
 method: "relik"
 model_path: "sapienzanlp/relik-entity-linking-large"
 window_size: 32

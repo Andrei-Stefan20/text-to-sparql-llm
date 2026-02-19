@@ -1,0 +1,173 @@
+{
+  "meta": {
+    "run_id": "agentic_gpt4omini_0shot_none_steps3_lim5",
+    "status": "completed",
+    "dataset_size": 5,
+    "pipeline": "agentic"
+  },
+  "configuration": {
+    "model": {
+      "name": "gpt-4o-mini",
+      "platform": "azure",
+      "env_var": "AZURE_OPENAI_KEY",
+      "connection": {
+        "endpoint": "AZURE_OPENAI_ENDPOINT",
+        "api_version": "2024-12-01-preview",
+        "deployment": "gpt-4o-mini"
+      },
+      "params": {
+        "temperature": 0.0,
+        "max_tokens": 2048,
+        "top_p": 1.0
+      },
+      "max_retries": 5,
+      "timeout": 60,
+      "system_prompt": "You are a SPARQL expert for Wikidata.\nGenerate ONLY valid SPARQL query code.\nDo NOT include explanations, comments, code blocks, or any text.\nOutput ONLY the query starting with SELECT or CONSTRUCT.\n",
+      "concurrency": 30
+    },
+    "linking": {
+      "method": "none"
+    },
+    "retrieval": {
+      "k": 0,
+      "index_path": null
+    },
+    "prompt": {
+      "name": "agentic",
+      "strategy": "agentic",
+      "system_message": "You are an expert Wikidata SPARQL agent.\nYour goal is to answer the user question by constructing a valid SPARQL query.\n\nTOOLS:\nYou have one tool: EXECUTE_SPARQL - run a SPARQL query on Wikidata to verify QIDs, P-IDs, and schema.\n\nRESPONSE FORMAT - use exactly one of these two formats:\n\nFORMAT A (exploratory step):\nTHOUGHT: <explain what you need to verify>\nACTION: EXECUTE_SPARQL\nsparql_start\n<your exploratory query>\nsparql_end\n\nFORMAT B (final answer):\nTHOUGHT: <explain why the query is correct>\nFINAL_ANSWER:\nsparql_start\n<your complete query>\nsparql_end\n\nRULES:\n1. Never guess QIDs or P-IDs - always verify with EXECUTE_SPARQL first.\n2. Boolean questions (Is/Was/Did/Are) use ASK in FINAL_ANSWER.\n3. SELECT queries always use ?answer as main variable.\n4. Dates: use FILTER(YEAR(?date) > 1990).\n5. Do not use SERVICE wikibase:label in FINAL_ANSWER.\n6. Output only the format above, no extra text.\n\nStandard prefixes available: wd, wdt, p, ps, pq, rdfs, xsd.\n",
+      "max_steps": 3,
+      "step_delay": 0.5,
+      "include_examples": true,
+      "include_entities": true,
+      "include_schema_hint": true
+    },
+    "system": {
+      "experiment_name": "test_agentic_mini_5",
+      "seed": 42,
+      "debug": false,
+      "cache_dir": "~/.cache/huggingface/hub"
+    },
+    "dataset": {
+      "name": "casey-martin/qald_9_plus",
+      "split": "test",
+      "language": "en",
+      "limit": 5
+    },
+    "rag": {
+      "index_path": "data/processed/train_index.faiss",
+      "metadata_path": "data/processed/train_metadata.pkl",
+      "encoder_model": "all-MiniLM-L6-v2"
+    },
+    "validation": {
+      "enable_validation": true,
+      "enable_correction": false,
+      "max_attempts": 3,
+      "validate_execution": false,
+      "self_consistency_samples": 1,
+      "consistency_temperature": 0.7
+    }
+  },
+  "stats": {
+    "total": 5,
+    "valid_syntax_rate": 0.2,
+    "error_rate": 0.8,
+    "terminated_final_answer": 0,
+    "terminated_max_steps": 1,
+    "avg_steps_per_question": 0.6
+  },
+  "results": [
+    {
+      "id": "0",
+      "question": "After whom is the Riemannian geometry named?",
+      "generated_sparql": "",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE { wd:Q761383 wdt:P138 ?result. }",
+      "is_valid": false,
+      "termination_reason": "error",
+      "total_steps": 0,
+      "validation_error": "RetryError[<Future at 0x32a4bf250 state=finished raised BadRequestError>]",
+      "agent_steps": [],
+      "entities_linked": [],
+      "schema_hints": "",
+      "error": "RetryError[<Future at 0x32a4bf250 state=finished raised BadRequestError>]"
+    },
+    {
+      "id": "1",
+      "question": "Which animal participated in a military operation with the Australian Defence Force?",
+      "generated_sparql": "SELECT ?item ?itemLabel WHERE {\n  ?item wdt:P31 wd:Q328.  # Instance of Australian Defence Force\n}\nLIMIT 10\nsparql_end",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {?result wdt:P31 wd:Q16521. ?mop wdt:P31 wd:Q645883; wdt:P710 ?result, wd:Q625657.}",
+      "is_valid": true,
+      "termination_reason": "max_steps",
+      "total_steps": 3,
+      "validation_error": null,
+      "agent_steps": [
+        {
+          "step": 1,
+          "thought": "I need to verify the QIDs for the Australian Defence Force and the relevant properties related to military operations to construct a query that identifies animals involved in such operations.",
+          "action": "EXECUTE_SPARQL",
+          "query": "construct a query that identifies animals involved in such operations.\nACTION: EXECUTE_SPARQL\nsparql_start\nSELECT ?item ?itemLabel WHERE {\n  { ?item wdt:P31 wd:Q729. }  # Instance of animal\n  UNION\n  { ?item wdt:P31 wd:Q5. }    # Instance of human\n  UNION\n  { ?item wdt:P31 wd:Q1860. } # Instance of military unit\n}\nLIMIT 10\nsparql_end",
+          "observation": "Error executing query: QueryBadFormed: A bad request has been sent to the endpoint: probably the SPARQL query is badly formed. "
+        },
+        {
+          "step": 2,
+          "thought": "I need to verify the QIDs for the Australian Defence Force and the relevant properties related to military operations to construct a query that identifies animals involved in such operations. I will start by checking the QID for the Australian Defence Force and the relevant properties.",
+          "action": "EXECUTE_SPARQL",
+          "query": "construct a query that identifies animals involved in such operations. I will start by checking the QID for the Australian Defence Force and the relevant properties.\nACTION: EXECUTE_SPARQL\nsparql_start\nSELECT ?item ?itemLabel WHERE {\n  { ?item wdt:P31 wd:Q328. }  # Instance of Australian Defence Force\n}\nLIMIT 10\nsparql_end",
+          "observation": "Error executing query: QueryBadFormed: A bad request has been sent to the endpoint: probably the SPARQL query is badly formed. "
+        },
+        {
+          "step": 3,
+          "thought": "I need to verify the QID for the Australian Defence Force (ADF) and the relevant properties related to military operations. I will first check the QID for the ADF to ensure I have the correct identifier before constructing a query to find animals involved in military operations.",
+          "action": "EXECUTE_SPARQL",
+          "query": "SELECT ?item ?itemLabel WHERE {\n  ?item wdt:P31 wd:Q328.  # Instance of Australian Defence Force\n}\nLIMIT 10\nsparql_end",
+          "observation": "Error executing query: QueryBadFormed: A bad request has been sent to the endpoint: probably the SPARQL query is badly formed. "
+        }
+      ],
+      "entities_linked": [],
+      "schema_hints": "P7779 (military unit), P798 (military designation), P3156 (Australian Classification), P410 (military, police or special rank), P4624 (squadron embarked)",
+      "error": null
+    },
+    {
+      "id": "2",
+      "question": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+      "generated_sparql": "",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q11835640 wdt:P674 ?result. ?result wdt:P451 ?p1, ?p2. FILTER(?p1 != ?p2 &&(?result IN (wd:Q4205826, wd:Q4463198)))}",
+      "is_valid": false,
+      "termination_reason": "error",
+      "total_steps": 0,
+      "validation_error": "RetryError[<Future at 0x32a4ad090 state=finished raised BadRequestError>]",
+      "agent_steps": [],
+      "entities_linked": [],
+      "schema_hints": "",
+      "error": "RetryError[<Future at 0x32a4ad090 state=finished raised BadRequestError>]"
+    },
+    {
+      "id": "3",
+      "question": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+      "generated_sparql": "",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q860580 wdt:P112 ?result. ?result wdt:P39 wd:Q10891456.}",
+      "is_valid": false,
+      "termination_reason": "error",
+      "total_steps": 0,
+      "validation_error": "RetryError[<Future at 0x32aaae710 state=finished raised BadRequestError>]",
+      "agent_steps": [],
+      "entities_linked": [],
+      "schema_hints": "",
+      "error": "RetryError[<Future at 0x32aaae710 state=finished raised BadRequestError>]"
+    },
+    {
+      "id": "4",
+      "question": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+      "generated_sparql": "",
+      "gold_sparql": "PREFIX bd: <http://www.bigdata.com/rdf#> PREFIX dct: <http://purl.org/dc/terms/> PREFIX geo: <http://www.opengis.net/ont/geosparql#> PREFIX p: <http://www.wikidata.org/prop/> PREFIX pq: <http://www.wikidata.org/prop/qualifier/> PREFIX ps: <http://www.wikidata.org/prop/statement/> PREFIX psn: <http://www.wikidata.org/prop/statement/value-normalized/> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wds: <http://www.wikidata.org/entity/statement/> PREFIX wdt: <http://www.wikidata.org/prop/direct/> PREFIX wdv: <http://www.wikidata.org/value/> PREFIX wikibase: <http://wikiba.se/ontology#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT DISTINCT ?result WHERE {wd:Q696071 wdt:P50 ?author. ?author wdt:P800 ?result. ?result wdt:P921 wd:Q16003532 FILTER(?result != wd:Q69071)}",
+      "is_valid": false,
+      "termination_reason": "error",
+      "total_steps": 0,
+      "validation_error": "RetryError[<Future at 0x32aa57f90 state=finished raised BadRequestError>]",
+      "agent_steps": [],
+      "entities_linked": [],
+      "schema_hints": "",
+      "error": "RetryError[<Future at 0x32aa57f90 state=finished raised BadRequestError>]"
+    }
+  ]
+}

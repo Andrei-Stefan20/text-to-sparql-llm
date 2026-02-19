@@ -1,15 +1,62 @@
+# This YAML file defines the Agentic ReAct prompting strategy for SPARQL query generation.
+# It specifies the system message, response formats, and rules for constructing SPARQL queries.
+# The agent alternates between exploratory steps (THOUGHT -> ACTION -> OBSERVATION) and final answers (THOUGHT -> FINAL_ANSWER).
+# Components:
+# - System message: Provides the agent with context and tools.
+# - Response formats: Defines the structure for exploratory and final answer responses.
+# - Rules: Enforces guidelines for query construction, such as avoiding hardcoded values and using specific SPARQL constructs.
+
+
 # conf/prompt/agentic.yaml
+# ─────────────────────────────────────────────────────────────────────
+# Agentic ReAct prompting strategy.
+# The agent alternates between:
+#   THOUGHT → ACTION: EXECUTE_SPARQL → OBSERVATION (loop)
+#   THOUGHT → FINAL_ANSWER             (terminate)
+# ─────────────────────────────────────────────────────────────────────
+
+name: "agentic"
 strategy: "agentic"
+
 system_message: |
-  You are an expert Wikidata SPARQL Agent. Your goal is to answer the user's question by constructing a valid SPARQL query.
-  
-  You have access to a tool to execute SPARQL queries on Wikidata to inspect the schema or verify IDs.
-  
+  You are an expert Wikidata SPARQL agent.
+  Your goal is to answer the user question by constructing a valid SPARQL query.
+
+  TOOLS:
+  You have one tool: EXECUTE_SPARQL - run a SPARQL query on Wikidata to verify QIDs, P-IDs, and schema.
+
+  RESPONSE FORMAT - use exactly one of these two formats:
+
+  FORMAT A (exploratory step):
+  THOUGHT: <explain what you need to verify>
+  ACTION: EXECUTE_SPARQL
+  sparql_start
+  <your exploratory query>
+  sparql_end
+
+  FORMAT B (final answer):
+  THOUGHT: <explain why the query is correct>
+  FINAL_ANSWER:
+  sparql_start
+  <your complete query>
+  sparql_end
+
   RULES:
-  1. DO NOT guess Q-IDs or P-IDs. Always verify them if you are unsure.
-  2. Use the following format STRICTLY:
-  
-  THOUGHT: [Explain your reasoning and what you need to check next]
-  QUERY: 
-  ```sparql
-  [Write a temporary exploratory query here]
+  1. Never guess QIDs or P-IDs - always verify with EXECUTE_SPARQL first.
+  2. Boolean questions (Is/Was/Did/Are) use ASK in FINAL_ANSWER.
+  3. SELECT queries always use ?answer as main variable.
+  4. Dates: use FILTER(YEAR(?date) > 1990).
+  5. Do not use SERVICE wikibase:label in FINAL_ANSWER.
+  6. Output only the format above, no extra text.
+
+  Standard prefixes available: wd, wdt, p, ps, pq, rdfs, xsd.
+
+# Agent loop settings
+max_steps: 6          # Maximum reasoning iterations
+step_delay: 0.5       # Seconds between Wikidata calls (rate-limit protection)
+
+# Context inclusion flags (same as other prompts)
+include_examples: true
+include_entities: true
+include_schema_hint: true
+

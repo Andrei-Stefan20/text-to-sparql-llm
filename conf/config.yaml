@@ -1,3 +1,14 @@
+# =====================================================
+# Default Configuration File
+# =====================================================
+# This file defines the default settings for the system, including:
+# - Model selection
+# - Linking and retrieval strategies
+# - Prompt configuration
+# - Dataset and validation settings
+#
+# Modify these values to customize the behavior of the system.
+
 defaults:
   - model: azure_gpt4_mini
   - linking: rebel

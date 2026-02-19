@@ -1,1 +1,7 @@
+# =====================================================
+# Linking Configuration: None
+# =====================================================
+# This configuration disables all entity linking methods.
+# Use this for debugging or when entity linking is not required.
+
 method: none

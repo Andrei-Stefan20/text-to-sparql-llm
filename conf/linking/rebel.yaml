@@ -1,7 +1,15 @@
+# =====================================================
+# Linking Configuration: REBEL
+# =====================================================
+# This configuration enables the REBEL model for relation extraction.
+# - REBEL extracts relations, not direct entity links.
+# - Wikidata API fallback is recommended for unresolved entities.
+#
+
 method: "rebel"
 model_path: "Babelscape/rebel-large"
 device: -1  # -1 CPU, 0 GPU
 
 # Enable Wikidata API fallback to resolve entity mentions to QIDs
-# REBEL extracts relations, not entity links, so this is recommended
+# REBEL extracts relations, not entity links
 use_wikidata_fallback: true

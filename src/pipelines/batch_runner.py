@@ -1,3 +1,21 @@
+"""
+Batch Processing Pipeline.
+
+This module provides a pipeline for processing datasets with optional validation and self-correction.
+
+Features:
+- Entity linking with support for single or dual linkers.
+- RAG retrieval for few-shot examples.
+- Schema hints retrieval.
+- Query validation (syntax and execution).
+- Self-correction with error feedback and majority voting.
+
+Implementation:
+- Executes entity linking in a thread pool to avoid blocking.
+- Uses `SPARQLValidator` for query validation and correction.
+- Logs detailed progress using `tqdm`.
+"""
+
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional

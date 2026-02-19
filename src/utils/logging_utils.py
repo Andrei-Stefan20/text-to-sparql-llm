@@ -1,3 +1,19 @@
+"""
+Logging Utilities.
+
+This module provides helper functions for generating descriptive run names and managing logging configurations.
+
+Features:
+- Generates unique run names based on experiment configurations.
+- Supports structured logging for debugging and analysis.
+- Integrates with `omegaconf` for configuration management.
+
+Implementation:
+- Constructs run names dynamically based on model, retrieval, and prompt settings.
+- Uses `logging` for structured output.
+- Reads and writes configurations using `omegaconf`.
+"""
+
 import json
 import logging
 from pathlib import Path

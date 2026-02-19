@@ -1,11 +1,13 @@
 # =====================================================
-# ADVANCED VALIDATION & CORRECTION CONFIGURATION
+# Advanced Validation Configuration
 # =====================================================
-# This configuration enables all advanced features:
+# This file enables advanced validation and correction features, including:
 # - Multi-pattern SPARQL extraction
 # - Multi-turn conversational correction
 # - Result-based refinement
 # - Self-consistency voting
+#
+# Use this configuration for complex query validation workflows.
 
 validation:
   # ===== Basic Validation =====

@@ -1,3 +1,19 @@
+"""
+Evaluation Metrics Module.
+
+This module computes evaluation metrics for SPARQL query generation tasks, focusing on QALD metrics.
+
+Features:
+- Calculates Precision, Recall, and F1 scores for generated queries.
+- Executes queries against the live Wikidata endpoint.
+- Handles errors and retries for evaluation.
+
+Implementation:
+- Uses `OfflineEvaluator` to process results and compute metrics.
+- Supports variable-agnostic result matching and URI normalization.
+- Provides detailed logging for debugging and analysis.
+"""
+
 import json
 import logging
 import ssl

@@ -1,3 +1,18 @@
+"""
+Prompt Builder for SPARQL Generation.
+
+This module constructs prompts for various SPARQL generation strategies, including:
+- Standard few-shot prompting.
+- Chain-of-Thought reasoning.
+- Query decomposition into sub-queries.
+- Agentic ReAct loops.
+
+Implementation:
+- Supports multiple strategies defined in the `PromptStrategy` enum.
+- Builds prompts dynamically based on the selected strategy and configuration.
+- Integrates with the `entity_linker` module for entity resolution.
+"""
+
 from typing import List, Optional, Union
 from enum import Enum
 import logging

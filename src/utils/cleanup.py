@@ -1,6 +1,18 @@
 #!/usr/bin/env python3
 """
-Cleanup script to remove cache, temporary files, and generated outputs.
+Cleanup Utility.
+
+This script removes cache, temporary files, and generated outputs to maintain a clean workspace.
+
+Features:
+- Deletes HuggingFace cache and local models.
+- Removes `__pycache__` directories and `.pyc` files.
+- Provides detailed logs for each cleanup operation.
+
+Implementation:
+- Uses `shutil` for directory removal and `Path` for file traversal.
+- Traverses the project directory recursively to locate and delete files.
+- Ensures safe deletion with checks for file existence.
 """
 
 import os

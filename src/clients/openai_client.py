@@ -1,3 +1,19 @@
+"""
+OpenAI Client.
+
+This module provides an asynchronous client for interacting with OpenAI models, including retry logic and streaming support.
+
+Features:
+- Supports both standard and streaming generation.
+- Implements retry logic for API errors, rate limits, and timeouts.
+- Configurable via environment variables and Hydra configurations.
+
+Implementation:
+- Extends the `BaseClient` abstract class.
+- Uses `tenacity` for robust retry mechanisms.
+- Supports custom endpoints for specialized models (e.g., Llama).
+"""
+
 import logging
 import os
 from typing import AsyncIterator, Optional

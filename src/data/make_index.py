@@ -1,3 +1,19 @@
+"""
+Index Creation Module.
+
+This module creates FAISS indices for retrieval-augmented generation tasks.
+
+Features:
+- Builds indices for training datasets.
+- Filters data based on language and other criteria.
+- Saves indices and metadata for efficient retrieval.
+
+Implementation:
+- Loads datasets using the `DatasetLoader` module.
+- Encodes data using Sentence Transformers.
+- Saves FAISS indices and metadata to specified paths.
+"""
+
 import os
 import platform
 import pickle

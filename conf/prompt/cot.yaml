@@ -1,6 +1,13 @@
 name: "cot"
 strategy: "cot"  # Chain-of-Thought reasoning
 
+# This YAML file defines the Chain-of-Thought (CoT) prompting strategy for SPARQL query generation.
+# It specifies the system message, critical guidelines, and custom instructions for step-by-step reasoning.
+# Components:
+# - System message: Guides the agent to translate natural language questions into SPARQL queries.
+# - Critical guidelines: Enforces rules for query construction, such as using ASK for boolean questions and avoiding hardcoded dates.
+# - Custom instruction: Allows for additional user-defined instructions.
+
 # System prompt for CoT - guides step-by-step reasoning
 system_message: |
   You are a SPARQL expert for Wikidata.

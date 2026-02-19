@@ -1,15 +1,17 @@
 """
 Agentic Batch Pipeline.
 
-Processes a dataset using the AgenticSPARQLRunner (ReAct loop).
-Each item goes through:
-  1. Entity linking
-  2. RAG retrieval
-  3. Schema hints
-  4. AgenticSPARQLRunner.run() → iterative THOUGHT/ACTION/OBSERVATION
-  5. Final SPARQL extraction + validation
+This module processes datasets using the AgenticSPARQLRunner (ReAct loop).
 
-Concurrency is controlled via asyncio.Semaphore (same as BatchRunner).
+Features:
+- Iterative processing with THOUGHT/ACTION/OBSERVATION steps.
+- Integrates entity linking, RAG retrieval, and schema hints.
+- Validates and extracts final SPARQL queries.
+
+Implementation:
+- Uses `AgenticSPARQLRunner` for ReAct loop execution.
+- Controls concurrency with `asyncio.Semaphore`.
+- Logs detailed progress using `tqdm`.
 """
 
 import asyncio

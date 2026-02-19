@@ -319,21 +319,19 @@ python main.py dataset.limit=394 model=llama_33 validation.enable_correction=tru
 
 ---
 
-## Experiment 6: Prompt Rules Sensitivity
+## Experiment 6: Agent
 
-**Question**: Do explicit constraint rules in the system prompt actually reduce errors?
-
-Testing three prompt configurations: minimal (no rules), standard (current), strict (current + negative examples).
+**Question**: 
 
 ```bash
-# === GPT-4-mini ===
-python main.py dataset.limit=394 model=azure_gpt4_mini prompt=minimal system.experiment_name=exp6_minimal_gpt4mini_394
-python main.py dataset.limit=394 model=azure_gpt4_mini prompt=standard system.experiment_name=exp6_standard_gpt4mini_394
-python main.py dataset.limit=394 model=azure_gpt4_mini prompt=strict system.experiment_name=exp6_strict_gpt4mini_394
+# Default (gpt-4o-mini, rebel, 3shot, 394 domande)
+python main_agentic.py prompt=agentic dataset.limit=50 system.experiment_name=exp_agentic_mini
 
-# === Llama 33 ===
-python main.py dataset.limit=394 model=llama_33 prompt=minimal system.experiment_name=exp6_minimal_llama_394
-python main.py dataset.limit=394 model=llama_33 prompt=strict system.experiment_name=exp6_strict_llama_394
+# GPT-4o, max 8 step per domanda
+python main_agentic.py prompt=agentic model=azure_gpt4 prompt.max_steps=8 dataset.limit=50
+
+# Llama
+python main_agentic.py prompt=agentic model=llama_33 dataset.limit=50
 ```
 
 ### Results Matrix:
