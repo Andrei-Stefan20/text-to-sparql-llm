@@ -10,42 +10,61 @@ Question → Entity Linking → Schema Retrieval → Few-shot Context → LLM Ge
 
 - **Entity Linking**: REBEL/ReLiK maps mentions to Wikidata QIDs
 - **Retrieval**: FAISS-based similar examples and schema hints
-- **Generation**: GPT-4/Llama with configurable prompting strategies
+- **Generation**: GPT-4/Llama with configurable prompting 
 - **Validation**: Syntax check + optional execution + multi-turn self-correction
 
 ## Documentation
 
-- [Research Notes](docs/references/RESEARCH.md) - Papers, TODO list, future work
+- [Notes](docs/references/RESEARCH.md) - Papers, TODO list, future work
 - [Test Roadmap](docs/TEST_ROADMAP.md) - Experiments plan and results tracking
 
 ## Setup
 
-```bash
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-python src/data/make_schema_index.py && python src/data/make_index.py
-```
+Follow these steps to set up the environment and dependencies:
 
-`.env`:
-```
-AZURE_OPENAI_API_KEY=your_key
-AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-```
+1. **Create a virtual environment**:
+   ```bash
+   python -m venv venv && source venv/bin/activate
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Generate schema and FAISS indices**:
+   ```bash
+   python src/data/make_schema_index.py && python src/data/make_index.py
+   ```
+
+4. **Set up environment variables**:
+    Create a `.env` file in the root directory with the following content:
+    ```
+    AZURE_OPENAI_ENDPOINT=""
+    AZURE_OPENAI_API_KEY=""
+
+    LLAMA_ENDPOINT=""
+    LLAMA_API_KEY=""
+
+    export SPARQL_ENDPOINT_URL=""
+  ```
 
 ## Usage
+
+Run the pipeline with various configurations:
 
 ```bash
 python main.py                                    # Default run
 python main.py dataset.limit=10                   # Limit samples
-python main.py prompt=cot                         # Chain-of-Thought reasoning
+python main.py prompt=cot                         # Chain-of-Thought
 python main.py prompt=decomposition               # Query decomposition
 python main.py validation.enable_correction=true  # Multi-turn self-correction
 python main.py model=azure_gpt4 linking=relik     # Change model/linker
 ```
 
-## Debug
+### Debugging
 
-Inspect generated prompts without API calls:
+Inspect generated prompts without making API calls:
 ```bash
 python src/debug/prompts.py prompt=cot linking=relik retrieval=3shot
 ```
@@ -78,7 +97,10 @@ outputs/        # Results
 
 ## Output
 
-Results: `outputs/[experiment]/[timestamp]/results.json`
+Results are saved in the `outputs` directory:
+```
+outputs/[experiment]/[timestamp]/results.json
+```
 
 ## License
 
