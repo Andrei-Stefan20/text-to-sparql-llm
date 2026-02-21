@@ -36,7 +36,7 @@ class DatasetLoader:
 
     def load(self) -> List[Dict[str, Any]]:
         """
-        Carica il dataset dando priorità assoluta ai file locali JSON.
+        Loads the dataset, first trying a local JSON file, then falling back to Hugging Face Hub.   
         """
         logger.info(f"Loading dataset '{self.dataset_name}' (split: {self.split})...")
 
@@ -91,12 +91,12 @@ class DatasetLoader:
             return data
 
         except Exception as e:
-            logger.critical(f"🔥 All loading methods failed. Error: {e}")
+            logger.critical(f" All loading methods failed. Error: {e}")
             raise e
 
     def _load_local_json(self, path: str) -> List[Dict[str, Any]]:
         """
-        Legge e processa il file JSON locale di QALD-9-plus.
+        Loads dataset from a local JSON file and processes it into the expected format.
         """
         with open(path, "r", encoding="utf-8") as f:
             raw_data = json.load(f)

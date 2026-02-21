@@ -38,7 +38,7 @@ class BatchRunner:
     Batch processing pipeline with optional validation and self-correction.
 
     Features:
-    - Entity linking (single or dual linker), executed in a thread pool to avoid
+    - Entity linking, executed in a thread pool to avoid
       blocking the async event loop (critical for heavy models like ReLiK).
     - RAG retrieval for few-shot examples
     - Schema hints retrieval
@@ -122,8 +122,7 @@ class BatchRunner:
         self, linker: BaseLinker, question: str
     ) -> List[LinkedEntity]:
         """
-        Runs the entity linker in a thread pool executor so that CPU-bound /
-        blocking models (e.g. ReLiK) do not stall the async event loop.
+        Runs the entity linker in a thread pool executor.
         """
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, linker.extract, question)
@@ -137,16 +136,15 @@ class BatchRunner:
         """
         Processes a single dataset item through the full pipeline.
 
-        Always returns a dict — never None.  If an unrecoverable error occurs
-        the dict will contain an "error" key and empty SPARQL fields so that
-        downstream evaluation can handle it gracefully.
+        Always returns a dict, never None.  If an unrecoverable error occurs
+        the dict will contain an "error" key and empty SPARQL fields.
         """
         async with self.semaphore:
             try:
                 question = item["question"]
                 gold_sparql = item.get("gold_sparql", "")
 
-                # 1. Entity Extraction — run in thread to avoid blocking event loop
+                # 1. Entity Extraction, run in thread to avoid blocking event loop
                 entities = await self._run_linker(linker, question)
 
                 # Combine with second linker if provided

@@ -180,10 +180,7 @@ class AgentResponseParser:
 
 class AgenticSPARQLRunner:
     """
-    Orchestrates the ReAct loop for SPARQL generation.
-
-    NOTE: The executor is always self.tool (WikidataTool).
-          There is no self.executor — that attribute never existed.
+    The ReAct loop for SPARQL generation.
     """
 
     def __init__(
@@ -201,7 +198,7 @@ class AgenticSPARQLRunner:
         self.step_delay = step_delay
         self.parser = AgentResponseParser()
 
-    # System prompt — inject runtime values once per run
+    # System prompt, inject runtime values once per run
 
     def _resolve_system_prompt(self) -> str:
         return self.system_prompt.replace("{max_steps}", str(self.max_steps)).replace(

@@ -10,11 +10,11 @@
 # Use this configuration for complex query validation workflows.
 
 validation:
-  # ===== Basic Validation =====
+  #  Basic Validation 
   # Syntax validation using rdflib (fast, local)
   enable_validation: true
   
-  # ===== Self-Correction Loop =====
+  #  Self-Correction Loop 
   # Enables multi-turn conversational correction with error feedback
   # When enabled, failed queries are retried with:
   # - Full conversation history (all previous attempts)
@@ -26,20 +26,15 @@ validation:
   # Recommended: 3-5 for complex queries
   max_attempts: 5
   
-  # ===== Execution Validation =====
+  #  Execution Validation 
   # Validates by actually running query on Wikidata
   # WARNING: Makes real API calls, slower but catches semantic errors
   # Enables result-based refinement when queries return empty results
   validate_execution: false
   
-  # ===== Self-Consistency Voting =====
+  #  Self-Consistency Voting 
   # Generates multiple diverse queries and votes for the most common one
   # Set to 1 to disable, 3-5 to enable
-  # WARNING: Multiplies API costs by this number
-  # Benefits:
-  # - Higher accuracy via majority voting
-  # - Robust to single-sample failures
-  # - Better for ambiguous questions
   self_consistency_samples: 3
   
   # Temperature for diverse sample generation

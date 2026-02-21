@@ -35,7 +35,7 @@ class SchemaRetriever:
     Hybrid search:
       query = "Question: {question}. Context: {entity_names}"
 
-    This lets FAISS find properties based on the *meaning* of the user's
+    This lets FAISS find properties based on the meaning of the user's
     question rather than just the entity surface form. For example:
 
       Question: "among the founders of Tencent, who has been member of the NPC?"
@@ -50,7 +50,7 @@ class SchemaRetriever:
     DEFAULT_TOP_K = 10
 
     def __init__(self, config: DictConfig):
-        # Allow override via config; fall back to DEFAULT_TOP_K
+        # Allow override via config; DEFAULT_TOP_K is the default if not specified
         self.k = config.get("k_properties", self.DEFAULT_TOP_K)
 
         index_path = Path(
@@ -131,7 +131,7 @@ class SchemaRetriever:
             logger.warning(f"Schema retrieval failed: {e}")
             return ""
 
-    # Legacy alias — keeps compatibility with code that calls the old name
+    # Legacy alias, keeps compatibility with code that calls the old name
     def get_hints(
         self,
         question: str,
@@ -149,7 +149,7 @@ class SchemaRetriever:
         via a live SPARQL call to Wikidata.
 
         Used when static FAISS hints are not specific enough. Disabled by
-        default in the pipeline for speed — uncomment to enable.
+        default in the pipeline for speed, uncomment to enable.
         """
         if not entities:
             return ""
@@ -239,7 +239,7 @@ class SchemaRetriever:
         Formats a metadata item as a human-readable hint string.
 
         With enriched index (v2): "P39 (position held)"
-        With aliases:             "P39 (position held)" — aliases shown in description
+        With aliases:             "P39 (position held)", aliases shown in description
         """
         pid = item.get("id", "")
         label = item.get("label", "")

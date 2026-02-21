@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Cleanup Utility.
 
@@ -27,7 +26,7 @@ def cleanup_cache():
     if cache_dir.exists():
         print(f"Removing HuggingFace cache: {cache_dir}")
         shutil.rmtree(cache_dir)
-        print("✓ Cache removed")
+        print(">>> Cache removed")
     else:
         print("No HuggingFace cache found")
 
@@ -36,7 +35,7 @@ def cleanup_cache():
     if local_models.exists():
         print(f"Removing local models: {local_models}")
         shutil.rmtree(local_models)
-        print("✓ Local models removed")
+        print(">>> Local models removed")
     else:
         print("No local models directory found")
 
@@ -53,7 +52,7 @@ def cleanup_pycache():
         print(f"Removing: {pyc}")
         pyc.unlink()
 
-    print("✓ Python cache cleaned")
+    print(">>> Python cache cleaned")
 
 
 def cleanup_outputs():
@@ -63,7 +62,7 @@ def cleanup_outputs():
         print(f"Removing outputs: {outputs_dir}")
         shutil.rmtree(outputs_dir)
         outputs_dir.mkdir(exist_ok=True)
-        print("✓ Outputs cleaned (recreated empty)")
+        print(">>> Outputs cleaned (recreated empty)")
     else:
         print("No outputs directory found")
 
@@ -85,7 +84,7 @@ def cleanup_tmp():
             except Exception as e:
                 print(f"Failed to remove {item}: {e}")
 
-    print("✓ Temp files cleaned")
+    print(">>> Temp files cleaned")
 
 
 def main():

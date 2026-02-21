@@ -5,7 +5,6 @@ Computes Precision, Recall, and F1 for SPARQL query generation (QALD standard).
 Executes queries against the live Wikidata endpoint with robust rate-limit handling.
 
 Key fixes vs. original:
-- Separate 429 retry logic with exponential backoff (up to 60s per retry, 6 attempts)
 - Inter-item throttling: small sleep between evaluations to avoid hammering Wikidata
 - Rate-limit errors tracked separately (not counted as syntax errors)
 - Cleaner progress logging with rate-limit stats
@@ -31,7 +30,7 @@ class OfflineEvaluator:
 
     Robust handling for:
     - None / error items in the results list
-    - 429 Too Many Requests: exponential backoff, up to RATE_LIMIT_MAX_RETRIES attempts
+    - Exponential backoff, up to RATE_LIMIT_MAX_RETRIES attempts
     - Timeout retries
     - Variable-agnostic result matching
     - URI normalisation

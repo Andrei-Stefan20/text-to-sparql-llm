@@ -147,9 +147,9 @@ def fetch_enriched_properties() -> list:
     # Sort by P-number (lower = more fundamental/common), take top N
     sorted_props = sorted(props_by_pid.values(), key=lambda x: x["num"])[:TOP_N]
 
-    # ------------------------------------------------------------------
+    # 
     # Enrich with aliases (batch query in chunks of 200 to avoid timeout)
-    # ------------------------------------------------------------------
+    # 
     logger.info("Fetching aliases (skos:altLabel) in batches...")
     pid_list = [p["id"] for p in sorted_props]
 

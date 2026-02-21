@@ -23,7 +23,7 @@ from datetime import datetime
 from SPARQLWrapper import JSON, SPARQLWrapper
 from tqdm import tqdm
 
-# --- CONFIGURATION ---
+#  CONFIGURATION 
 ROOT_DIR = "outputs"
 INPUT_FILENAME = "results_full.json"
 OUTPUT_FILENAME = "gerbil_test.json"

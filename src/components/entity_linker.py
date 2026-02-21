@@ -145,7 +145,7 @@ class RebelLinker(BaseLinker):
     """
     Implements relation extraction using the REBEL model.
     Note: REBEL extracts relations, not entity links. We use WikidataResolver
-    as a fallback to resolve extracted entity mentions to QIDs.
+    too extract entity mentions to QIDs.
     """
 
     def __init__(self, config: DictConfig):
@@ -197,8 +197,8 @@ class RebelLinker(BaseLinker):
                     LinkedEntity(
                         text=entity_text,
                         qid=qid,
-                        label=entity_text,  # REBEL doesn't provide canonical labels
-                        score=0.8,  # Fixed score since REBEL doesn't provide confidence
+                        label=entity_text, 
+                        score=0.8,  
                     )
                 )
 
@@ -411,13 +411,13 @@ class AllLinkersCombo(BaseLinker):
         # Merge with preference for entities with QIDs
         merged = {}
 
-        # First add ReLiK entities (usually have QIDs)
+        # First add ReLiK entities usually, QIDs
         for entity in entities_relik:
             key = entity.qid if entity.qid else entity.text.lower()
             if key not in merged or (entity.qid and not merged[key].qid):
                 merged[key] = entity
 
-        # Then add REBEL entities (fill gaps)
+        # Then add REBEL entities
         for entity in entities_rebel:
             key = entity.qid if entity.qid else entity.text.lower()
             if key not in merged:
