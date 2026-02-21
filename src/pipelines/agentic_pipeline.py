@@ -105,7 +105,6 @@ class AgenticBatchRunner:
                 # 3. Schema hints 
                 #    Pass both `question` and `entities` so the retriever builds:
                 #    "Question: {q}. Context: {entity_names}"
-                #    This finds properties based on the meaning of the question.
                 schema_hints = await loop.run_in_executor(
                     None,
                     self.schema_retriever.retrieve_recommendations,

@@ -168,7 +168,7 @@ class PromptBuilder:
         """Standard few-shot prompt."""
         parts = []
 
-        # 1. Schema Hints (most specific info first)
+        # 1. Schema Hints
         if schema_hints and self.cfg.get("include_schema_hint", False):
             parts.append(f"Relevant Properties: {schema_hints}")
 
