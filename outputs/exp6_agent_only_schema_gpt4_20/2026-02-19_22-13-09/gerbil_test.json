@@ -1,0 +1,436 @@
+{
+  "questions": [
+    {
+      "id": "0",
+      "question": [
+        {
+          "string": "After whom is the Riemannian geometry named?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q761383 wdt:P138 ?answer.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "question": [
+        {
+          "string": "Which animal participated in a military operation with the Australian Defence Force?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT DISTINCT ?answer WHERE {\n  ?operation wdt:P31 wd:Q645883;  # Instance of military operation\n            wdt:P710 wd:Q625657. # Participant: Australian Defence Force\n  ?answer wdt:P31 wd:Q127161923; # Instance of animal\n          wdt:P710 ?operation.  # Participant in the same operation\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "question": [
+        {
+          "string": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  ?answer wdt:P451 wd:Q4463198;  # Triss Merigold\n          wdt:P451 wd:Q4205826.  # Yennefer of Vengerberg\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "question": [
+        {
+          "string": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT DISTINCT ?answer WHERE {\n  wd:Q860580 wdt:P112 ?answer. # Founders of Tencent\n  ?answer wdt:P31 wd:Q5;       # Instance of human\n          ?property wd:Q864284. # Membership in National People's Congress\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "question": [
+        {
+          "string": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q550311 wdt:P50 ?work.\n  ?work wdt:P921 ?subject.\n  ?subject rdfs:label \"middle school student\"@en.\n  ?work rdfs:label ?answer.\n  FILTER(LANG(?answer) = \"en\")\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "question": [
+        {
+          "string": "On which stock exchanges are Siemens AG shares traded?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q81230 wdt:P414 ?answer.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "question": [
+        {
+          "string": "Apart from the book series the witcher, name all of the author\u2019s notable work.",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {  \n  wd:Q312101 wdt:P800 ?answer.  \n  FILTER(?answer != wd:Q11835640)  \n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "question": [
+        {
+          "string": "are brooke raboutou and colin duffy from same state of the usa?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (IF(?placeOfBirth1 = ?placeOfBirth2 || ?residence1 = ?residence2, \"Yes\", \"No\") AS ?answer) WHERE {\n  wd:Q2926117 wdt:P19 ?placeOfBirth1.\n  wd:Q87192979 wdt:P19 ?placeOfBirth2.\n  OPTIONAL { wd:Q2926117 wdt:P551 ?residence1. }\n  OPTIONAL { wd:Q87192979 wdt:P551 ?residence2. }\n  FILTER(?placeOfBirth1 = wd:Q192517 && ?placeOfBirth2 = wd:Q492819)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "question": [
+        {
+          "string": "What is the boiling point of water?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q283 wdt:P2102 ?answer.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "question": [
+        {
+          "string": "At which school was Yayoi Kusama educated at?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q231121 wdt:P69 ?answer.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "question": [
+        {
+          "string": "Which High School did Allen Ginsberg attend?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q6711 wdt:P69 ?answer.\n  ?answer wdt:P31 wd:Q3914. # Ensures the institution is a high school\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "question": [
+        {
+          "string": "On which island is the Indonesian capital located?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q252 wdt:P36 ?capital.\n  ?capital wdt:P706 ?answer.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "question": [
+        {
+          "string": "can i play don't starve on play station 4?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {  \n  wd:Q3208174 wdt:P400 wd:Q5014725.  \n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "question": [
+        {
+          "string": "How many General Secretaries of the CPSU were there before Leonid Brezhnev?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(?person) AS ?answer) WHERE {\n  ?person wdt:P39 wd:Q1048744;\n          p:P39 ?statement.\n  ?statement ps:P39 wd:Q1048744;\n             pq:P580 ?start_time.\n  wd:Q765165 p:P39 ?brezhnev_statement.\n  ?brezhnev_statement ps:P39 wd:Q1048744;\n                      pq:P580 ?brezhnev_start_time.\n  FILTER(?start_time < ?brezhnev_start_time)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "question": [
+        {
+          "string": "How many different presidents of Russia have there been that took the position after 1990?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT (COUNT(DISTINCT ?person) AS ?answer) WHERE {  \n  ?person wdt:P39 wd:Q218295;  \n          p:P39 ?statement.  \n  ?statement ps:P39 wd:Q218295;  \n             pq:P580 ?start.  \n  FILTER(YEAR(?start) > 1990)  \n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "question": [
+        {
+          "string": "Did adam ondra win a medal in the 2020 summer olympics?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?medal WHERE {\n  wd:Q350568 ?property ?medal.\n  ?medal wdt:P31 wd:Q1522921. # Medal\n  ?medal wdt:P361 wd:Q181278. # Part of 2020 Summer Olympics\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "question": [
+        {
+          "string": "Did the Chicago Bulls win at least two seasons of the NBA championship?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "construct a valid SPARQL query to answer the user's question.\n  - SELF-CORRECTION CHECKLIST:\n    1. Is the final answer hardcoded? (Must be NO) - YES, the answer is not hardcoded.\n    2. Does the WHERE clause connect starting entities to the ?answer variable? (Must be YES) - NO, I cannot construct a WHERE clause without the missing property.\n    3. Are the variables in SELECT present in the WHERE clause? (Must be YES) - NO, I cannot construct a valid SELECT clause without the missing property.\n\nFINAL_ANSWER:\nI was unable to determine the property that links a team to winning a sports competition like the NBA championship. Therefore, I cannot construct a SPARQL query to answer the question. Further investigation into Wikidata's structure or external resources may be required to identify the missing property."
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "question": [
+        {
+          "string": "Did Haruki Murakami receive the Nobel Prize in Literature?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q134798 wdt:P166 wd:Q37922.\n}"
+      },
+      "answers": [
+        {
+          "head": {},
+          "boolean": false
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "question": [
+        {
+          "string": "Did Kobe Bryant leave the Lakers when LeBron James joined that team?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "construct a query to directly answer the question about their overlapping membership in the team. The lack of results suggests either a misalignment in the schema or that the data is not available in Wikidata.\n  - SELF-CORRECTION CHECKLIST:\n    1. Is the final answer hardcoded? (NO, as I cannot provide a hardcoded answer without verified data.)\n    2. Does the WHERE clause connect starting entities to the ?answer variable? (NO, as I cannot construct a valid WHERE clause without the necessary properties.)\n    3. Are the variables in SELECT present in the WHERE clause? (NO, as I cannot construct a valid query.)\n\nFINAL_ANSWER:\nThe necessary properties to determine the timeline of Kobe Bryant's departure from the Los Angeles Lakers and LeBron James's joining of the team could not be identified in Wikidata. Therefore, I cannot construct a SPARQL query to answer the question."
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "question": [
+        {
+          "string": "Did Rawson Marshall Thurber, the director of Red Notice also direct Titanic?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK WHERE {  \n  wd:Q44578 wdt:P57 wd:Q2745616.  \n}"
+      },
+      "answers": [
+        {
+          "head": {},
+          "boolean": false
+        }
+      ]
+    }
+  ]
+}

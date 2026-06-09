@@ -1,0 +1,208 @@
+{
+  "questions": [
+    {
+      "id": "0",
+      "question": [
+        {
+          "string": "After whom is the Riemannian geometry named?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q761383 wdt:P138 ?answer.\n}"
+      },
+      "answers": [
+        {
+          "head": {},
+          "boolean": false
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "question": [
+        {
+          "string": "Which animal participated in a military operation with the Australian Defence Force?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q625657 wdt:P7779 ?answer.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "question": [
+        {
+          "string": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  wd:Q4205826 wdt:P451 ?partner1.\n  wd:Q4463198 wdt:P451 ?partner2.\n  FILTER(?partner1 != ?partner2)\n}"
+      },
+      "answers": [
+        {
+          "head": {},
+          "boolean": false
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "question": [
+        {
+          "string": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?founder wdt:P31 wd:Q33999;  # instance of human\n          wdt:P102 wd:Q200202;  # member of political party (National People's Congress)\n          wdt:P199 wd:Q214;  # has organizational division (Tencent)\n          wdt:P210 ?partyChief.  # party chief representative\n}"
+      },
+      "answers": [
+        {
+          "head": {},
+          "boolean": false
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "question": [
+        {
+          "string": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  ?author wdt:P50 wd:Q100000;  # Hunter x Hunter's author\n         wdt:P9687 ?givenNames.\n  ?work wdt:P50 ?author;\n        wdt:P1433 wd:Q123456;  # Replace with the correct publication entity\n        wdt:P2679 ?foreword.\n  FILTER(CONTAINS(LCASE(?answer), \"middle school student\"))\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "question": [
+        {
+          "string": "On which stock exchanges are Siemens AG shares traded?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q81230 wdt:P414 ?answer.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "question": [
+        {
+          "string": "Apart from the book series the witcher, name all of the author\u2019s notable work.",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  ?work wdt:P50 ?author.\n  ?work wdt:P6333 ?series.\n  FILTER(?series != wd:Q123456)  # Replace wd:Q123456 with the actual entity ID for the witcher series\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "question": [
+        {
+          "string": "are brooke raboutou and colin duffy from same state of the usa?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "ASK {\n  ?person1 wdt:P31 wd:Q5;\n           wdt:P19 ?birthPlace1.\n  ?person2 wdt:P31 wd:Q5;\n           wdt:P19 ?birthPlace2.\n  VALUES ?person1 { wd:Q12345678 }  # Brooke Raboutou's identifier\n  VALUES ?person2 { wd:Q87654321 }  # Colin Duffy's identifier\n  FILTER(?birthPlace1 = ?birthPlace2)\n}"
+      },
+      "answers": [
+        {
+          "head": {},
+          "boolean": false
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "question": [
+        {
+          "string": "What is the boiling point of water?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q283 ?p ?answer.\n  FILTER(?p = wdt:P2102)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "question": [
+        {
+          "string": "At which school was Yayoi Kusama educated at?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q231121 wdt:P69 ?answer.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    }
+  ]
+}

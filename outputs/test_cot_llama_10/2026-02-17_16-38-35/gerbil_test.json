@@ -1,0 +1,224 @@
+{
+  "questions": [
+    {
+      "id": "0",
+      "question": [
+        {
+          "string": "After whom is the Riemannian geometry named?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?entity ?entityLabel\nWHERE {\n  wd:Q761383 wdt:P138 ?entity.\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "question": [
+        {
+          "string": "Which animal participated in a military operation with the Australian Defence Force?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?animal ?operation\nWHERE {\n  ?animal wdt:P31 wd:Q729 .\n  ?operation wdt:P710 ?militaryUnit .\n  ?militaryUnit wdt:P798 ?designation .\n  ?militaryUnit wdt:P7779 wd:Q625657 .\n  FILTER EXISTS { ?animal wdt:P527 ?operation }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "question": [
+        {
+          "string": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?character\nWHERE {\n  ?character p:P451 ?statement1 .\n  ?statement1 ps:P451 wd:Q4205826 .\n  ?character p:P451 ?statement2 .\n  ?statement2 ps:P451 wd:Q4463198 .\n  FILTER (?statement1 != ?statement2)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "question": [
+        {
+          "string": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?founder ?founderLabel\nWHERE\n{\n  wd:Q8798 wdt:P112 ?founder .\n  ?founder wdt:P102 wd:Q6497 .\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "question": [
+        {
+          "string": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?work ?workLabel\nWHERE\n{\n  ?author wdt:P50 ?work.\n  ?work wdt:P50 ?author.\n  ?author wdt:P50 ?hunterXHunter.\n  FILTER(?work != ?hunterXHunter)\n  ?work wdt:P2679|wdt:P50 ?forewordAuthor.\n  ?work rdfs:label ?workLabel.\n  FILTER(LANGMATCHES(LANG(?workLabel), \"en\")).\n  FILTER CONTAINS(LCASE(?workLabel), \"middle school student\").\n  BIND(\"Hunter x Hunter\" AS ? hunterXHunter).\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "question": [
+        {
+          "string": "On which stock exchanges are Siemens AG shares traded?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?exchange ?exchangeLabel\nWHERE {\n  wd:Q81230 p:P414 ?statement .\n  ?statement ps:P414 ?exchange .\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "question": [
+        {
+          "string": "Apart from the book series the witcher, name all of the author\u2019s notable work.",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?work ?workLabel\nWHERE {\n  ?author wdt:P50 ?book .\n  ?book wdt:P6333 ?work .\n  FILTER NOT EXISTS { ?book wdt:P6333 \"The Witcher\" }\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "question": [
+        {
+          "string": "are brooke raboutou and colin duffy from same state of the usa?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?brookeState ?colinState\nWHERE {\n  wd:Q7043068 wdt:P569 ?brookeBirth .\n  wd:Q7043068 wdt:P495 ?brookeState .\n  wd:Q97658745 wdt:P569 ?colinBirth .\n  wd:Q97658745 wdt:P495 ?colinState .\n  FILTER (?brookeState = ?colinState)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "question": [
+        {
+          "string": "What is the boiling point of water?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?boilingPoint\nWHERE {\n  wd:Q283 .\n  OPTIONAL {\n    wd:Q283 wdt:P2102 ?boilingPoint .\n    FILTER(LANGMATCHES(LANG(?boilingPoint), \"en\"))\n  }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "question": [
+        {
+          "string": "At which school was Yayoi Kusama educated at?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?school ?schoolLabel\nWHERE {\n  wd:Q231121 wdt:P69 ?school .\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    }
+  ]
+}

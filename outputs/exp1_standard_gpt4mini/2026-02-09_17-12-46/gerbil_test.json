@@ -14,19 +14,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "name"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "name": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q42299"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -45,9 +36,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "animal"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -69,9 +58,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "character"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -93,9 +80,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "founder"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -117,9 +102,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "work"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -141,19 +124,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "exchange"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "exchange": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q151139"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -172,9 +146,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "work"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -196,9 +168,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "state"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -220,20 +190,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "boilingPoint"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "boilingPoint": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
-                  "type": "literal",
-                  "value": "99.9839"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -252,19 +212,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "school"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "school": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q749884"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -283,31 +234,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "school"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "school": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q49088"
-                }
-              },
-              {
-                "school": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q5018694"
-                }
-              },
-              {
-                "school": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q14705485"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -326,9 +256,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "island"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -350,9 +278,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "game"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -374,20 +300,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -406,20 +322,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -438,9 +344,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "medal"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -462,9 +366,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -486,9 +388,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "uri"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -510,16 +410,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "kobe",
-              "lakers",
-              "lebron"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {}
-            ]
+            "bindings": []
           }
         }
       ]
@@ -538,9 +432,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "titanic"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -562,9 +454,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "uri"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -586,10 +476,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "university",
-              "founderCount"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -611,9 +498,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "partner"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -635,20 +520,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "averageSpouses"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "averageSpouses": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#int",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -667,9 +542,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "event"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -691,10 +564,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "verb",
-              "lemma"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -738,10 +608,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "country",
-              "winnerCount"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -763,9 +630,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "style"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -787,9 +652,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "uri"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []

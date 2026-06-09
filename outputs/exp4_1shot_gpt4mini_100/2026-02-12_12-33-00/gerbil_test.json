@@ -14,19 +14,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "person"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "person": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q42299"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]

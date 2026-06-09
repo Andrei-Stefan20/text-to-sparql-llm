@@ -43,14 +43,27 @@ sparql_client.addCustomHttpHeader(
 def execute_sparql(query):
     """
     Executes the query on Wikidata to get the actual bindings required by GERBIL.
+
+    Handles both SELECT queries (returning variable bindings) and ASK queries
+    (returning a boolean), as QALD/GERBIL evaluates the two answer types
+    differently.
     """
-    if not query or "SELECT" not in query.upper():
+    if not query:
+        return {"head": {"vars": []}, "results": {"bindings": []}}
+
+    query_upper = query.upper()
+    is_ask = "ASK" in query_upper and "SELECT" not in query_upper
+
+    if not is_ask and "SELECT" not in query_upper:
         return {"head": {"vars": []}, "results": {"bindings": []}}
 
     try:
         sparql_client.setQuery(query)
         return sparql_client.queryAndConvert()
     except Exception as e:
+        # Default depends on query type: ASK expects a boolean field.
+        if is_ask:
+            return {"head": {}, "boolean": False}
         return {"head": {"vars": []}, "results": {"bindings": []}}
 
 

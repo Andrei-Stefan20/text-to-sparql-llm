@@ -14,25 +14,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "person",
-              "personLabel"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "person": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q42299"
-                },
-                "personLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "Bernhard Riemann"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -51,10 +36,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "animal",
-              "animalLabel"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -76,9 +58,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "character"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -100,10 +80,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "founder",
-              "founderLabel"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -125,9 +102,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "work"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -149,19 +124,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "stockExchange"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "stockExchange": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q151139"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -180,10 +146,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "work",
-              "workLabel"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -205,10 +168,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "stateBrooke",
-              "stateColin"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -230,20 +190,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "boilingPoint"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "boilingPoint": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
-                  "type": "literal",
-                  "value": "99.9839"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -262,20 +212,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "schoolLabel"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "schoolLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "Kyoto City University of Arts"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -294,20 +234,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "highSchoolLabel"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "highSchoolLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "Eastside High School"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -326,9 +256,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "islandLabel"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -350,14 +278,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "game"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {}
-            ]
+            "bindings": []
           }
         }
       ]
@@ -376,20 +300,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -408,20 +322,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -440,9 +344,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "medal"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -464,9 +366,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "season"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -488,9 +388,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "award"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -512,26 +410,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "kobeDepartureDate",
-              "lebronJoinDate"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "kobeDepartureDate": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
-                  "type": "literal",
-                  "value": "2016-01-01T00:00:00Z"
-                },
-                "lebronJoinDate": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#dateTime",
-                  "type": "literal",
-                  "value": "2018-07-09T00:00:00Z"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -550,9 +432,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "movie"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -574,9 +454,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "statement"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -598,25 +476,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "university"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "university": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q1945756"
-                }
-              },
-              {
-                "university": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q7494378"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -635,9 +498,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "partner"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -659,20 +520,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "averageSpouses"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "averageSpouses": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#int",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -691,9 +542,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "event"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -715,10 +564,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "verb",
-              "lemma"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -740,10 +586,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "country",
-              "countryLabel"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -765,10 +608,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "country",
-              "winnerCount"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -790,19 +630,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "genre"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "genre": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q57143"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -821,9 +652,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "item"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -845,9 +674,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "competition"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -869,10 +696,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "year",
-              "lifeExpectancy"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -894,10 +718,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "population",
-              "time"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -919,9 +740,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "performance"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -943,19 +762,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "participation"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "participation": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q757405"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -974,20 +784,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "livingBrothers"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "livingBrothers": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1006,9 +806,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "mannerOfDeathLabel"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1030,9 +828,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "industryLabel"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1054,9 +850,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "turkishName"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1078,20 +872,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "height"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "height": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
-                  "type": "literal",
-                  "value": "157"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1110,9 +894,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "mandarinName"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1134,20 +916,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1166,20 +938,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "albumCount"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "albumCount": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "367"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1198,20 +960,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "albumCount"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "albumCount": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1230,20 +982,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "studioAlbumCount"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "studioAlbumCount": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1262,20 +1004,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1294,20 +1026,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1348,20 +1070,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "numberOfWorks"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "numberOfWorks": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1380,20 +1092,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "notableWorkCount"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "notableWorkCount": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "3"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1412,9 +1114,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "university"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1436,20 +1136,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "numberOfChildren"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "numberOfChildren": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "4"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1468,20 +1158,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "numberOfChildren"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "numberOfChildren": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "4"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1500,20 +1180,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "totalZodiacAnimals"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "totalZodiacAnimals": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1532,20 +1202,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "cityCount"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "cityCount": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1564,20 +1224,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1596,20 +1246,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "12"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1628,10 +1268,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "country",
-              "democracyIndex"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1653,20 +1290,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "26"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1685,20 +1312,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "626"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1739,20 +1356,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1771,20 +1378,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "emmyAwardsWon"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "emmyAwardsWon": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1803,20 +1400,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "filmCount"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "filmCount": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1835,20 +1422,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1867,20 +1444,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "givenNameCount"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "givenNameCount": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1899,20 +1466,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1931,20 +1488,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1963,20 +1510,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1995,20 +1532,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "population"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "population": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
-                  "type": "literal",
-                  "value": "105795"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2027,20 +1554,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2059,20 +1576,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "languageCount"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "languageCount": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "2"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2091,505 +1598,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "color"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "624"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "1252895"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28769887"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27500144"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27479593"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27596917"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27801526"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "15796844"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "25437472"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28037251"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "15232178"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "15404296"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "15557231"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "16738352"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "17699317"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "18919458"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "21403933"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27262346"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27280730"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27300981"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27343567"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27372011"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27375252"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27397605"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27420893"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27432480"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27476456"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27521499"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27530762"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27609103"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27637670"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27678234"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27689994"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27739062"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27739088"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27754498"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27754662"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27799618"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27807566"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27822035"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27854334"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27876469"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27952548"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27952567"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "27976906"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28017074"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28032540"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28033005"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28040215"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28044266"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28052818"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28114352"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28117096"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28133719"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28147462"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28163345"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28164614"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28180019"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28206535"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28227865"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28237400"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28250911"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28255063"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28261606"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28278571"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28285248"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28303760"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28357893"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28398283"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28475455"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28798526"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28814910"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28819101"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28822406"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28826109"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28851328"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28852215"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28861241"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "28953314"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "29012361"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "29069368"
-                }
-              },
-              {
-                "color": {
-                  "type": "literal",
-                  "value": "29224739"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2608,20 +1620,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "12"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2640,20 +1642,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "numberOfMonths"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "numberOfMonths": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2672,20 +1664,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2704,20 +1686,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2736,20 +1708,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2768,20 +1730,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "37"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2800,20 +1752,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "publicHolidaysCount"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "publicHolidaysCount": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "13"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2832,20 +1774,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "274"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2864,20 +1796,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "numberOfWorks"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "numberOfWorks": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2896,20 +1818,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "numberOfOccupations"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "numberOfOccupations": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "12"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2928,20 +1840,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2982,20 +1884,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "2"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -3014,20 +1906,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "oscarCount"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "oscarCount": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -3046,20 +1928,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "paintingCount"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "paintingCount": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "464"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -3078,9 +1950,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "maxPlayers"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -3102,20 +1972,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "numberOfVictims"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "numberOfVictims": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -3134,9 +1994,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "highestEstimate"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -3158,20 +2016,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "119"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -3190,11 +2038,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "city",
-              "cityLabel",
-              "totalPopulation"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -3216,20 +2060,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "21"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -3248,20 +2082,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -3280,20 +2104,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "numberOfPoems"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "numberOfPoems": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "3"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -3312,20 +2126,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -3344,37 +2148,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "position"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "position": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q212413"
-                }
-              },
-              {
-                "position": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q273199"
-                }
-              },
-              {
-                "position": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q308879"
-                }
-              },
-              {
-                "position": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q2302133"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -3393,20 +2170,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -3425,9 +2192,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "mission"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []

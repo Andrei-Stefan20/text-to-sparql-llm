@@ -1,0 +1,114 @@
+{
+  "questions": [
+    {
+      "id": "0",
+      "question": [
+        {
+          "string": "After whom is the Riemannian geometry named?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE { \n  wd:Q761383 wdt:P138 ?answer. \n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "question": [
+        {
+          "string": "Which animal participated in a military operation with the Australian Defence Force?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?operation WHERE { \n  wd:Q625657 wdt:P520 ?operation.\n}\nResult (4 steps remaining):\nNo results returned.\n\nStep 5 thought: \n  - CURRENT KNOWLEDGE: I have verified the entity for the Australian Defence Force (wd:Q625657) and found no results using properties P4220 (order of battle), P3460 (colonel-in-chief), P4624 (squadron embarked), and P520 (armament).\n  - UNKNOWN: I still need to find animals that participated in military operations with the Australian Defence Force. Since previous properties did not yield results, I will explore the possibility of military operations that might be linked to animals through other properties or entities.\n  - STRATEGY: I will check for military operations that the Australian Defence Force has been involved in using a property that might connect to military operations more broadly, such as P3156 (Australian Classification) or P1403 (original combination), to see if there are any relevant operations.\nRan query:\nSELECT ?operation WHERE { \n  wd:Q625657 wdt:P3156 ?operation.\n}\nResult (3 steps remaining):\nNo results returned.\n\nStep 6 thought: \n  - CURRENT KNOWLEDGE: I have verified the entity for the Australian Defence Force (wd:Q625657) and found no results using properties P4220 (order of battle), P3460 (colonel-in-chief), P4624 (squadron embarked), P520 (armament), and P3156 (Australian Classification).\n  - UNKNOWN: I still need to find animals that participated in military operations with the Australian Defence Force. Since previous properties did not yield results, I will explore the possibility of military operations that might be linked to animals through other properties or entities.\n  - STRATEGY: I will check for military operations that the Australian Defence Force has been involved in using a property that might connect to military operations more broadly, such as P2839 (gait) or P1403 (original combination), to see if there are any relevant operations.\nRan query:\nSELECT ?operation WHERE { \n  wd:Q625657 wdt:P1403 ?operation.\n}\nResult (2 steps remaining):\nNo results returned.\n\nStep 7 thought: \n  - CURRENT KNOWLEDGE: I have verified the entity for the Australian Defence Force (wd:Q625657) and found no results using properties P4220 (order of battle), P3460 (colonel-in-chief), P4624 (squadron embarked), P520 (armament), P3156 (Australian Classification), and P1403 (original combination).\n  - UNKNOWN: I still need to find animals that participated in military operations with the Australian Defence Force. Since previous properties did not yield results, I will explore the possibility of military operations that might be linked to animals through other properties or entities.\n  - STRATEGY: I will check for military operations that the Australian Defence Force has been involved in using a property that might connect to military operations more broadly, such as P4624 (squadron embarked) or P2839 (gait), to see if there are any relevant operations.\nRan query:\nSELECT ?operation WHERE { \n  wd:Q625657 wdt:P2839 ?operation.\n}\nResult (1 step remaining):\nNo results returned.\n\nStep 8 thought: \n  - CURRENT KNOWLEDGE: I have verified the entity for the Australian Defence Force (wd:Q625657) and found no results using properties P4220 (order of battle), P3460 (colonel-in-chief), P4624 (squadron embarked), P520 (armament), P3156 (Australian Classification), P1403 (original combination), and P2839 (gait).\n  - UNKNOWN: I still need to find animals that participated in military operations with the Australian Defence Force. Since previous properties did not yield results, I will explore the possibility of military operations that might be linked to animals through other properties or entities.\n  - STRATEGY: I will check for military operations that the Australian Defence Force has been involved in using a property that might connect to military operations more broadly, such as P4624 (squadron embarked) or P2839 (gait), to see if there are any relevant operations.\nFINAL_ANSWER:\nSELECT ?animal WHERE { \n  ?operation wdt:P4624 wd:Q625657; wdt:P2839 ?animal.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "question": [
+        {
+          "string": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q2492923 wdt:P451 wd:Q4205826.\n  wd:Q2492923 wdt:P451 wd:Q4463198.\n  BIND(wd:Q2492923 AS ?answer)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "question": [
+        {
+          "string": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?founder WHERE { \n  wd:Q860580 wdt:P112 ?founder. \n  ?founder wdt:P463 wd:Q200202. # Assuming wd:Q200202 is the QID for the National People's Congress\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "question": [
+        {
+          "string": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT present in the WHERE clause? (Must be YES)\nFINAL_ANSWER:\nSELECT ?answer WHERE {\n  ?work wdt:P31 wd:Q2052020;  # Instance of manga\n        rdfs:label \"Hunter x Hunter\"@en.\n  ?work wdt:P50 ?author.\n  ?author wdt:P50 ?answer.  # Assuming the author has other works\n  ?answer wdt:P921 ?middleSchoolConcept.  # Concept related to middle school students\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    }
+  ]
+}

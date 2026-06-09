@@ -14,19 +14,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "namedAfter"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "namedAfter": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q42299"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -45,10 +36,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "animal",
-              "militaryOperation"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -70,19 +58,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "character"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "character": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q2492923"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -101,9 +80,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "founder"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -125,9 +102,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "work"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -149,19 +124,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "stockExchange"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "stockExchange": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q151139"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -180,10 +146,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "notableWork",
-              "notableWorkLabel"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -205,9 +168,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "result"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -229,20 +190,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "boilingPoint"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "boilingPoint": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
-                  "type": "literal",
-                  "value": "99.9839"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -261,19 +212,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "school"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "school": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q749884"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -292,19 +234,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "highschool"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "highschool": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q14705485"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -323,61 +256,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "island"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "island": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q252"
-                }
-              },
-              {
-                "island": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q3757"
-                }
-              },
-              {
-                "island": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q10107"
-                }
-              },
-              {
-                "island": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q10109"
-                }
-              },
-              {
-                "island": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q10111"
-                }
-              },
-              {
-                "island": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q10113"
-                }
-              },
-              {
-                "island": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q10114"
-                }
-              },
-              {
-                "island": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q10116"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -396,10 +278,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "game",
-              "platform"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -421,9 +300,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "generalSecretary"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -467,10 +344,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "medal",
-              "event"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -492,10 +366,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "team",
-              "seasonsWon"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -517,9 +388,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "uri"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -541,44 +410,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "leaveDate",
-              "joinDate"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "leaveDate": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q8567"
-                },
-                "joinDate": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q8567"
-                }
-              },
-              {
-                "leaveDate": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q8577"
-                },
-                "joinDate": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q8577"
-                }
-              },
-              {
-                "leaveDate": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q178595"
-                },
-                "joinDate": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q178595"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -597,19 +432,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "director"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "director": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q2745616"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -628,10 +454,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "x",
-              "y"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -653,36 +476,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "university",
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "university": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q1945756"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "4"
-                }
-              },
-              {
-                "university": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q7494378"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "2"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -701,9 +498,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "partner"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -725,20 +520,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "averageSpouses"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "averageSpouses": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
-                  "type": "literal",
-                  "value": "2.5"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -757,9 +542,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "event"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -781,10 +564,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "verb",
-              "lemma"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -806,19 +586,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "country"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "country": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q145"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -837,10 +608,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "country",
-              "count"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -862,9 +630,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "genre"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -886,9 +652,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "uri"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -910,9 +674,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "winner"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -934,10 +696,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "year",
-              "lifeExpectancy"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -959,11 +718,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "population",
-              "time",
-              "previousPopulation"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -985,10 +740,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "item",
-              "itemLabel"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1054,9 +806,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "mannerOfDeath"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1078,9 +828,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "industry"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1102,9 +850,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "nameInTurkey"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1126,9 +872,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "height"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1150,9 +894,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "label"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1174,20 +916,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1294,20 +1026,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1326,10 +1048,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "year",
-              "count"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1351,20 +1070,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1383,20 +1092,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1415,10 +1114,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "university",
-              "workplace"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1550,20 +1246,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1582,9 +1268,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "country"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1694,191 +1378,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "award",
-              "awardLabel",
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "award": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q430910"
-                },
-                "awardLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "Hugo Award for Best Dramatic Presentation, Short Form"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              },
-              {
-                "award": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q989438"
-                },
-                "awardLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "Primetime Emmy Award for Outstanding Drama Series"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              },
-              {
-                "award": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q1286639"
-                },
-                "awardLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "Primetime Emmy Award for Outstanding Supporting Actor in a Drama Series"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              },
-              {
-                "award": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q2558222"
-                },
-                "awardLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "Screen Actors Guild Award for Outstanding Performance by a Stunt Ensemble in a Television Series"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              },
-              {
-                "award": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q3002949"
-                },
-                "awardLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "Critics' Choice Television Award for Best Drama Series"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              },
-              {
-                "award": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q7243504"
-                },
-                "awardLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "Primetime Emmy Award for Outstanding Costumes for a Series"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              },
-              {
-                "award": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q7243505"
-                },
-                "awardLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "Primetime Emmy Award for Outstanding Main Title Design"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              },
-              {
-                "award": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q7243513"
-                },
-                "awardLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "Primetime Emmy Award for Outstanding Special Visual Effects"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              },
-              {
-                "award": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q7669614"
-                },
-                "awardLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "TCA Award for Outstanding Achievement in Drama"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              },
-              {
-                "award": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q7669620"
-                },
-                "awardLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "TCA Award for Outstanding New Program"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              },
-              {
-                "award": {
-                  "type": "uri",
-                  "value": "http://www.wikidata.org/entity/Q7669624"
-                },
-                "awardLabel": {
-                  "xml:lang": "en",
-                  "type": "literal",
-                  "value": "TCA Award for Program of the Year"
-                },
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -1897,9 +1400,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "film"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -1943,20 +1444,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2019,20 +1510,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2051,20 +1532,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "population"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "population": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#decimal",
-                  "type": "literal",
-                  "value": "105795"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2127,20 +1598,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2181,9 +1642,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "months"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -2205,9 +1664,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "uri"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -2251,20 +1708,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "32"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2305,20 +1752,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "0"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2337,10 +1774,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "work",
-              "workLabel"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -2362,20 +1796,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "20"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2394,20 +1818,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "12"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2470,20 +1884,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "2"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2502,20 +1906,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "totalOscars"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "totalOscars": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "2"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2534,9 +1928,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "painting"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -2558,9 +1950,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "number"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -2582,20 +1972,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "count"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "count": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "1"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2614,11 +1994,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "item",
-              "itemLabel",
-              "max_number"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -2662,11 +2038,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "item",
-              "itemLabel",
-              "totalPopulation"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -2710,11 +2082,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "work",
-              "workLabel",
-              "count"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []
@@ -2780,20 +2148,10 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "positions"
-            ]
+            "vars": []
           },
           "results": {
-            "bindings": [
-              {
-                "positions": {
-                  "datatype": "http://www.w3.org/2001/XMLSchema#integer",
-                  "type": "literal",
-                  "value": "4"
-                }
-              }
-            ]
+            "bindings": []
           }
         }
       ]
@@ -2834,9 +2192,7 @@
       "answers": [
         {
           "head": {
-            "vars": [
-              "spaceMission"
-            ]
+            "vars": []
           },
           "results": {
             "bindings": []

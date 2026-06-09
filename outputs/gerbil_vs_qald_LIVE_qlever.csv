@@ -1,0 +1,5 @@
+experiment,timestamp,count,precision,recall,f1,exact_match_rate,exact_matches,missing_in_gold,path
+exp1_cot_gpt4_100,2026-02-11_20-52-40,100,0.2133,0.2125,0.209,0.2,20,0,outputs\exp1_cot_gpt4_100\2026-02-11_20-52-40\gerbil_test.json
+exp1_cot_gpt4_394,2026-02-17_17-08-54,394,0.2064,0.223,0.2062,0.1751,69,0,outputs\exp1_cot_gpt4_394\2026-02-17_17-08-54\gerbil_test.json
+exp1_cot_gpt4mini,2026-02-09_17-51-40,30,0.1444,0.1417,0.13,0.1,3,0,outputs\exp1_cot_gpt4mini\2026-02-09_17-51-40\gerbil_test.json
+exp1_cot_gpt4mini_100,2026-02-11_18-02-40,100,0.1733,0.1725,0.169,0.16,16,0,outputs\exp1_cot_gpt4mini_100\2026-02-11_18-02-40\gerbil_test.json

@@ -1,0 +1,224 @@
+{
+  "questions": [
+    {
+      "id": "0",
+      "question": [
+        {
+          "string": "After whom is the Riemannian geometry named?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?item ?itemLabel WHERE { wd:Q761383 p:P138 ?statement. ?statement ps:P138 ?item. SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "question": [
+        {
+          "string": "Which animal participated in a military operation with the Australian Defence Force?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?item ?itemLabel\nWHERE\n{\n  ?item wdt:P31 wd:Q729 .\n  ?item p:P4624 ?statement .\n  ?statement ps:P4624 wd:Q625657 .\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "question": [
+        {
+          "string": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?entity ?entityLabel\nWHERE\n{\n  ?entity wdt:P451 wd:Q4205826 .\n  ?entity wdt:P451 wd:Q4463198 .\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "question": [
+        {
+          "string": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?founder ?party WHERE {\n  wd:Q8797 wdt:P112 ?founder .\n  ?founder wdt:P102 ?party .\n  ?founder wdt:P39 wd:Q169658 .\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "question": [
+        {
+          "string": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?work ?workLabel\nWHERE {\n  ?author wdt:P50 ?work .\n  ?work wdt:P50 ?author .\n  ?author wdt:P50 wd:Q216476 .\n  ?work wdt:P31 wd:Q47461344 .\n  ?work wdt:P921 ?theme .\n  ?theme wdt:P31 wd:Q207627 .\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "question": [
+        {
+          "string": "On which stock exchanges are Siemens AG shares traded?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?stockExchange ?stockExchangeLabel WHERE { wd:Q81230 p:P414 ?statement . ?statement ps:P414 ?stockExchange . SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" } }"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "question": [
+        {
+          "string": "Apart from the book series the witcher, name all of the author\u2019s notable work.",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?work ?workLabel\nWHERE\n{\n  ?author wdt:P50 ?book .\n  ?book wdt:P6333 ?work .\n  FILTER NOT EXISTS { ?book wdt:P6333 \"The Witcher\" . }\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\" }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "question": [
+        {
+          "string": "are brooke raboutou and colin duffy from same state of the usa?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?brookeState ?colinState WHERE {\n  wd:Q105750609 wdt:P19 ?brookeBirthplace.\n  wd:Q105750609 wdt:P131 ?brookeState.\n  wd:Q105750608 wdt:P19 ?colinBirthplace.\n  wd:Q105750608 wdt:P131 ?colinState.\n  FILTER (?brookeState = ?colinState)\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "question": [
+        {
+          "string": "What is the boiling point of water?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?boilingPoint WHERE {\n  wd:Q283 wikidata:P2102 ?boilingPoint\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "question": [
+        {
+          "string": "At which school was Yayoi Kusama educated at?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?item ?itemLabel\nWHERE\n{\n  wd:Q231121 wdt:P69 ?item.\n  SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". }\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    }
+  ]
+}

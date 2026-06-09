@@ -1,0 +1,114 @@
+{
+  "questions": [
+    {
+      "id": "0",
+      "question": [
+        {
+          "string": "After whom is the Riemannian geometry named?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q761383 wdt:P138 ?answer.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "question": [
+        {
+          "string": "Which animal participated in a military operation with the Australian Defence Force?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT DISTINCT ?animal ?operation WHERE {\n  ?operation wdt:P31 wd:Q198. # Q198 represents \"military operation\"\n  ?operation wdt:P710 wd:Q625657. # Australian Defence Force as participant\n  ?operation wdt:P710 ?animal. # Animal as participant\n  ?animal wdt:P31 wd:Q127161923. # Ensure the participant is an animal\n}\nLIMIT 10"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "question": [
+        {
+          "string": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  ?answer wdt:P451 wd:Q4463198;  # Triss Merigold\n          wdt:P451 wd:Q4205826.  # Yennefer of Vengerberg\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "question": [
+        {
+          "string": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT DISTINCT ?founder WHERE {\n  wd:Q860580 wdt:P112 ?founder. # Founders of Tencent\n  ?founder wdt:P102 ?party. # Member of a political party\n  ?party wdt:P463 wd:Q19211. # Political party is part of National People's Congress\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "question": [
+        {
+          "string": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT DISTINCT ?answer WHERE {\n  ?answer wdt:P50 wd:Q550311;  # Works authored by Yoshihiro Togashi\n          wdt:P921 ?subject.   # Main subject of the work\n  ?subject rdfs:label \"middle school student\"@en.  # Filter for \"middle school students\"\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    }
+  ]
+}

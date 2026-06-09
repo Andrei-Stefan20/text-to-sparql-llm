@@ -1,0 +1,114 @@
+{
+  "questions": [
+    {
+      "id": "0",
+      "question": [
+        {
+          "string": "After whom is the Riemannian geometry named?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q761383 wdt:P138 ?answer.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "question": [
+        {
+          "string": "Which animal participated in a military operation with the Australian Defence Force?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT DISTINCT ?animal ?animalLabel WHERE {\n  ?animal wdt:P31 wd:Q16521; # Instance of animal\n          wdt:P361 ?operation. # Part of a military operation\n  ?operation wdt:P710 wd:Q625657. # Involves the Australian Defence Force\n  ?animal rdfs:label ?animalLabel.\n  FILTER(LANG(?animalLabel) = \"en\")\n}\nLIMIT 50"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "question": [
+        {
+          "string": "among the characters in the witcher, who has two unmarried partners, Yennefer of Vengerberg and Triss Merigold?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  ?answer wdt:P451 wd:Q4463198.\n  ?answer wdt:P451 wd:Q4205826.\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "question": [
+        {
+          "string": "among the founders of tencent company, who has been member of national people\u2019s congress?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q860580 wdt:P112 ?founder. # Tencent's founders\n  ?founder wdt:P102 wd:Q19211. # Member of National People's Congress\n  ?founder rdfs:label ?answer.\n  FILTER(LANG(?answer) = \"en\").\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "question": [
+        {
+          "string": "among the other representative work of the author of hunter x hunter, which one is talking about middle school student?",
+          "language": "en"
+        }
+      ],
+      "query": {
+        "sparql": "SELECT ?answer WHERE {\n  wd:Q550311 wdt:P800 ?answer. # Find representative works of the author\n  ?answer schema:description ?description. # Check descriptions of the works\n  FILTER(CONTAINS(?description, \"middle school student\")). # Filter for relevant topic\n  FILTER(LANG(?description) = \"en\"). # Ensure the description is in English\n}"
+      },
+      "answers": [
+        {
+          "head": {
+            "vars": []
+          },
+          "results": {
+            "bindings": []
+          }
+        }
+      ]
+    }
+  ]
+}
