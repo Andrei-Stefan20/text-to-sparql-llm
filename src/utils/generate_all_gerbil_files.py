@@ -16,28 +16,43 @@ Implementation:
 
 import glob
 import json
+import logging
 import os
+import re
 import time
-from datetime import datetime
+import urllib.error
 
 from SPARQLWrapper import JSON, SPARQLWrapper
-from tqdm import tqdm
 
-#  CONFIGURATION 
+from src.evaluation.evaluate_gerbil_vs_qald import prepare_query
+from src.utils.progress import console, make_progress
+
+logger = logging.getLogger(__name__)
+
+#  CONFIGURATION
 ROOT_DIR = "outputs"
 INPUT_FILENAME = "results_full.json"
 OUTPUT_FILENAME = "gerbil_test.json"
-WIKIDATA_ENDPOINT = "https://query.wikidata.org/sparql"
-WIKIDATA_ENDPOINT = os.getenv("SPARQL_ENDPOINT_URL", WIKIDATA_ENDPOINT)
+WIKIDATA_ENDPOINT = os.getenv(
+    "SPARQL_ENDPOINT_URL", "https://query.wikidata.org/sparql"
+)
+QUERY_TIMEOUT = 30
+INTER_QUERY_DELAY = 0.1
+RATE_LIMIT_RETRIES = 4
+RATE_LIMIT_BASE_SLEEP = 2.0
+
+EMPTY_SELECT = {"head": {"vars": []}, "results": {"bindings": []}}
+EMPTY_ASK = {"head": {}, "boolean": False}
+
+# Word-boundary matches so e.g. a variable named ?task is not mistaken for ASK.
+_ASK_RE = re.compile(r"\bASK\b", re.IGNORECASE)
+_SELECT_RE = re.compile(r"\bSELECT\b", re.IGNORECASE)
 
 # SPARQL Client Configuration
 sparql_client = SPARQLWrapper(WIKIDATA_ENDPOINT)
 sparql_client.setReturnFormat(JSON)
-sparql_client.setTimeout(5)
-
-sparql_client.addCustomHttpHeader(
-    "User-Agent", "PhD-Thesis-Bot/1.0 (contact: your_email@example.com)"
-)
+sparql_client.setTimeout(QUERY_TIMEOUT)
+sparql_client.addCustomHttpHeader("User-Agent", "TextToSparqlEvaluator/1.0")
 
 
 def execute_sparql(query):
@@ -46,25 +61,32 @@ def execute_sparql(query):
 
     Handles both SELECT queries (returning variable bindings) and ASK queries
     (returning a boolean), as QALD/GERBIL evaluates the two answer types
-    differently.
+    differently. Retries with exponential back-off on HTTP 429; on any other
+    failure returns the type-appropriate empty result.
     """
     if not query:
-        return {"head": {"vars": []}, "results": {"bindings": []}}
+        return EMPTY_SELECT
 
-    query_upper = query.upper()
-    is_ask = "ASK" in query_upper and "SELECT" not in query_upper
+    is_ask = bool(_ASK_RE.search(query)) and not _SELECT_RE.search(query)
+    if not is_ask and not _SELECT_RE.search(query):
+        return EMPTY_SELECT
 
-    if not is_ask and "SELECT" not in query_upper:
-        return {"head": {"vars": []}, "results": {"bindings": []}}
+    prepared = prepare_query(query)
+    for attempt in range(RATE_LIMIT_RETRIES + 1):
+        try:
+            sparql_client.setQuery(prepared)
+            return sparql_client.queryAndConvert()
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < RATE_LIMIT_RETRIES:
+                time.sleep(RATE_LIMIT_BASE_SLEEP * (2**attempt))
+                continue
+            logger.debug("Query failed (HTTP %s): %.120s", e.code, prepared)
+            break
+        except Exception as e:
+            logger.debug("Query failed (%s): %.120s", type(e).__name__, prepared)
+            break
 
-    try:
-        sparql_client.setQuery(query)
-        return sparql_client.queryAndConvert()
-    except Exception as e:
-        # Default depends on query type: ASK expects a boolean field.
-        if is_ask:
-            return {"head": {}, "boolean": False}
-        return {"head": {"vars": []}, "results": {"bindings": []}}
+    return EMPTY_ASK if is_ask else EMPTY_SELECT
 
 
 def convert_single_file(file_path):
@@ -76,7 +98,7 @@ def convert_single_file(file_path):
     exp_name = path_parts[-3]
     timestamp = path_parts[-2]
 
-    print(f"\n>>> Processing: [{exp_name}] - {timestamp}")
+    console.print(f"\n[bold]>>> Processing:[/] \\[{exp_name}] - {timestamp}")
 
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -88,29 +110,31 @@ def convert_single_file(file_path):
         elif isinstance(data, list):
             items = data
         else:
-            print(f">>> Unrecognized format in {file_path}, skipping.")
+            console.print(f"[yellow]>>> Unrecognized format in {file_path}, skipping.[/]")
             return
 
         qald_questions = []
 
-        # Progress bar for queries in this file
-        for item in tqdm(items, desc=f"Querying Wikidata for {timestamp}", unit="q"):
-            q_id = str(item.get("id", "0"))
-            question_text = item.get("question", "")
-            generated_sparql = item.get("generated_sparql", "")
+        with make_progress() as progress:
+            bar = progress.add_task(f"Querying Wikidata ({timestamp})", total=len(items))
+            for item in items:
+                q_id = str(item.get("id", "0"))
+                question_text = item.get("question", "")
+                generated_sparql = item.get("generated_sparql", "")
 
-            # Execute query to get real answers
-            answers = execute_sparql(generated_sparql)
-            time.sleep(0.1)  # Riduciamo un po' l'attesa visto che abbiamo il timeout
+                # Execute query to get real answers
+                answers = execute_sparql(generated_sparql)
+                time.sleep(INTER_QUERY_DELAY)
 
-            # Construct QALD object
-            qald_entry = {
-                "id": q_id,
-                "question": [{"string": question_text, "language": "en"}],
-                "query": {"sparql": generated_sparql},
-                "answers": [answers],  # GERBIL expects a list of result objects
-            }
-            qald_questions.append(qald_entry)
+                # Construct QALD object
+                qald_entry = {
+                    "id": q_id,
+                    "question": [{"string": question_text, "language": "en"}],
+                    "query": {"sparql": generated_sparql},
+                    "answers": [answers],  # GERBIL expects a list of result objects
+                }
+                qald_questions.append(qald_entry)
+                progress.advance(bar)
 
         # Final structure
         final_json = {"questions": qald_questions}
@@ -121,10 +145,10 @@ def convert_single_file(file_path):
         with open(output_path, "w", encoding="utf-8") as out_f:
             json.dump(final_json, out_f, indent=2)
 
-        print(f"Created: {output_path}")
+        console.print(f"[green]Created:[/] {output_path}")
 
     except Exception as e:
-        print(f"Error processing {file_path}: {e}")
+        console.print(f"[red]Error processing {file_path}: {e}[/]")
 
 
 def main():
@@ -133,10 +157,10 @@ def main():
     found_files = glob.glob(search_pattern)
 
     if not found_files:
-        print("No files found. Check that the 'outputs' folder exists.")
+        console.print("No files found. Check that the 'outputs' folder exists.")
         return
 
-    print(f"Found {len(found_files)} experiments to process.")
+    console.print(f"Found [bold]{len(found_files)}[/] experiments to process.")
 
     for file_path in found_files:
         convert_single_file(file_path)

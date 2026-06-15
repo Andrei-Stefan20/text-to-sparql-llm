@@ -13,14 +13,14 @@ Features:
 Implementation:
 - Executes entity linking in a thread pool to avoid blocking.
 - Uses `SPARQLValidator` for query validation and correction.
-- Logs detailed progress using `tqdm`.
+- Shows live progress (bar, ETA) via `rich`.
 """
 
 import asyncio
+import json
 import logging
+import os
 from typing import Any, Dict, List, Optional
-
-from tqdm.asyncio import tqdm
 
 from src.clients.base import BaseClient
 from src.components.entity_linker import BaseLinker, LinkedEntity
@@ -29,8 +29,12 @@ from src.components.query_validator import (CorrectionResult,
                                             SelfCorrectionLoop,
                                             SPARQLValidator)
 from src.components.rag_retriever import RagRetriever
+from src.utils.progress import track_async
 
 logger = logging.getLogger(__name__)
+
+PARTIAL_SAVE_EVERY = 50
+PARTIAL_SAVE_PATH = os.path.join("outputs", "partial_latest.json")
 
 
 class BatchRunner:
@@ -264,9 +268,23 @@ class BatchRunner:
         """
         Processes all items concurrently and returns a list of result dicts.
         Guarantees no None values in the returned list.
+
+        Every PARTIAL_SAVE_EVERY completed items the results so far are dumped
+        to PARTIAL_SAVE_PATH, so a crash mid-run never loses the whole batch.
         """
         tasks = [self._process_item(item, linker, retriever) for item in dataset]
-        results = await tqdm.gather(*tasks, desc="Processing")
+
+        def _maybe_save_partial(completed: int, partial: List[Optional[Dict]]) -> None:
+            if completed % PARTIAL_SAVE_EVERY != 0 or completed == len(tasks):
+                return
+            os.makedirs(os.path.dirname(PARTIAL_SAVE_PATH), exist_ok=True)
+            done = [r for r in partial if r is not None]
+            with open(PARTIAL_SAVE_PATH, "w", encoding="utf-8") as f:
+                json.dump(done, f, indent=2)
+
+        results = await track_async(
+            tasks, description="Generazione SPARQL", on_progress=_maybe_save_partial
+        )
 
         # Safety net: filter any residual None (should never happen after the fix)
         valid = [r for r in results if r is not None]
@@ -275,14 +293,5 @@ class BatchRunner:
                 f"{len(results) - len(valid)} items returned None — "
                 "this should not happen after the exception handler fix."
             )
-
-        # Periodic partial save every 50 items
-        import json
-        import os
-
-        os.makedirs("outputs", exist_ok=True)
-        if len(valid) >= 50:
-            with open(f"outputs/partial_{len(valid)}.json", "w") as f:
-                json.dump(valid, f, indent=2)
 
         return valid

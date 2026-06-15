@@ -12,14 +12,13 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
-from tqdm.asyncio import tqdm
-
 from src.clients.base import BaseClient
 from src.components.agentic_runner import (AgenticSPARQLRunner, AgentResult,
                                            WikidataTool)
 from src.components.entity_linker import BaseLinker, LinkedEntity
 from src.components.rag_retriever import RagRetriever
 from src.components.schema_retriever import SchemaRetriever
+from src.utils.progress import track_async
 
 logger = logging.getLogger(__name__)
 
@@ -197,5 +196,5 @@ class AgenticBatchRunner:
         retriever: RagRetriever,
     ) -> List[Dict]:
         tasks = [self._process_item(item, linker, retriever) for item in dataset]
-        results = await tqdm.gather(*tasks, desc="Agentic Processing")
+        results = await track_async(tasks, description="Agentic Processing")
         return [r for r in results if r is not None]

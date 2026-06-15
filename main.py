@@ -38,7 +38,6 @@ from src.components.prompt_builder import PromptBuilder
 from src.components.rag_retriever import RagRetriever
 from src.components.schema_retriever import SchemaRetriever
 from src.data.loader import DatasetLoader
-from src.evaluation.metrics import OfflineEvaluator
 from src.pipelines.batch_runner import BatchRunner
 from src.utils.logging_utils import ExperimentLogger, generate_run_name
 
@@ -163,12 +162,8 @@ def main(cfg: DictConfig):
 
         results = asyncio.run(runner.run(dataset, linker, retriever))
 
-        # 5. Evaluation & Reporting
-        # logger.info("Computing offline evaluation metrics...")
-
-        # metrics = OfflineEvaluator.compute_metrics(results)
-        # logger.info(f"Final Metrics: {metrics}")
-
+        # 5. Reporting. Metrics are computed separately by
+        # `python -m src.evaluation.evaluate_gerbil_vs_qald --reexecute`.
         logger.info(
             f"Completed. {len(results)} items processed. Evaluation use GERBIL externally."
         )
